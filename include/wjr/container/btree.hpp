@@ -3,71 +3,28 @@
 
 /**
  * @file btree.hpp
- * @brief B+ tree implementation with configurable node size.
+ * @brief B+ tree engine with a compile-time slot capacity in [4, 64].
  *
- * @details The multiset/multimap/set/map adapter has not been implemented yet.
- * Only use when key is trivial. Otherwise, this maybe won't faster than
- * std::map because its search complexity is O((k - 1) * (log n / log k)).
+ * @details The btree_map/set and multimap/multiset adapters share this engine.
+ * NodeSize == 0 selects capacity from the stored slot types, which are at most
+ * eight bytes on ordinary x64 targets, giving the existing default of 16.
+ * Small trivial keys/values are inline; other values are stored by pointer.
+ * Maps can therefore allocate each value separately from the tree nodes.
  *
- * Features:
- * - SSO (Small Size Optimization) for small containers
- * - Configurable node_size (default: auto-selected based on key size)
- * - Optimized search algorithms for different node sizes:
- *   * Linear search with step=2 for node_size <= 16 (better average case)
- *   * Binary search for node_size > 16
- * - Standard 50-50 split strategy (balanced performance)
- * - Inline key/value optimization for small types
+ * The first two slots use storage inside the tree object. This avoids node
+ * allocation, but indirect values still require separate allocations. A third
+ * element creates an allocated leaf. Nodes use the same capacity for leaves and
+ * inner separators, not a shared byte limit. Experimental byte configuration is
+ * available separately in <wjr/container/experimental/byte_btree.hpp>.
  *
- * Usage examples:
- * ```cpp
- * // Auto node_size (recommended for best performance)
- * btree_set<int> set1;                    // node_size = 16 (int is 4 bytes)
- * btree_map<int, std::string> map1;      // node_size = 16
+ * @note Insertion and deletion can invalidate iterators and references. Operations
+ * declared noexcept terminate if a comparator, allocator or value operation
+ * throws. These containers do not promise std::map/set exception guarantees or
+ * reference stability. Capacity and key type alone do not establish a performance
+ * advantage over the standard containers; measure the intended workload.
  *
- * // Custom node_size
- * using my_traits = btree_traits<int, void, false, std::less<>, std::allocator<char>, 32>;
- * basic_btree<my_traits> set2;           // node_size = 32
- *
- * // For different key sizes:
- * btree_set<int64_t> set3;               // auto: node_size = 16 (key <= 8 bytes)
- * btree_set<std::array<int, 10>> set4;   // auto: node_size = 8  (key <= 32 bytes)
- * btree_set<std::array<int, 100>> set5;  // auto: node_size = 4  (key > 32 bytes)
- * ```
- *
- * Performance tuning:
- * - Small keys (int, pointer): use node_size = 16 or 32
- * - Medium keys (small structs): use node_size = 8 or 16
- * - Large keys (large structs): use node_size = 4 or 8
- * - Sequential inserts: benefits from optimized 60-40 split
- * - Random inserts/deletes: works well with default settings
- *
- * For type:
- * ```cpp
- * struct node {
- *     btree_set<node> set;
- * };
- * ```
- * You need to specialization is_complete and inherited from std::false_type.
- *
- * @note Insertion and deletion may cause iterators to fail.
- *
- * @todo
- * 1. Erase a range with optimization.
- * 2. Construct with a range with optimization.
- * 3. Merge with optimization.
- * 4. [x] Code size optimization.
- * 5. GCC(low version) optimization on unpacked struct failed?
- * 6. Clang optimization on memcpy is so stupid.
- * 7. MSVC bug on memcpy order
- * (https://developercommunity.visualstudio.com/t/incorrect-memcpy-optimization/1151407).
- * 8. [x] Optimization on small size.
- * 9. Use a simple GC-arena to optimiza memory usage.
- * 10. [x] Configurable node_size through template parameter.
- * 11. [x] Optimized split strategy for better insert performance.
- *
- * @version 0.4
- * @date 2025-10-04
- *
+ * @note Recursive/incomplete key declarations can specialize wjr::is_complete to
+ * std::false_type, as required by the existing indirect-key trait path.
  */
 
 #include <concepts>
@@ -454,6 +411,15 @@ public:
     alignas(16) ivalue_type m_values[0];
 #endif
 };
+
+namespace btree_detail {
+/** @brief Exact allocation storage shared by the tree and its layout diagnostics. */
+template <typename Traits>
+struct alignas(typename Traits::leaf_node_type) leaf_storage {
+    unsigned char bytes[sizeof(typename Traits::leaf_node_type) +
+                        sizeof(typename Traits::ivalue_type) * Traits::node_size];
+};
+} // namespace btree_detail
 
 template <typename Traits>
 class btree_root_node {
@@ -1015,10 +981,7 @@ public:
     }
 
 protected:
-    /// @brief Storage for a leaf header and its trailing values, with the leaf's alignment.
-    struct alignas(leaf_node_type) _Leaf_storage {
-        unsigned char bytes[sizeof(leaf_node_type) + sizeof(ivalue_type) * Traits::node_size];
-    };
+    using _Leaf_storage = btree_detail::leaf_storage<Traits>;
 
     template <typename T>
     T *_allocate_object() noexcept {
