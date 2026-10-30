@@ -15,9 +15,8 @@ sys.path.insert(0, str(ROOT))
 
 from wjr_profiler.__main__ import PROVIDERS, main
 from wjr_profiler.adapters.curl_json import decode_raw, import_artifact
-from wjr_profiler.bundle import import_bundle, load_bundle
+from wjr_profiler.bundle import load_bundle
 from wjr_profiler.compare import compare
-from wjr_profiler.curl_report import summarize_requests
 from wjr_profiler.model import summarize
 
 FIXTURE = ROOT / "tests/fixtures/curl"

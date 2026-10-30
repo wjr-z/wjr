@@ -34,13 +34,13 @@ class Handler(BaseHTTPRequestHandler):
         self.close_connection = True
 
 
-def capture(curl, output):
+def capture(output):
     output.mkdir(parents=True, exist_ok=False)
-    version = subprocess.check_output([curl, "--version"]).decode().strip()
+    version = subprocess.check_output(["C:/Windows/System32/curl.exe", "--version"], timeout=10).decode().strip()
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    provenance = dict(real=True, curl_binary=str(Path(curl).resolve()), curl_version=version,
+    provenance = dict(real=True, curl_binary="C:/Windows/System32/curl.exe", curl_version=version,
                       platform=platform.platform(), python=platform.python_version(),
                       scope="owned localhost HTTP/1.1 server; one independent curl process per record",
                       header_delay_seconds=0.015, body_chunk_delay_seconds=0.025,
@@ -50,15 +50,14 @@ def capture(curl, output):
             raw, errors, processes = bytearray(), bytearray(), []
             for line in range(1, count + 1):
                 url = f"http://127.0.0.1:{server.server_port}/{name}"
-                argv = [curl, "--disable", "--http1.1", "--silent", "--show-error",
+                result = subprocess.run(["C:/Windows/System32/curl.exe", "--disable", "--http1.1", "--silent", "--show-error",
                         "--noproxy", "*", "--proxy", "", "--no-location", "--retry", "0",
                         "--max-time", "5", "--header", "Connection: close", "--output", os.devnull,
-                        "--write-out", "%{json}\\n", url]
-                result = subprocess.run(argv, capture_output=True, timeout=10)
+                        "--write-out", "%{json}\\n", url], capture_output=True, timeout=10)
                 json.loads(result.stdout)
                 raw.extend(result.stdout)
                 errors.extend(result.stderr)
-                processes.append(dict(line=line, argv=argv, exit_status=result.returncode))
+                processes.append(dict(line=line, argv=result.args, exit_status=result.returncode))
             (output / (name + ".jsonl")).write_bytes(raw)
             (output / (name + ".stderr.txt")).write_bytes(errors)
             provenance["captures"].append(dict(name=name, processes=processes,
@@ -72,7 +71,8 @@ def capture(curl, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--curl", required=True, help="explicit producer binary")
+    parser.add_argument("--producer", choices=("windows-system-curl",), required=True,
+                        help="explicit fixed producer profile; arbitrary executable paths are not accepted")
     parser.add_argument("--out", required=True, help="new output directory")
     args = parser.parse_args()
-    capture(args.curl, Path(args.out))
+    capture(Path(args.out))

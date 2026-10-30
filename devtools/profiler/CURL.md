@@ -77,13 +77,17 @@ real fixtures preserve a partial 64-byte response (curl exit 18) and an unfollow
 302 response. Request/response bodies and header contents are not retained;
 JSONL includes native write-out URL, address, byte-count and timestamp metadata.
 
-Reproduce into a new directory using an explicitly selected curl binary:
+Reproduce on Windows into a new directory using the explicit fixed producer
+profile (the system binary is `C:/Windows/System32/curl.exe`):
 
 ```sh
-python examples/curl_localhost.py --curl /explicit/path/to/curl --out build/curl-capture
+python examples/curl_localhost.py --producer windows-system-curl \
+  --out build/curl-capture
 ```
 
-This helper only accesses its own localhost server; it is not a general URL
+The helper does not accept arbitrary executable paths. Offline import works on
+Linux and Windows; this reproducer uses the verified Windows system binary.
+It only accesses its own localhost server; it is not a general URL
 collector. It disables curl configuration files, retries, redirect following and
 proxy use, requests HTTP/1.1, discards the body and captures native JSON plus stderr.
 No collection is run by the offline test suite. To import new evidence, prepare an
