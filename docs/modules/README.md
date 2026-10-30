@@ -178,6 +178,8 @@ OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和
 `wjr/container/btree_map.hpp` 和 `wjr/container/btree_set.hpp` 提供 B-tree 容器；
 使用透明比较器时可借用 `string_view` 查询 string 键，见[透明查询示例与合同](../design/btree-transparent-lookup.md)。
 
+显式 allocator 实例与 PMR pool/monotonic resource 的使用方式见[B-tree 资源示例](../design/btree-allocator-resources.md)。
+
 ## 使用方式
 
 在 WJR 已作为子目录加入项目，或通过安装包 `find_package(wjr CONFIG REQUIRED)` 找到后，链接模块 alias：
