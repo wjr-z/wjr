@@ -36,7 +36,7 @@ namespace wjr {
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int c) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
-    return hi << c | lo >> (digits - c);
+    return c == 0 ? hi : hi << c | lo >> (digits - c);
 }
 
 /**
@@ -55,7 +55,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR T shld(T hi, T lo, unsigned int c) noexcept {
 template <typename T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR T shrd(T lo, T hi, unsigned int c) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
-    return lo >> c | hi << (digits - c);
+    return c == 0 ? lo : lo >> c | hi << (digits - c);
 }
 
 template <typename T>
