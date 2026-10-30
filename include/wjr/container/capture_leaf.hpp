@@ -1,6 +1,7 @@
 #ifndef WJR_CONTAINER_CAPTURE_LEAF_HPP__
 #define WJR_CONTAINER_CAPTURE_LEAF_HPP__
 
+#include <concepts>
 #include <tuple>
 
 #include <wjr/container/container_of.hpp>
@@ -9,6 +10,23 @@
 #include <wjr/type_traits.hpp>
 
 namespace wjr {
+
+namespace product_detail {
+
+/** @brief Preserve product storage construction admission without requiring noexcept destruction.
+ */
+template <typename T, typename... Args>
+concept constructible_from = std::is_constructible_v<T, Args...>;
+
+/** @brief Admit the same default initialization forms as the storage traits. */
+template <typename T>
+concept default_constructible = std::is_default_constructible_v<T>;
+
+/** @brief Preserve the library swap trait used by product types. */
+template <typename T>
+concept swappable = is_swappable_v<T>;
+
+} // namespace product_detail
 
 /**
  * @class capture_leaf
@@ -26,15 +44,16 @@ class capture_leaf : enable_special_members_of_args_base<Tag, T> {
 public:
     using value_type = T;
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <product_detail::default_constructible Ty = T>
     constexpr capture_leaf() noexcept(std::is_nothrow_constructible_v<T>)
         : Mybase(enable_default_constructor), m_value() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args>
+    requires product_detail::constructible_from<T, Args...>
     constexpr capture_leaf(Args &&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
         : Mybase(enable_default_constructor), m_value(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <product_detail::default_constructible Ty = T>
     constexpr explicit capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>)
         : Mybase(enable_default_constructor) {}
@@ -80,15 +99,16 @@ class compressed_capture_leaf : T {
 public:
     using value_type = T;
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <product_detail::default_constructible Ty = T>
     constexpr compressed_capture_leaf() noexcept(std::is_nothrow_constructible_v<T>) : Mybase() {}
 
-    template <typename... Args, WJR_REQUIRES(std::is_constructible_v<T, Args...>)>
+    template <typename... Args>
+    requires product_detail::constructible_from<T, Args...>
     constexpr compressed_capture_leaf(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
         : Mybase(std::forward<Args>(args)...) {}
 
-    template <typename Ty = T, WJR_REQUIRES(std::is_default_constructible_v<Ty>)>
+    template <product_detail::default_constructible Ty = T>
     constexpr explicit compressed_capture_leaf(default_construct_t) noexcept(
         std::is_nothrow_default_constructible_v<T>) {}
 
@@ -195,6 +215,18 @@ inline constexpr bool _is_tuple_test_v = _is_tuple_test<Test, LP, RP>::value;
 /// @private
 template <typename T, typename U>
 struct _is_tuple_assignable : std::is_assignable<T &, U> {};
+
+namespace product_detail {
+
+/** @brief Test tuple construction lazily, including tuple size and get availability. */
+template <typename Source, typename Destination>
+concept tuple_constructible_to = _is_tuple_test_v<std::is_constructible, Destination, Source &&>;
+
+/** @brief Test assignment through each destination element reference. */
+template <typename Source, typename Destination>
+concept tuple_assignable_to = _is_tuple_test_v<_is_tuple_assignable, Destination, Source &&>;
+
+} // namespace product_detail
 
 } // namespace wjr
 
