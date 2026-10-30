@@ -51,3 +51,32 @@ source ring. The operation never moves the source sentinel.
 These additions preserve existing low-level contracts: `remove()` does not reset
 the removed node's links, and construction with `default_construct_t` does not
 initialize links. Initialize a ring before using it as a source or destination.
+
+## Independent tagged hooks
+
+An object can inherit multiple `list_node<T, Tag>` or `hlist_node<T, Tag>` hooks.
+Each tag identifies a separate base and iterator type. Select the hook explicitly
+when linking an object into several queues:
+
+```cpp
+struct ready_tag {};
+struct timer_tag {};
+struct task;
+using ready_hook = wjr::intrusive::list_node<task, ready_tag>;
+using timer_hook = wjr::intrusive::list_node<task, timer_tag>;
+struct task : ready_hook, timer_hook {};
+
+ready_hook ready;
+timer_hook timers;
+task current;
+ready.push_back(static_cast<ready_hook *>(&current));
+timers.push_back(static_cast<timer_hook *>(&current));
+static_cast<ready_hook &>(current).remove(); // timers still contains current
+```
+
+Traversal through either hook returns the complete payload object, including
+when that hook is not its first base. Other hooks are unaffected by insertion,
+removal, or transfers. Tags require no stored state: list hooks remain two
+pointers, hlist hooks one pointer, and iterators one pointer. Different tags
+cannot be mixed in an insertion or iterator conversion. Omitting the tag retains
+the default `void` tag and existing one-hook source syntax.
