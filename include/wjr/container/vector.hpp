@@ -1955,7 +1955,7 @@ private:
         }
 
         if (new_begin == new_last) {
-            _erase_at_end(old_first, old_last);
+            _erase(old_first, old_last);
         } else {
             _range_insert(old_last, new_begin, new_last, std::input_iterator_tag());
         }
@@ -1968,7 +1968,7 @@ private:
         const auto m = static_cast<size_type>(std::distance(new_begin, new_last));
 
         if (m <= n) {
-            erase(std::copy_n(new_begin, m, old_first), old_last);
+            _erase(std::copy_n(new_begin, m, old_first), old_last);
         } else {
             const auto _delta = m - n;
 
