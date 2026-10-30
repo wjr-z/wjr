@@ -68,6 +68,9 @@ JSON 数据结构和解析、序列化相关功能。
 
 程序需要读取、构造或输出 JSON 数据时使用。该模块依赖 `wjr::biginteger` 及 JSON 相关的架构实现。
 
+显式 allocator 实例、PMR 深层传播、生命周期及成本的后续方案见
+[JSON allocator 资源设计](../design/json-allocator-resources.md)；该方案尚未实现，不代表现有 DOM 已支持 PMR。
+
 ## `wjr::ring_buffer`
 
 环形缓冲区容器，适合先进先出、固定容量或连续生产消费场景。
