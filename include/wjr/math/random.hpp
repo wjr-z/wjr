@@ -59,6 +59,10 @@ template <typename Engine>
 inline constexpr bool biginteger_uniform_random_bit_generator_v =
     biginteger_uniform_random_bit_generator<Engine>::value;
 
+/// @brief Full-range uint64 engines admitted by biginteger random generation.
+template <typename Engine>
+concept biginteger_random_engine = biginteger_uniform_random_bit_generator_v<Engine>;
+
 /**
  * @brief Fill range with random values
  *

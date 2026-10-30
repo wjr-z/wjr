@@ -6,6 +6,8 @@
 #ifndef WJR_BIGINTEGER_EXPRESSION_EXPRESSION_HPP__
 #define WJR_BIGINTEGER_EXPRESSION_EXPRESSION_HPP__
 
+#include <wjr/concept/integral.hpp>
+
 #include <type_traits>
 
 #include <wjr/macros/requires.hpp>
@@ -36,6 +38,10 @@ protected:
 
 namespace biginteger_detail {
 
+/// @brief Integral expression leaves retain the established decay-before-admission rule.
+template <typename T>
+concept integral_expr_operand = nonbool_integral<std::decay_t<T>>;
+
 // ============================================================================
 // Type traits for expression system
 // ============================================================================
@@ -60,6 +66,10 @@ template <typename T>
 inline constexpr bool is_biginteger_expression_v =
     is_biginteger_expression<remove_cvref_t<T>>::value;
 
+/// @brief Expression nodes admitted by the converting constructor and expression adapters.
+template <typename T>
+concept expression_source = is_biginteger_expression_v<std::decay_t<T>>;
+
 /**
  * @brief Check if T can be wrapped in a ref_expr<T>.
  *
@@ -72,8 +82,7 @@ inline constexpr bool is_biginteger_expression_v =
 template <typename T, typename = void>
 struct is_convertible_to_expr : std::false_type {};
 
-template <typename T>
-requires(is_nonbool_integral_v<std::decay_t<T>>)
+template <integral_expr_operand T>
 struct is_convertible_to_expr<T> : std::true_type {};
 
 template <typename Storage>
@@ -99,6 +108,10 @@ struct is_expr_operand
 template <typename T>
 inline constexpr bool is_expr_operand_v = is_expr_operand<T>::value;
 
+/// @brief Existing expression nodes or operands that can be wrapped in a leaf.
+template <typename T>
+concept expression_operand = is_expr_operand_v<T>;
+
 template <typename T>
 class ref_expr;
 
@@ -116,8 +129,7 @@ struct expr_value_category {
     using type = std::decay_t<T>;
 };
 
-template <typename T>
-requires(is_nonbool_integral_v<std::decay_t<T>>)
+template <integral_expr_operand T>
 struct expr_value_category<T> {
     using type = std::decay_t<T>;
 };
@@ -162,8 +174,7 @@ using expr_value_category_t = typename expr_value_category<T>::type;
 template <typename T, typename = void>
 struct to_expr;
 
-template <typename T>
-requires(is_biginteger_expression_v<T>)
+template <expression_source T>
 struct to_expr<T> {
     using type = T;
 
@@ -357,8 +368,7 @@ constexpr auto make_negate_unary_expr(E &&operand) noexcept {
  *
  * Enabled only for valid expression operands (expressions or wrappable types).
  */
-template <typename L, typename R>
-requires(biginteger_detail::is_expr_operand_v<L> && biginteger_detail::is_expr_operand_v<R>)
+template <biginteger_detail::expression_operand L, biginteger_detail::expression_operand R>
 constexpr auto operator+(L &&lhs, R &&rhs) noexcept {
     return biginteger_detail::make_binary_expr<biginteger_detail::add_tag>(std::forward<L>(lhs),
                                                                            std::forward<R>(rhs));
@@ -367,8 +377,7 @@ constexpr auto operator+(L &&lhs, R &&rhs) noexcept {
 /**
  * @brief Subtraction operator for expression templates.
  */
-template <typename L, typename R>
-requires(biginteger_detail::is_expr_operand_v<L> && biginteger_detail::is_expr_operand_v<R>)
+template <biginteger_detail::expression_operand L, biginteger_detail::expression_operand R>
 constexpr auto operator-(L &&lhs, R &&rhs) noexcept {
     return biginteger_detail::make_binary_expr<biginteger_detail::sub_tag>(std::forward<L>(lhs),
                                                                            std::forward<R>(rhs));
@@ -377,8 +386,7 @@ constexpr auto operator-(L &&lhs, R &&rhs) noexcept {
 /**
  * @brief Multiplication operator for expression templates.
  */
-template <typename L, typename R>
-requires(biginteger_detail::is_expr_operand_v<L> && biginteger_detail::is_expr_operand_v<R>)
+template <biginteger_detail::expression_operand L, biginteger_detail::expression_operand R>
 constexpr auto operator*(L &&lhs, R &&rhs) noexcept {
     return biginteger_detail::make_binary_expr<biginteger_detail::mul_tag>(std::forward<L>(lhs),
                                                                            std::forward<R>(rhs));
@@ -390,8 +398,7 @@ constexpr auto operator*(L &&lhs, R &&rhs) noexcept {
  * Creates a lazy negation expression that computes -operand when evaluated.
  * This is the unary minus operator, not binary subtraction.
  */
-template <typename E>
-requires(biginteger_detail::is_expr_operand_v<E>)
+template <biginteger_detail::expression_operand E>
 constexpr auto operator-(E &&operand) noexcept {
     return biginteger_detail::make_negate_unary_expr<biginteger_detail::negate_tag>(
         std::forward<E>(operand));
@@ -403,8 +410,7 @@ constexpr auto operator-(E &&operand) noexcept {
  * Creates a lazy shift left expression that calls mul_2exp when evaluated.
  * The shift amount must be an integral type.
  */
-template <typename L, typename ShiftType>
-requires(biginteger_detail::is_expr_operand_v<L> && is_nonbool_integral_v<ShiftType>)
+template <biginteger_detail::expression_operand L, nonbool_integral ShiftType>
 constexpr auto operator<<(L &&lhs, ShiftType shift) noexcept {
     if constexpr (std::is_signed_v<ShiftType>) {
         WJR_ASSERT(shift >= 0, "Shift amount must be non-negative");

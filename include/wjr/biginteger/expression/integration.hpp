@@ -160,8 +160,7 @@ void evaluate_expr(basic_biginteger<S> &dst,
  * @brief Assignment operator from expression template.
  */
 template <typename Storage>
-template <typename Expr>
-requires(biginteger_detail::is_biginteger_expression_v<std::decay_t<Expr>>)
+template <biginteger_detail::expression_source Expr>
 basic_biginteger<Storage> &basic_biginteger<Storage>::operator=(Expr &&expr) noexcept {
     biginteger_expression_detail::evaluate_expr(*this, expr.derived());
     return *this;
@@ -171,8 +170,7 @@ basic_biginteger<Storage> &basic_biginteger<Storage>::operator=(Expr &&expr) noe
  * @brief Constructor from expression template.
  */
 template <typename Storage>
-template <typename Expr>
-requires(biginteger_detail::is_biginteger_expression_v<std::decay_t<Expr>>)
+template <biginteger_detail::expression_source Expr>
 basic_biginteger<Storage>::basic_biginteger(Expr &&expr) {
     biginteger_expression_detail::evaluate_expr(*this, expr.derived());
 }
