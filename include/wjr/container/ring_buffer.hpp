@@ -112,12 +112,10 @@ public:
         return *(*this + n);
     }
 
+    /// @pre Both iterators refer to the same buffer.
     WJR_NODISCARD WJR_PURE WJR_CONSTEXPR20 difference_type
     operator-(const ring_buffer_const_iterator &rhs) const noexcept {
         WJR_ASSERT_L2(m_rb == rhs.m_rb, "can't subtract iterators from different ring_buffer");
-        if (m_ptr == rhs.m_ptr) {
-            return 0;
-        }
         return linearize_pointer(m_ptr) - linearize_pointer(rhs.m_ptr);
     }
 
@@ -133,12 +131,10 @@ public:
     }
 
     /// @brief Compare logical positions, including positions across the storage wrap.
+    /// @pre Both iterators refer to the same buffer.
     WJR_NODISCARD WJR_CONSTEXPR20 std::strong_ordering
     operator<=>(const ring_buffer_const_iterator &rhs) const noexcept {
         WJR_ASSERT_L2(m_rb == rhs.m_rb, "can't compare iterators from different ring_buffer");
-        if (m_ptr == rhs.m_ptr) {
-            return std::strong_ordering::equal;
-        }
         return linearize_pointer(m_ptr) <=> linearize_pointer(rhs.m_ptr);
     }
 

@@ -36,10 +36,12 @@ all constructed elements and releases its allocation.
 Iterators now meet the C++20 random-access requirements, including default
 construction and ordering by logical position across wrapped storage. This makes
 the buffer usable with standard ranges algorithms such as sort and reverse.
-Ordering and subtraction require iterators from the same buffer, except that
-two value-initialized iterators compare equal and have distance zero. These
-changes add no fields to iterators or buffers. Existing mutation invalidation
-rules are unchanged.
+Ordering and subtraction require valid iterators from the same buffer.
+Value-initialized iterators support equality comparison; arithmetic and ordering
+on these singular values are outside the buffer iterator contract. Neither
+operation adds a runtime equality test before logical position calculation.
+These changes add no fields to iterators or buffers. Existing mutation
+invalidation rules are unchanged.
 
 Focused tests cover mutable/const iterator concepts, wrapped storage, counted
 sentinels, streams, move-only elements, allocator identity and allocation count,

@@ -168,13 +168,15 @@ TEST(ring_buffer_ranges, sized_append_rejects_overflow_before_consuming_input) {
 }
 
 TEST(ring_buffer_ranges, random_access_ordering_and_algorithms_across_wrap) {
-    queue::iterator singular;
-    queue::iterator other;
+    queue::iterator singular{};
+    queue::iterator other{};
     EXPECT_EQ(singular, other);
-    EXPECT_EQ(singular - other, 0);
-    EXPECT_EQ(singular <=> other, std::strong_ordering::equal);
     queue result;
+    EXPECT_EQ(result.end() - result.begin(), 0);
+    EXPECT_EQ(result.begin() <=> result.end(), std::strong_ordering::equal);
     result.reserve(8);
+    EXPECT_EQ(result.end() - result.begin(), 0);
+    EXPECT_EQ(result.begin() <=> result.end(), std::strong_ordering::equal);
     result.append_range(std::array{0, 1, 2, 3, 8, 6});
     for (int i = 0; i < 4; ++i) {
         result.pop_front();
