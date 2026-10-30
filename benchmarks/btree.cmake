@@ -86,3 +86,14 @@ if(WJR_BENCHMARK_ABSEIL)
         target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_ABSEIL=1)
     endforeach()
 endif()
+
+# Research only: bounded pool comparison, never part of a default build.
+foreach(pool_target IN ITEMS btree_pool btree_pool_memory)
+    add_executable(${pool_target} EXCLUDE_FROM_ALL src/btree_pool_probe.cpp)
+    target_link_libraries(${pool_target} PRIVATE wjr::assert wjr::iterator absl::btree)
+    target_compile_options(${pool_target} PRIVATE ${WJR_BASELINE_FLAGS})
+    target_compile_definitions(${pool_target} PRIVATE WJR_BENCHMARK_ABSEIL=1
+        WJR_BENCHMARK_SOURCE="${btree_source}" WJR_BENCHMARK_FLAGS="${btree_flags}")
+endforeach()
+target_link_libraries(btree_pool PRIVATE benchmark::benchmark)
+target_compile_definitions(btree_pool_memory PRIVATE WJR_POOL_MEMORY=1)
