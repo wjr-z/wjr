@@ -1,0 +1,27 @@
+name: JSON minify research
+on:
+  push:
+    branches: [research/json-minify-zero-whitespace-20261030]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Record platform
+        run: |
+          mkdir -p json-minify-results
+          lscpu > json-minify-results/cpu.txt
+          g++-14 --version > json-minify-results/gcc.txt
+          clang++-18 --version > json-minify-results/clang.txt
+          git rev-parse HEAD > json-minify-results/source.txt
+          sha256sum examples/demo/src/simdjson.cpp examples/demo/src/simdjson.hpp > json-minify-results/simdjson-sha256.txt
+      - name: Compare and sanitize
+        run: python3 .github/research/run-json-minify.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: json-minify-results
+          path: json-minify-results
