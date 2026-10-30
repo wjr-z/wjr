@@ -149,6 +149,7 @@ jobs:
           printf '%s\n' 'Hardware performance counters were not collected.' > btree-pilot/counters.txt
 
       - name: Download previous benchmark result
+        if: env.BENCHMARK_PROFILE != 'btree'
         uses: dawidd6/action-download-artifact@v9
         continue-on-error: true
         with:
@@ -163,6 +164,10 @@ jobs:
       - name: Add benchmark summary
         shell: bash
         run: |
+          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
+            cat btree-pilot/gcc-summary.md btree-pilot/clang-summary.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           baseline_file=$(find baseline -type f -name 'benchmark-results.json' -print -quit 2>/dev/null || true)
           if [[ -n "$baseline_file" ]]; then
             python3 benchmarks/tools/summarize.py \
