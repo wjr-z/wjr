@@ -15,6 +15,7 @@ on:
           - all
           - simd
           - np
+          - btree
 
 permissions:
   contents: read
@@ -60,6 +61,10 @@ jobs:
           fi
           xsimd=OFF
           np=OFF
+          cpu_target=native
+          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
+            cpu_target=baseline
+          fi
           if [[ "$BENCHMARK_PROFILE" == "simd" ]]; then
             xsimd=ON
           fi
@@ -75,11 +80,17 @@ jobs:
             -DWJR_BENCHMARK_XSIMD="$xsimd" \
             -DWJR_ENABLE_NP="$np" \
             -DWJR_ENABLE_XSIMD="$np" \
+            -DWJR_CPU_TARGET="$cpu_target" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DWJR_USE_GMP_TESTS="$gmp" \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
 
       - name: Build benchmarks
-        run: cmake --build build --target benchmarks --parallel
+        run: |
+          cmake --build build --target benchmarks --parallel
+          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
+            cmake --build build --target btree_memory --parallel
+          fi
 
       - name: Run benchmarks
         run: |
@@ -90,14 +101,57 @@ jobs:
             repetitions=3
             min_time=0.02s
           fi
+          filter=()
+          aggregates_only=true
+          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
+            repetitions=5
+            min_time=0.01s
+            aggregates_only=false
+            filter=(--benchmark_filter='/(64|4096)/')
+          fi
           ./build/bin/benchmarks \
+            "${filter[@]}" \
             --benchmark_format=json \
             --benchmark_out=benchmark-results.json \
             --benchmark_repetitions="$repetitions" \
-            --benchmark_report_aggregates_only=true \
+            --benchmark_report_aggregates_only="$aggregates_only" \
             --benchmark_min_time="$min_time"
 
+      - name: Focused btree second compiler and memory pass
+        if: env.BENCHMARK_PROFILE == 'btree'
+        shell: bash
+        run: |
+          mkdir -p btree-pilot
+          lscpu > btree-pilot/cpu.txt
+          uname -a > btree-pilot/os.txt
+          g++ --version > btree-pilot/gcc-version.txt
+          clang++ --version > btree-pilot/clang-version.txt
+          git rev-parse HEAD > btree-pilot/source.txt
+          git diff --exit-code HEAD
+          git status --porcelain > btree-pilot/source-worktree-status.txt
+          ./build/bin/btree_memory > btree-pilot/gcc-memory.csv
+          cp benchmark-results.json btree-pilot/gcc-timing.json
+          cp build/compile_commands.json btree-pilot/gcc-compile-commands.json
+          size build/bin/benchmarks build/bin/btree_memory > btree-pilot/gcc-code-size.txt
+          cmake -S . -B build-clang -GNinja \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release -DWJR_CPU_TARGET=baseline \
+            -DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=btree \
+            -DWJR_ENABLE_INSTALL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
+          cmake --build build-clang --target benchmarks btree_memory --parallel
+          ./build-clang/bin/benchmarks \
+            --benchmark_filter='/(64|4096)/' --benchmark_repetitions=5 \
+            --benchmark_min_time=0.01s --benchmark_out=btree-pilot/clang-timing.json
+          ./build-clang/bin/btree_memory > btree-pilot/clang-memory.csv
+          cp build-clang/compile_commands.json btree-pilot/clang-compile-commands.json
+          size build-clang/bin/benchmarks build-clang/bin/btree_memory > btree-pilot/clang-code-size.txt
+          python3 benchmarks/tools/summarize_btree.py btree-pilot/gcc-timing.json > btree-pilot/gcc-summary.md
+          python3 benchmarks/tools/summarize_btree.py btree-pilot/clang-timing.json > btree-pilot/clang-summary.md
+          printf '%s\n' 'Hardware performance counters were not collected.' > btree-pilot/counters.txt
+
       - name: Download previous benchmark result
+        if: env.BENCHMARK_PROFILE != 'btree'
         uses: dawidd6/action-download-artifact@v9
         continue-on-error: true
         with:
@@ -112,6 +166,10 @@ jobs:
       - name: Add benchmark summary
         shell: bash
         run: |
+          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
+            cat btree-pilot/gcc-summary.md btree-pilot/clang-summary.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           baseline_file=$(find baseline -type f -name 'benchmark-results.json' -print -quit 2>/dev/null || true)
           if [[ -n "$baseline_file" ]]; then
             python3 benchmarks/tools/summarize.py \
@@ -128,4 +186,5 @@ jobs:
           path: |
             benchmark-results.json
             benchmark-comparison.json
+            btree-pilot/
           retention-days: 90
