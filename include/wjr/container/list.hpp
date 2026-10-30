@@ -256,10 +256,6 @@ public:
     }
 
 protected:
-    /// Read links through the base subobject during GCC 11 constant evaluation.
-    constexpr list_node_base *_get_next() const noexcept { return m_next; }
-    constexpr list_node_base *_get_prev() const noexcept { return m_prev; }
-
     list_node_base *m_next;
     list_node_base *m_prev;
 };
@@ -289,15 +285,11 @@ public:
         return p;
     }
 
-    constexpr list_node *next() { return static_cast<list_node *>(Mybase::_get_next()); }
-    constexpr const list_node *next() const {
-        return static_cast<const list_node *>(Mybase::_get_next());
-    }
+    constexpr list_node *next() { return static_cast<list_node *>(this->m_next); }
+    constexpr const list_node *next() const { return static_cast<const list_node *>(this->m_next); }
 
-    constexpr list_node *prev() { return static_cast<list_node *>(Mybase::_get_prev()); }
-    constexpr const list_node *prev() const {
-        return static_cast<const list_node *>(Mybase::_get_prev());
-    }
+    constexpr list_node *prev() { return static_cast<list_node *>(this->m_prev); }
+    constexpr const list_node *prev() const { return static_cast<const list_node *>(this->m_prev); }
 
     constexpr list_node *front() noexcept { return next(); }
     constexpr const list_node *front() const noexcept { return next(); }

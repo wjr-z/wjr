@@ -54,7 +54,21 @@ constexpr bool constant_filter() {
            r.prev()->self() == &second && c.front()->self() == &first &&
            c.front()->next() == nullptr;
 }
+constexpr bool constant_empty_filter() {
+    ring r;
+    chain c;
+    return wjr::intrusive::remove_if(r, is_two) == 0 && wjr::intrusive::unique(r, same_key) == 0 &&
+           wjr::intrusive::remove_if(c, is_two) == 0 && wjr::intrusive::unique(c, same_key) == 0 &&
+           r.empty() && c.empty();
+}
+static_assert(constant_empty_filter());
+
+#if defined(WJR_COMPILER_GCC) && WJR_HAS_GCC(11, 0, 0) && !WJR_HAS_GCC(12, 0, 0)
+/// GCC 11 rejects constexpr downcasts through intermediate/offset base subobjects.
+/// The complete nonempty contract is still executed at runtime below.
+#else
 static_assert(constant_filter());
+#endif
 static_assert(noexcept(wjr::intrusive::remove_if(std::declval<ring &>(), is_two)));
 static_assert(noexcept(wjr::intrusive::unique(std::declval<chain &>(), same_key)));
 
@@ -88,6 +102,8 @@ TEST(intrusive_algorithms, filter_and_unique_rings_and_chains) {
     filtering<ring>();
     filtering<chain>();
 }
+
+TEST(intrusive_algorithms, nonempty_filter_contract) { EXPECT_TRUE(constant_filter()); }
 
 TEST(intrusive_algorithms, modifying_one_hook_preserves_the_other) {
     ring r;

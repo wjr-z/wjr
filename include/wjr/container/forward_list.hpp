@@ -153,9 +153,6 @@ public:
     constexpr void set_next(hlist_node_base *node) { m_next = node; }
 
 protected:
-    /// Read links through the base subobject during GCC 11 constant evaluation.
-    constexpr hlist_node_base *_get_next() const noexcept { return m_next; }
-
     hlist_node_base *m_next;
 };
 
@@ -178,16 +175,16 @@ public:
 
     /// Avoid MSVC's null base-to-derived adjustment in constant evaluation.
     constexpr hlist_node *next() {
-        if (std::is_constant_evaluated() && Mybase::_get_next() == nullptr) {
+        if (std::is_constant_evaluated() && this->m_next == nullptr) {
             return nullptr;
         }
-        return static_cast<hlist_node *>(Mybase::_get_next());
+        return static_cast<hlist_node *>(this->m_next);
     }
     constexpr const hlist_node *next() const {
-        if (std::is_constant_evaluated() && Mybase::_get_next() == nullptr) {
+        if (std::is_constant_evaluated() && this->m_next == nullptr) {
             return nullptr;
         }
-        return static_cast<const hlist_node *>(Mybase::_get_next());
+        return static_cast<const hlist_node *>(this->m_next);
     }
 
     constexpr hlist_node *front() noexcept { return next(); }
