@@ -199,14 +199,16 @@ static_assert(std::is_standard_layout_v<hlist_node<>>);
 #define WJR_HLIST_FOR_EACH(pos, head) for (pos = (head)->next(); (pos); pos = (pos)->next())
 
 #define WJR_HLIST_FOR_EACH_SAFE(pos, n, head)                                                      \
-    for (pos = (head)->next(), n = (pos)->next(); (pos); pos = n, n = (n)->next())
+    for (pos = (head)->next(); (pos) && ((n) = (pos)->next(), true); (pos) = (n))
 
 #define WJR_HLIST_FOR_EACH_ENTRY(pos, head)                                                        \
-    for (pos = (head)->next()->self(); (pos); pos = (pos)->next()->self())
+    for ((pos) = static_cast<std::remove_reference_t<decltype(pos)>>((head)->next()); (pos);       \
+         (pos) = static_cast<std::remove_reference_t<decltype(pos)>>((pos)->next()))
 
 #define WJR_HLIST_FOR_EACH_ENTRY_SAFE(pos, n, head)                                                \
-    for (pos = (head)->next()->self(), n = (pos)->next()->self(); (pos);                           \
-         pos = n, n = (n)->next()->self())
+    for ((pos) = static_cast<std::remove_reference_t<decltype(pos)>>((head)->next());              \
+         (pos) && ((n) = static_cast<std::remove_reference_t<decltype(n)>>((pos)->next()), true);  \
+         (pos) = (n))
 
 } // namespace wjr::intrusive
 

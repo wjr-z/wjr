@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <ranges>
 
 #include <wjr/container/forward_list.hpp>
@@ -64,4 +65,88 @@ TEST(intrusive_hlist, empty_iteration_and_front) {
     EXPECT_EQ(std::ranges::distance(std::as_const(head)), 0);
     EXPECT_EQ(head.front(), nullptr);
     EXPECT_EQ(std::as_const(head).front(), nullptr);
+}
+
+TEST(intrusive_hlist, traversal_macros_handle_empty_and_final_links) {
+    for (int count : {0, 1, 3}) {
+        intrusive::hlist_node<hlist_value> head;
+        hlist_value first(1), second(2), third(3);
+        hlist_value *values[] = {&first, &second, &third};
+        for (int i = count; i > 0; --i) {
+            head.push_front(values[i - 1]);
+        }
+        int visited = 0;
+        intrusive::hlist_node<hlist_value> *node, *next_node;
+        WJR_HLIST_FOR_EACH_SAFE(node, next_node, &head) {
+            EXPECT_EQ(node->self()->value, ++visited);
+        }
+        EXPECT_EQ(visited, count);
+        visited = 0;
+        hlist_value *entry, *next_entry;
+        WJR_HLIST_FOR_EACH_ENTRY(entry, &head) { EXPECT_EQ(entry->value, ++visited); }
+        EXPECT_EQ(visited, count);
+        visited = 0;
+        WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next_entry, &head) {
+            EXPECT_EQ(entry->value, ++visited);
+        }
+        EXPECT_EQ(visited, count);
+        visited = 0;
+        const auto &const_head = head;
+        const hlist_value *const_entry;
+        WJR_HLIST_FOR_EACH_ENTRY(const_entry, &const_head) {
+            EXPECT_EQ(const_entry->value, ++visited);
+        }
+        EXPECT_EQ(visited, count);
+        visited = 0;
+        const hlist_value *const_next;
+        WJR_HLIST_FOR_EACH_ENTRY_SAFE(const_entry, const_next, &const_head) {
+            EXPECT_EQ(const_entry->value, ++visited);
+        }
+        EXPECT_EQ(visited, count);
+    }
+}
+
+TEST(intrusive_hlist, entry_traversal_adjusts_base_pointer_and_null_end) {
+    struct offset_value : std::array<int, 4>, intrusive::hlist_node<offset_value> {};
+    intrusive::hlist_node<offset_value> head;
+    offset_value first, second;
+    head.push_front(&second);
+    head.push_front(&first);
+    offset_value *entry, *next;
+    int visited = 0;
+    WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+        EXPECT_EQ(entry, visited++ == 0 ? &first : &second);
+    }
+    EXPECT_EQ(visited, 2);
+    EXPECT_EQ(entry, nullptr);
+    EXPECT_EQ(next, nullptr);
+}
+
+TEST(intrusive_hlist, safe_traversal_can_remove_and_destroy_current_entry) {
+    for (const bool entries : {false, true}) {
+        for (int count : {0, 1, 3}) {
+            intrusive::hlist_node<hlist_value> head;
+            for (int i = count; i > 0; --i) {
+                head.push_front(new hlist_value(i));
+            }
+            int visited = 0;
+            if (entries) {
+                hlist_value *entry, *next;
+                WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+                    std::unique_ptr<hlist_value> current(entry);
+                    EXPECT_EQ(entry->value, ++visited);
+                    EXPECT_EQ(head.pop_front()->self(), entry);
+                }
+            } else {
+                intrusive::hlist_node<hlist_value> *node, *next;
+                WJR_HLIST_FOR_EACH_SAFE(node, next, &head) {
+                    std::unique_ptr<hlist_value> current(node->self());
+                    EXPECT_EQ(node->self()->value, ++visited);
+                    EXPECT_EQ(head.pop_front(), node);
+                }
+            }
+            EXPECT_EQ(visited, count);
+            EXPECT_TRUE(head.empty());
+        }
+    }
 }
