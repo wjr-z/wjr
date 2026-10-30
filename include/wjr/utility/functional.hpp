@@ -19,7 +19,8 @@ namespace wjr {
 #ifdef __cpp_lib_invoke_r
 using std::invoke_r;
 #else
-template <class R, class F, class... Args, WJR_REQUIRES(std::is_invocable_r_v<R, F, Args...>)>
+template <class R, class F, class... Args>
+requires(std::is_invocable_r_v<R, F, Args...>)
 constexpr R invoke_r(F &&f, Args &&...args) noexcept(std::is_nothrow_invocable_r_v<R, F, Args...>) {
     if constexpr (std::is_void_v<R>)
         std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
@@ -98,6 +99,11 @@ struct nontype_t {
 template <auto V>
 constexpr nontype_t<V> nontype{};
 
+/**
+ * @brief A non-owning callable reference.
+ * @details Callable objects are borrowed and must outlive every invocation.
+ * Construction does not extend temporary callable lifetimes.
+ */
 template <typename F>
 class function_ref;
 

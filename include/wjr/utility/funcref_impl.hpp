@@ -21,7 +21,8 @@ public:
     function_ref() = delete;
     function_ref(const function_ref &) = default;
 
-    template <typename Fn, WJR_REQUIRES(std::is_function_v<Fn> &&_is_invocable_using<Fn *>)>
+    template <typename Fn>
+    requires(std::is_function_v<Fn> && _is_invocable_using<Fn *>)
     function_ref(Fn *f) noexcept : m_func(Invoker::template _s_ptr<Fn *>()) {
         func_detail::init_ptr(m_ptr, f);
     }
@@ -33,7 +34,8 @@ public:
         func_detail::init_ptr(m_ptr, std::addressof(f));
     }
 
-    template <auto _fn, WJR_REQUIRES(_is_invocable_using<decltype(_fn)>)>
+    template <auto _fn>
+    requires(_is_invocable_using<decltype(_fn)>)
     function_ref(nontype_t<_fn>) noexcept {
         using Fn = remove_cvref_t<decltype(_fn)>;
         if constexpr (std::is_pointer_v<Fn> || std::is_member_function_pointer_v<Fn>)
@@ -43,8 +45,8 @@ public:
         // m_ptr is unused in this case
     }
 
-    template <typename Tp,
-              WJR_REQUIRES(!std::is_same_v<Tp, function_ref> && !std::is_pointer_v<Tp>)>
+    template <typename Tp>
+    requires(!std::is_same_v<Tp, function_ref> && !std::is_pointer_v<Tp>)
     function_ref &operator=(Tp) = delete;
 
     Ret operator()(Args... args) const noexcept(WJR_FUNCREF_NOEXCEPT) {
