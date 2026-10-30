@@ -451,11 +451,13 @@ public:
     }
 
     /**
+     * @brief Shift left, clearing all bits when offset >= N.
      * @todo Use lshfit_n to optimize.
      */
     constexpr bitset &operator<<=(size_t offset) noexcept;
 
     /**
+     * @brief Shift right, clearing all bits when offset >= N.
      * @todo Use rshfit_n to optimize.
      */
     constexpr bitset &operator>>=(size_t offset) noexcept;
@@ -551,6 +553,25 @@ constexpr bitset<N> &bitset<N>::operator<<=(size_t offset) noexcept {
         return *this;
     }
 
+    if (WJR_UNLIKELY(offset >= N)) {
+        return reset();
+    }
+
+    if constexpr (bytes_size > 1) {
+        if (WJR_UNLIKELY(offset >= bits)) {
+            const auto words = offset / bits;
+            std::copy_backward(m_data, m_data + bytes_size - words, m_data + bytes_size);
+            std::fill_n(m_data, words, 0);
+            offset %= bits;
+            if (offset == 0) {
+                if constexpr (!full) {
+                    m_data[bytes_size - 1] &= mask;
+                }
+                return *this;
+            }
+        }
+    }
+
     bit_type low = m_data[0];
     m_data[0] <<= offset;
 
@@ -599,6 +620,22 @@ template <size_t N>
 constexpr bitset<N> &bitset<N>::operator>>=(size_t offset) noexcept {
     if (WJR_UNLIKELY(offset == 0)) {
         return *this;
+    }
+
+    if (WJR_UNLIKELY(offset >= N)) {
+        return reset();
+    }
+
+    if constexpr (bytes_size > 1) {
+        if (WJR_UNLIKELY(offset >= bits)) {
+            const auto words = offset / bits;
+            std::copy(m_data + words, m_data + bytes_size, m_data);
+            std::fill_n(m_data + bytes_size - words, words, 0);
+            offset %= bits;
+            if (offset == 0) {
+                return *this;
+            }
+        }
     }
 
     bit_type high = m_data[bytes_size - 1];
