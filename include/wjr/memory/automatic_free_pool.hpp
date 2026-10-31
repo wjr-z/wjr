@@ -5,7 +5,7 @@
 #include <limits>
 #include <memory>
 
-#include <wjr/container/list.hpp>
+#include <wjr/container/intrusive_algorithms.hpp>
 #include <wjr/memory/aligned_alloc.hpp>
 
 namespace wjr {
@@ -28,10 +28,9 @@ public:
 
     automatic_free_pool() = default;
     ~automatic_free_pool() noexcept {
-        chunk *node, *next;
-        WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+        intrusive::detail::dispose_nodes(head.next(), &head, [](chunk *node) noexcept {
             mem::_default_deallocate(node, std::nothrow);
-        }
+        });
     }
 
     automatic_free_pool(const automatic_free_pool &) = delete;
@@ -43,14 +42,20 @@ public:
     automatic_free_pool &operator=(const automatic_free_pool &) = delete;
     automatic_free_pool &operator=(automatic_free_pool &&other) noexcept {
         if (this != std::addressof(other)) {
-            chunk *node, *next;
-            WJR_LIST_FOR_EACH_ENTRY_SAFE(node, next, &head) {
+            intrusive::detail::dispose_nodes(head.next(), &head, [](chunk *node) noexcept {
                 mem::_default_deallocate(node, std::nothrow);
-            }
+            });
             replace(&other.head, &head);
             other.head.init_self();
         }
         return *this;
+    }
+
+    /// @brief Release every tracked allocation, leaving the pool empty and reusable.
+    /// @note Invalidates all outstanding allocation pointers. Does not destroy stored objects.
+    void clear() noexcept {
+        intrusive::clear_and_dispose(
+            head, [](chunk *node) noexcept { mem::_default_deallocate(node, std::nothrow); });
     }
 
     /// @pre n + aligned_header_size is representable in size_t.

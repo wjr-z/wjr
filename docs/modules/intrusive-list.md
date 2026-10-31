@@ -104,3 +104,49 @@ are unaffected. Predicates must not change links or destroy linked objects.
 If a predicate throws, earlier removals remain applied and the remaining ring
 or chain is valid. Calls are `constexpr` and conditionally `noexcept` according
 to predicate invocation, including its result's conversion to bool.
+
+## Clearing with a disposer
+
+`intrusive::clear_and_dispose(head, disposer)` empties a list or hlist and
+passes each payload pointer to `disposer` in traversal order. Include
+`<wjr/container/intrusive_algorithms.hpp>`. The disposer must be callable
+without throwing, declared through `noexcept`; potentially throwing callables
+are rejected at compile time. Move-only disposers and raw `void` hooks work.
+
+```cpp
+wjr::intrusive::list_node<job> owned;
+owned.push_back(new job);
+wjr::intrusive::clear_and_dispose(owned, [](job *node) noexcept {
+    delete node;
+});
+```
+
+The algorithm saves the next link before invoking the disposer, so deleting
+the current payload is safe. The source head is already empty during each
+callback and can be reused after the operation. Callbacks must not modify the
+source head or any payload that has not yet been passed to them. A disposer
+may instead reinsert its current hook into another ring, without unlinking it
+first. It may also leave payloads alive. The algorithm never destroys payloads
+automatically or resets each removed hook; stale removed links must not be
+followed or unlinked. Before destroying an object, the disposer is responsible
+for removing any of its other hooks that remain linked elsewhere.
+
+The operation is `constexpr`, `noexcept`, linear in the number of elements,
+and performs no allocation or payload copies. It resets the sentinel once,
+without per-element unlink stores, a stored size or a removal counter.
+`remove_if` remains appropriate for selective unlinking with a predicate that
+does not destroy objects; it cannot replace a disposal traversal.
+
+`automatic_free_pool::clear()` uses this operation to release every tracked
+allocation and leave the pool reusable. Every outstanding pointer into those
+allocations is invalidated. Like pool destruction, clearing raw storage does
+not invoke user-object destructors: destroy objects first when their lifetime
+requires it. Individually deallocated allocations are no longer tracked and
+will not be released twice. Pool moves still transfer the remaining allocations.
+
+Pool destruction and replacement during move assignment reuse the same internal
+disposal traversal without resetting a sentinel that is about to be destroyed
+or overwritten. Windows Clang 18 baseline release disassembly of the complete
+destruction/move-assignment wrappers is unchanged by that reuse. No throughput
+improvement is claimed; the addition is explicit reusable clearing with the
+same pointer-only representation and disposal work.
