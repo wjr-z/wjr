@@ -3,6 +3,7 @@
 #include <array>
 #include <concepts>
 #include <cstdint>
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -103,7 +104,7 @@ void dispose_owned_nodes() {
             EXPECT_TRUE(head.empty());
             EXPECT_EQ(node, nodes[visited]);
             order[visited++] = node->id;
-            delete node;
+            std::default_delete<value>{}(node);
         });
         EXPECT_TRUE(head.empty());
         EXPECT_EQ(visited, count);
