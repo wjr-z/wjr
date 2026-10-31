@@ -1694,7 +1694,7 @@ public:
             return end();
         }
         /// Deletion can invalidate last; preserve the count before the first mutation.
-        const auto count = static_cast<size_type>(std::distance(first, last));
+        const auto count = _range_count(first, last);
         return _erase_n(first, count);
     }
 
@@ -1712,6 +1712,18 @@ public:
     WJR_PURE size_type size() const noexcept { return _get_size(); }
 
 private:
+    /// @brief Count an ordered iterator range through leaf sizes without visiting each value.
+    size_type _range_count(const_iterator first, const_iterator last) const noexcept {
+        auto *const first_leaf = first.get_leaf();
+        auto *const last_leaf = last.get_leaf();
+        if (first_leaf == last_leaf)
+            return static_cast<size_type>(last.pos() - first.pos());
+        size_type count = static_cast<size_type>(-first_leaf->size()) - first.pos();
+        for (auto *leaf = first_leaf->next(); leaf != last_leaf->self(); leaf = leaf->next())
+            count += static_cast<size_type>(-leaf->self()->size());
+        return count + last.pos();
+    }
+
     template <typename Lookup>
     const_iterator _find_key(const Lookup &key) const noexcept {
         auto position = lower_bound(key);
@@ -1744,7 +1756,7 @@ private:
                 clear();
                 return count;
             }
-            const auto count = static_cast<size_type>(std::distance(range.first, range.second));
+            const auto count = _range_count(range.first, range.second);
             _erase_n(range.first, count);
             return count;
         } else {
