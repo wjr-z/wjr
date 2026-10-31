@@ -100,8 +100,8 @@ WJR_CONST WJR_INTRINSIC_INLINE bool _asm_less_128(uint64_t lo0, uint64_t hi0, ui
     bool ret;
     asm("cmp{q %[lo1], %[lo0]| %[lo0], %[lo1]}\n\t"
         "sbb{q %[hi1], %[hi0]| %[hi0], %[hi1]}\n\t" WJR_ASM_CCSET(b)
-        : WJR_ASM_CCOUT(b)(ret), [lo0] "+&r"(lo0), [hi0] "+r"(hi0)
-        : [lo1] "r"(lo1), [hi1] "r"(hi1)
+        : WJR_ASM_CCOUT(b)(ret), [hi0] "+r"(hi0)
+        : [lo0] "r"(lo0), [lo1] "r"(lo1), [hi1] "r"(hi1)
         : "cc");
     return ret;
 }
@@ -115,8 +115,8 @@ WJR_CONST WJR_INTRINSIC_INLINE bool _asm_less_equal_128(uint64_t lo0, uint64_t h
     bool ret;
     asm("cmp{q %[lo0], %[lo1]| %[lo1], %[lo0]}\n\t"
         "sbb{q %[hi0], %[hi1]| %[hi1], %[hi0]}\n\t" WJR_ASM_CCSET(ae)
-        : WJR_ASM_CCOUT(ae)(ret), [lo1] "+&r"(lo1), [hi1] "+r"(hi1)
-        : [lo0] "r"(lo0), [hi0] "r"(hi0)
+        : WJR_ASM_CCOUT(ae)(ret), [hi1] "+r"(hi1)
+        : [lo1] "r"(lo1), [lo0] "r"(lo0), [hi0] "r"(hi0)
         : "cc");
     return ret;
 }
