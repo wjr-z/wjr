@@ -1759,10 +1759,82 @@ private:
     /// @pre count is positive and first starts a valid range containing count elements.
     iterator _erase_n(const_iterator first, size_type count) noexcept {
         iterator position(first);
-        do {
+        while (count != 0) {
+            if (count > 1 && _get_root() != nullptr) {
+                auto *const leaf = position.get_leaf();
+                const slot_usize_type size = -leaf->size();
+                const auto pos = position.pos();
+                if (pos == 0 && count >= size && leaf->m_parent != nullptr) {
+                    position = _erase_whole_leaf(leaf);
+                    count -= size;
+                    continue;
+                }
+
+                slot_usize_type amount = size - pos;
+                if (count < amount)
+                    amount = static_cast<slot_usize_type>(count);
+                if (leaf->m_parent != nullptr && amount > size - floor_half)
+                    amount = size - floor_half;
+                if (amount > 1) {
+                    _get_size() -= amount;
+                    for (slot_usize_type i = pos; i < pos + amount; ++i)
+                        _destroy_slot(leaf->m_values[i]);
+                    leaf->template copy<0, node_size - 1>(pos + amount, size, pos, leaf,
+                                                          _get_allocator());
+                    leaf->size() = -static_cast<slot_size_type>(size - amount);
+                    if (pos == 0 && size != amount)
+                        _replace_subtree_minimum(leaf, to_ikey(leaf->get_key(0)));
+                    if (size == amount) {
+                        _drop_leaf_node(leaf);
+                        _get_root() = nullptr;
+                        _get_sentry()->init_self();
+                        return end();
+                    }
+                    position = iterator(leaf, pos)._adjust_next();
+                    count -= amount;
+                    continue;
+                }
+            }
             position = _erase_iter(position);
-        } while (--count != 0);
+            --count;
+        }
         return position;
+    }
+
+    /// @brief Update the first ancestor separator that represents this subtree's minimum.
+    void _replace_subtree_minimum(node_type *current, ikey_type key) noexcept {
+        while (auto *const parent = current->m_parent) {
+            const auto pos = current->pos();
+            if (pos != 0) {
+                parent->as_inner()->m_keys[pos - 1] = key;
+                return;
+            }
+            current = parent;
+        }
+    }
+
+    /// @pre leaf has a parent and every value in it belongs to the erased range.
+    WJR_NOINLINE iterator _erase_whole_leaf(leaf_node_type *leaf) noexcept {
+        auto *const parent = leaf->m_parent;
+        auto *const inner = parent->as_inner();
+        const slot_usize_type size = -leaf->size();
+        const auto parent_size = inner->size();
+        auto pos = leaf->pos();
+        auto *const next = leaf->next();
+        if (pos == 0) {
+            auto *const successor = inner->m_sons[1];
+            _replace_subtree_minimum(parent, to_ikey(successor->as_leaf()->get_key(0)));
+            inner->m_sons[0] = successor;
+            successor->pos() = 0;
+            pos = 1;
+        }
+        _get_size() -= size;
+        leaf->remove();
+        for (slot_usize_type i = 0; i < size; ++i)
+            _destroy_slot(leaf->m_values[i]);
+        _drop_leaf_node(leaf);
+        _erase_iter_reblance(parent, pos, parent_size);
+        return iterator(next, 0);
     }
 
     void _move_tree(basic_btree &&other) noexcept {
