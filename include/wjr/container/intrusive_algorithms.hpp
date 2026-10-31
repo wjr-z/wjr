@@ -3,11 +3,53 @@
 
 #include <concepts>
 #include <functional>
+#include <type_traits>
 
 #include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
 
 namespace wjr::intrusive {
+
+namespace detail {
+
+/// @brief Consume a detached sequence; also used when its sentinel is being destroyed.
+template <class Node, class Disposer>
+constexpr void dispose_nodes(Node *first, std::type_identity_t<Node> *last,
+                             Disposer &&dispose) noexcept {
+    while (first != last) {
+        auto *next = first->next();
+        std::invoke(dispose, first->self());
+        first = next;
+    }
+}
+
+} // namespace detail
+
+/**
+ * @brief Empty a ring and invoke dispose once on each payload pointer in order.
+ * @pre head is a valid sentinel. Disposer invocation must not throw or modify
+ * head or any element that has not yet been passed to dispose.
+ * @note Linear time, no allocation, copying, or automatic payload destruction.
+ * The head is empty before disposal starts and is reusable on return. Each next
+ * link is saved before disposal, so dispose may destroy its current object.
+ * Removed hook links are not reset and must not be followed or unlinked.
+ */
+template <class T, class Tag, class Disposer>
+requires std::is_nothrow_invocable_v<Disposer &, T *>
+constexpr void clear_and_dispose(list_node<T, Tag> &head, Disposer dispose) noexcept {
+    auto *first = head.next();
+    head.init_self();
+    detail::dispose_nodes(first, &head, dispose);
+}
+
+/// @brief Empty an hlist with the same disposal and lifetime contract as the ring overload.
+template <class T, class Tag, class Disposer>
+requires std::is_nothrow_invocable_v<Disposer &, T *>
+constexpr void clear_and_dispose(hlist_node<T, Tag> &head, Disposer dispose) noexcept {
+    auto *first = head.next();
+    head.init_self();
+    detail::dispose_nodes(first, static_cast<hlist_node<T, Tag> *>(nullptr), dispose);
+}
 
 /**
  * @brief Unlink elements satisfying pred, returning the number removed.

@@ -18,6 +18,8 @@ static_assert(!std::is_copy_assignable_v<pool_type>);
 static_assert(std::is_nothrow_move_constructible_v<pool_type>);
 static_assert(std::is_nothrow_move_assignable_v<pool_type>);
 static_assert(std::is_nothrow_destructible_v<pool_type>);
+static_assert(noexcept(std::declval<pool_type &>().clear()));
+static_assert(sizeof(pool_type) == 2 * sizeof(void *));
 
 std::byte *allocate_bytes(pool_type &pool, std::size_t size, std::byte value) {
     auto *ptr = static_cast<std::byte *>(pool.allocate(size));
@@ -69,6 +71,27 @@ TEST(automatic_free_pool, self_move_preserves_empty_and_nonempty_pool) {
         }
         (void)allocate_bytes(pool, 64, std::byte{9});
     }
+}
+
+TEST(automatic_free_pool, clear_releases_all_blocks_and_allows_reuse) {
+    pool_type pool;
+    pool.clear();
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        (void)allocate_bytes(pool, 0, std::byte{1});
+        (void)allocate_bytes(pool, 32, std::byte{2});
+        auto *removed = allocate_bytes(pool, 64, std::byte{3});
+        pool_type::deallocate(removed);
+        pool.clear();
+        pool.clear();
+        auto *fresh = allocate_bytes(pool, 48, std::byte{4});
+        check_bytes(fresh, 48, std::byte{4});
+        pool_type::deallocate(fresh);
+    }
+    (void)allocate_bytes(pool, 96, std::byte{5});
+    pool_type destination(std::move(pool));
+    pool.clear();
+    destination.clear();
+    (void)allocate_bytes(destination, 64, std::byte{6});
 }
 
 TEST(automatic_free_pool, move_construction_detaches_source_and_preserves_blocks) {
