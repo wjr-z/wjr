@@ -1909,9 +1909,67 @@ private:
         _assign_tree<const value_type &>(other);
     }
 
+    /// @brief Rebuild a detached ownership graph without searching its retired keys.
+    /// @pre current is owned by source's allocator, but is no longer in source's active tree.
+    std::pair<ikey_type, node_type *> _rec_move_detached_tree(node_type *current,
+                                                              basic_btree &source,
+                                                              list_node_type &leaves) noexcept {
+        const slot_size_type cur_size = current->size();
+        if (cur_size < 0) {
+            auto *const leaf = current->as_leaf();
+            const slot_usize_type count = -cur_size;
+            auto *const destination = _create_leaf_node();
+            destination->size() = cur_size;
+            for (slot_usize_type i = 0; i < count; ++i) {
+                _construct_leaf_value(destination, i, std::move(from_ivalue(leaf->m_values[i])));
+                source._destroy_slot(leaf->m_values[i]);
+            }
+            leaves.push_back(destination);
+            source._drop_leaf_node(leaf);
+            return {to_ikey(destination->get_key(0)), destination};
+        }
+
+        auto *const inner = current->as_inner();
+        auto *const destination = _create_inner_node();
+        destination->size() = cur_size;
+        ikey_type first_key;
+        const slot_usize_type count = cur_size;
+        for (slot_usize_type i = 0; i <= count; ++i) {
+            auto [key, child] = _rec_move_detached_tree(inner->m_sons[i], source, leaves);
+            child->m_parent = destination;
+            child->pos() = i;
+            if (i == 0) {
+                first_key = key;
+            } else {
+                destination->m_keys[i - 1] = key;
+            }
+            destination->m_sons[i] = child;
+        }
+        source._drop_inner_node(inner);
+        return {first_key, destination};
+    }
+
     void _move_assign_tree(basic_btree &&other) noexcept {
-        _assign_tree<value_type &&>(std::move(other));
-        other.clear();
+        /// Detach before invoking allocation/value hooks, so moved keys are never active keys.
+        auto *const retired_root = std::exchange(other._get_root(), nullptr);
+        const auto count = std::exchange(other._get_size(), 0);
+        other._get_sentry()->init_self();
+        if (retired_root == nullptr) {
+            for (slot_usize_type i = 0; i < count; ++i) {
+                _construct_leaf_value(_get_base(), i,
+                                      std::move(from_ivalue(other._get_base()->m_values[i])));
+                other._destroy_slot(other._get_base()->m_values[i]);
+            }
+        } else {
+            /// Publish the new root/list only after the complete graph has been rebuilt.
+            list_node_type leaves;
+            leaves.init_self();
+            auto [key, root] = _rec_move_detached_tree(retired_root, other, leaves);
+            _get_root() = root;
+            root->m_parent = nullptr;
+            replace(std::addressof(leaves), _get_sentry());
+        }
+        _get_size() = count;
     }
 
     void _rec_destroy_and_deallocate(node_type *current) noexcept;
