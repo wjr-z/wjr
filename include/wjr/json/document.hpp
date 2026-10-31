@@ -18,6 +18,8 @@
 #include <concepts>
 #include <map>
 #include <memory>
+#include <string>
+#include <string_view>
 
 #include <wjr/format/ostream_insert.hpp>
 #include <wjr/json/formatter.hpp>
@@ -70,6 +72,26 @@ public:
 };
 
 using default_document_traits = basic_document_traits<std::basic_string, std::map, vector>;
+
+template <typename Object>
+struct is_transparent_document_map : std::false_type {};
+
+template <typename StringAllocator, typename Value, typename ObjectAllocator>
+struct is_transparent_document_map<
+    std::map<std::basic_string<char, std::char_traits<char>, StringAllocator>, Value, std::less<>,
+             ObjectAllocator>> : std::true_type {};
+
+/// @brief Avoid a temporary string for known byte-ordered maps; retain backend at on failure.
+template <typename Object, size_t N>
+WJR_INTRINSIC_INLINE decltype(auto) document_field_at(Object &object, const char (&key)[N]) {
+    if constexpr (is_transparent_document_map<std::remove_cv_t<Object>>::value) {
+        const auto iterator = object.find(std::string_view(key, N - 1));
+        if (iterator != object.end()) {
+            return (iterator->second);
+        }
+    }
+    return object.at(key);
+}
 
 /// @private Empty for existing document traits; the PMR header specializes the opt-in state.
 template <typename Traits>
@@ -284,27 +306,27 @@ WJR_REGISTER_HAS_TYPE(construct_to_document,
                                              const ::wjr::json::basic_document<Traits> &>
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                \
-    var(__wjr_obj.at(#var))
+    var(::wjr::json::detail::document_field_at(__wjr_obj, #var))
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER(var)        \
     ::wjr::json::has_construct_from_document<decltype(TT::var),                                    \
                                              ::wjr::json::basic_document<Traits> &&>
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                \
-    var(std::move(__wjr_obj.at(#var)))
+    var(std::move(::wjr::json::detail::document_field_at(__wjr_obj, #var)))
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_ENABLER_CALLER(var)             \
     ::wjr::json::has_assign_from_document<decltype(TT::var),                                       \
                                           const ::wjr::json::basic_document<Traits> &>
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_CALLER(var)                     \
-    __wjr_obj.at(#var).get_to(var)
+    ::wjr::json::detail::document_field_at(__wjr_obj, #var).get_to(var)
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER(var)             \
     ::wjr::json::has_assign_from_document<decltype(TT::var), ::wjr::json::basic_document<Traits> &&>
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_CALLER(var)                     \
-    std::move(__wjr_obj.at(#var)).get_to(var)
+    std::move(::wjr::json::detail::document_field_at(__wjr_obj, #var)).get_to(var)
 
 #define WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                    \
 private:                                                                                           \
