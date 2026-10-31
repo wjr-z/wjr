@@ -42,6 +42,7 @@
 
 namespace wjr {
 namespace btree_detail {
+struct transfer_reference_less : std::less<> {};
 
 /// @brief Admit transparent lookup types comparable with keys in both directions.
 /// @note Callability does not imply noexcept; B-tree query comparisons must not throw.
@@ -1950,6 +1951,11 @@ private:
     }
 
     void _move_assign_tree(basic_btree &&other) noexcept {
+        if constexpr (std::is_same_v<key_compare, btree_detail::transfer_reference_less>) {
+            _assign_tree<value_type &&>(std::move(other));
+            other.clear();
+            return;
+        }
         /// Detach before invoking allocation/value hooks, so moved keys are never active keys.
         auto *const retired_root = std::exchange(other._get_root(), nullptr);
         const auto count = std::exchange(other._get_size(), 0);

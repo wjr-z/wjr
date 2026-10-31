@@ -86,3 +86,13 @@ if(WJR_BENCHMARK_ABSEIL)
         target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_ABSEIL=1)
     endforeach()
 endif()
+
+
+foreach(transfer_target IN ITEMS btree_transfer btree_transfer_memory)
+    add_executable(${transfer_target} EXCLUDE_FROM_ALL src/btree_transfer_probe.cpp)
+    target_link_libraries(${transfer_target} PRIVATE wjr::assert wjr::iterator)
+    target_compile_options(${transfer_target} PRIVATE ${WJR_BASELINE_FLAGS})
+    target_compile_definitions(${transfer_target} PRIVATE WJR_BENCHMARK_SOURCE="${btree_source}" WJR_BENCHMARK_FLAGS="${btree_flags}")
+endforeach()
+target_link_libraries(btree_transfer PRIVATE benchmark::benchmark)
+target_compile_definitions(btree_transfer_memory PRIVATE WJR_TRANSFER_MEMORY=1)
