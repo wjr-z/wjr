@@ -86,3 +86,9 @@ if(WJR_BENCHMARK_ABSEIL)
         target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_ABSEIL=1)
     endforeach()
 endif()
+
+
+add_executable(btree_range_erase EXCLUDE_FROM_ALL src/btree_range_erase_probe.cpp)
+target_link_libraries(btree_range_erase PRIVATE benchmark::benchmark wjr::assert wjr::iterator absl::btree)
+target_compile_options(btree_range_erase PRIVATE ${WJR_BASELINE_FLAGS})
+target_compile_definitions(btree_range_erase PRIVATE WJR_BENCHMARK_SOURCE="${btree_source}" WJR_BENCHMARK_FLAGS="${btree_flags}")

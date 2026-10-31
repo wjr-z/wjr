@@ -1,208 +1,50 @@
 name: Benchmarks
-
 on:
-  schedule:
-    - cron: "17 3 * * 1"
   workflow_dispatch:
-    inputs:
-      compact:
-        description: Include experimental compact N16 maps in the manual btree profile
-        required: false
-        default: false
-        type: boolean
-      showcase:
-        description: Run the manual Abseil B+ tree showcase instead of regular profiles
-        required: false
-        default: false
-        type: boolean
-      profile:
-        description: Benchmark profile
-        required: true
-        default: core
-        type: choice
-        options:
-          - core
-          - all
-          - simd
-          - np
-          - btree
-
 permissions:
   contents: read
-  actions: read
-
 concurrency:
-  group: benchmarks-${{ github.ref }}
+  group: btree-range-erase-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-  showcase:
-    if: github.event_name == 'workflow_dispatch' && inputs.showcase
-    uses: ./.github/workflows/btree-showcase.yml
-    permissions:
-      contents: read
-  benchmark:
-    if: github.event_name != 'workflow_dispatch' || !inputs.showcase
+  pool:
     runs-on: ubuntu-24.04
-    env:
-      BENCHMARK_PROFILE: ${{ inputs.profile || 'core' }}
-      BENCHMARK_SUMMARY_LIMIT: 32
-      BENCHMARK_DETAILS_OUTPUT: benchmark-comparison.json
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Init submodule
-        run: git submodule update --init --recursive
-
-      - name: Install benchmark dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgmp-dev ninja-build
-
-      - name: Cache CMake dependencies
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/wjr-fetchcontent
-          key: fetchcontent-${{ runner.os }}-benchmarks-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'benchmarks/**', 'include/**', 'src/**') }}
-          restore-keys: |
-            fetchcontent-${{ runner.os }}-benchmarks-
-
-      - name: Configure
+      - uses: actions/checkout@v5
+      - name: Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ninja-build nasm
+          git submodule update --init third-party/fmt
+          git clone --no-checkout https://github.com/abseil/abseil-cpp.git "$RUNNER_TEMP/pool-absl"
+          git -C "$RUNNER_TEMP/pool-absl" checkout 2a2d6aad626f75a32c8b7bb775fbff73d558b8b1
+      - name: Bounded GCC and Clang measurement
         shell: bash
         run: |
-          if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
-            gmp=ON
-          else
-            gmp=OFF
-          fi
-          xsimd=OFF
-          np=OFF
-          cpu_target=native
-          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
-            cpu_target=baseline
-          fi
-          if [[ "$BENCHMARK_PROFILE" == "simd" ]]; then
-            xsimd=ON
-          fi
-          if [[ "$BENCHMARK_PROFILE" == "np" ]]; then
-            np=ON
-            xsimd=ON
-          fi
-          cmake -B build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DWJR_BUILD_BENCHMARKS=ON \
-            -DWJR_BUILD_TESTS=OFF \
-            -DWJR_BENCHMARK_PROFILE="$BENCHMARK_PROFILE" \
-            -DWJR_BENCHMARK_COMPACT="${{ inputs.compact || false }}" \
-            -DWJR_BENCHMARK_XSIMD="$xsimd" \
-            -DWJR_ENABLE_NP="$np" \
-            -DWJR_ENABLE_XSIMD="$np" \
-            -DWJR_CPU_TARGET="$cpu_target" \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DWJR_USE_GMP_TESTS="$gmp" \
-            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent"
-
-      - name: Build benchmarks
-        run: |
-          cmake --build build --target benchmarks --parallel
-          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
-            cmake --build build --target btree_memory --parallel
-          fi
-
-      - name: Run benchmarks
-        run: |
-          if [[ "$BENCHMARK_PROFILE" == "all" ]]; then
-            repetitions=1
-            min_time=0.03s
-          else
-            repetitions=3
-            min_time=0.02s
-          fi
-          filter=()
-          aggregates_only=true
-          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
-            repetitions=5
-            min_time=0.01s
-            aggregates_only=false
-            filter=(--benchmark_filter='/(64|4096)/')
-          fi
-          ./build/bin/benchmarks \
-            "${filter[@]}" \
-            --benchmark_format=json \
-            --benchmark_out=benchmark-results.json \
-            --benchmark_repetitions="$repetitions" \
-            --benchmark_report_aggregates_only="$aggregates_only" \
-            --benchmark_min_time="$min_time"
-
-      - name: Focused btree second compiler and memory pass
-        if: env.BENCHMARK_PROFILE == 'btree'
-        shell: bash
-        run: |
-          mkdir -p btree-pilot
-          lscpu > btree-pilot/cpu.txt
-          uname -a > btree-pilot/os.txt
-          g++ --version > btree-pilot/gcc-version.txt
-          clang++ --version > btree-pilot/clang-version.txt
-          git rev-parse HEAD > btree-pilot/source.txt
-          git diff --exit-code HEAD
-          git status --porcelain > btree-pilot/source-worktree-status.txt
-          ./build/bin/btree_memory > btree-pilot/gcc-memory.csv
-          cp benchmark-results.json btree-pilot/gcc-timing.json
-          cp build/compile_commands.json btree-pilot/gcc-compile-commands.json
-          size build/bin/benchmarks build/bin/btree_memory > btree-pilot/gcc-code-size.txt
-          cmake -S . -B build-clang -GNinja \
-            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_BUILD_TYPE=Release -DWJR_CPU_TARGET=baseline \
-            -DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=btree \
-            -DWJR_BENCHMARK_COMPACT="${{ inputs.compact || false }}" \
-            -DWJR_ENABLE_INSTALL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent-clang"
-          cmake --build build-clang --target benchmarks btree_memory --parallel
-          ./build-clang/bin/benchmarks \
-            --benchmark_filter='/(64|4096)/' --benchmark_repetitions=5 \
-            --benchmark_min_time=0.01s --benchmark_out=btree-pilot/clang-timing.json
-          ./build-clang/bin/btree_memory > btree-pilot/clang-memory.csv
-          cp build-clang/compile_commands.json btree-pilot/clang-compile-commands.json
-          size build-clang/bin/benchmarks build-clang/bin/btree_memory > btree-pilot/clang-code-size.txt
-          python3 benchmarks/tools/summarize_btree.py btree-pilot/gcc-timing.json > btree-pilot/gcc-summary.md
-          python3 benchmarks/tools/summarize_btree.py btree-pilot/clang-timing.json > btree-pilot/clang-summary.md
-          printf '%s\n' 'Hardware performance counters were not collected.' > btree-pilot/counters.txt
-
-      - name: Download previous benchmark result
-        if: env.BENCHMARK_PROFILE != 'btree'
-        uses: dawidd6/action-download-artifact@v9
-        continue-on-error: true
+          mkdir range-evidence
+          lscpu > range-evidence/cpu.txt
+          uname -a > range-evidence/os.txt
+          git rev-parse HEAD > range-evidence/source.txt
+          sha256sum benchmarks/src/btree_range_erase_probe.cpp benchmarks/src/btree_focused.hpp include/wjr/container/btree.hpp > range-evidence/sources.sha256
+          for tool in gcc clang; do
+            if [[ "$tool" == gcc ]]; then cc=gcc; cxx=g++; else cc=clang; cxx=clang++; fi
+            "$cxx" --version > "range-evidence/$tool-version.txt"
+            cmake -S . -B "build-$tool" -GNinja \
+              -DCMAKE_BUILD_TYPE=Release -DWJR_CXX_STANDARD=20 -DWJR_CPU_TARGET=baseline \
+              -DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=btree \
+              -DWJR_BENCHMARK_ABSEIL=ON -DWJR_BENCHMARK_ABSEIL_SOURCE_DIR="$RUNNER_TEMP/pool-absl" \
+              -DWJR_BUILD_TESTS=OFF -DWJR_ENABLE_INSTALL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              -DCMAKE_C_COMPILER="$cc" -DCMAKE_CXX_COMPILER="$cxx" \
+              -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/pool-fetch-$tool"
+            cmake --build "build-$tool" --target btree_range_erase --parallel 4
+            "./build-$tool/bin/btree_range_erase" \
+              --benchmark_report_aggregates_only=false --benchmark_out="range-evidence/$tool-timing.json" \
+              > "range-evidence/$tool-timing.txt" 2>&1
+            cp "build-$tool/compile_commands.json" "range-evidence/$tool-compile-commands.json"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          workflow: benchmarks.yml
-          workflow_conclusion: success
-          branch: main
-          name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
-          path: baseline
-          search_artifacts: true
-          if_no_artifact_found: warn
-
-      - name: Add benchmark summary
-        shell: bash
-        run: |
-          if [[ "$BENCHMARK_PROFILE" == "btree" ]]; then
-            cat btree-pilot/gcc-summary.md btree-pilot/clang-summary.md >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          baseline_file=$(find baseline -type f -name 'benchmark-results.json' -print -quit 2>/dev/null || true)
-          if [[ -n "$baseline_file" ]]; then
-            python3 benchmarks/tools/summarize.py \
-              benchmark-results.json "$BENCHMARK_PROFILE" "$baseline_file" >> "$GITHUB_STEP_SUMMARY"
-          else
-            python3 benchmarks/tools/summarize.py \
-              benchmark-results.json "$BENCHMARK_PROFILE" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results-${{ env.BENCHMARK_PROFILE }}
-          path: |
-            benchmark-results.json
-            benchmark-comparison.json
-            btree-pilot/
-          retention-days: 90
+          name: btree-range-erase
+          path: range-evidence/
+          retention-days: 30

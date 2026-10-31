@@ -42,6 +42,7 @@
 
 namespace wjr {
 namespace btree_detail {
+struct range_erase_reference_less : std::less<> {};
 
 /// @brief Admit transparent lookup types comparable with keys in both directions.
 /// @note Callability does not imply noexcept; B-tree query comparisons must not throw.
@@ -1714,6 +1715,8 @@ public:
 private:
     /// @brief Count an ordered iterator range through leaf sizes without visiting each value.
     size_type _range_count(const_iterator first, const_iterator last) const noexcept {
+        if constexpr (std::same_as<key_compare, btree_detail::range_erase_reference_less>)
+            return static_cast<size_type>(std::distance(first, last));
         auto *const first_leaf = first.get_leaf();
         auto *const last_leaf = last.get_leaf();
         if (first_leaf == last_leaf)
@@ -1771,6 +1774,12 @@ private:
     /// @pre count is positive and first starts a valid range containing count elements.
     iterator _erase_n(const_iterator first, size_type count) noexcept {
         iterator position(first);
+        if constexpr (std::same_as<key_compare, btree_detail::range_erase_reference_less>) {
+            do {
+                position = _erase_iter(position);
+            } while (--count != 0);
+            return position;
+        }
         while (count != 0) {
             if (count > 1 && _get_root() != nullptr) {
                 auto *const leaf = position.get_leaf();
