@@ -16,9 +16,11 @@ per-element migration or new allocation. Compact SSO still relocates its at-most
 two values into the destination object; this does not promise std::map reference
 stability for inline storage.
 
-For unequal allocators, values are constructed through the destination allocator
-and the original tree is cleared through its original allocator after successful
-migration. This helper is also used by unequal-allocator move assignment.
+For unequal allocators, values are constructed through the destination allocator.
+Legacy trees clear the original tree through its original allocator after
+successful migration. Compact maps detach the source into private ownership state
+and release its nodes incrementally; see the [peak-memory and CPU comparison](../performance/btree-compact-transfer.md).
+These helpers are also used by unequal-allocator move assignment.
 Previously, moving ordinary string keys could leave a unique set containing
 multiple moved-from empty keys. Clearing the source restores a valid empty tree
 without changing its allocator; it can be reused with its moved-from comparator.
