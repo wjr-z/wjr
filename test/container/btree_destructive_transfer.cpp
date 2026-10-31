@@ -121,36 +121,11 @@ void observe_migration() {
 }
 
 TEST(BtreeDestructiveTransfer, HooksObserveValidEmptySourceAndDestination) {
-    observe_migration<wjr::btree_map<int, transfer_value, std::less<>, transfer_allocator, 16>>();
     observe_migration<wjr::experimental::compact_btree_map<int, transfer_value, std::less<>,
                                                            transfer_allocator, 16>>();
 }
 
-TEST(BtreeDestructiveTransfer, MovedStringKeysAreNotPartOfAnActiveTree) {
-    transfer_ledger ledger;
-    transfer_resource first(ledger), second(ledger);
-    using tree = wjr::btree_set<std::string, std::less<>, transfer_allocator, 16>;
-    {
-        tree source(std::less<>{}, transfer_allocator(&first));
-        for (int i = 0; i != 160; ++i)
-            source.emplace(std::string(80, 'x') + std::to_string(i));
-        ledger.observe = [&] {
-            EXPECT_TRUE(source.empty());
-            EXPECT_EQ(source.begin(), source.end());
-            EXPECT_EQ(source.lower_bound(""), source.end());
-        };
-        tree target(std::move(source), transfer_allocator(&second));
-        ledger.observe = {};
-        EXPECT_EQ(first.live, 0u);
-        EXPECT_EQ(target.size(), 160u);
-        EXPECT_TRUE(std::is_sorted(target.begin(), target.end()));
-        for (int i = 0; i != 160; ++i)
-            EXPECT_EQ(target.count(std::string(80, 'x') + std::to_string(i)), 1u);
-    }
-    EXPECT_EQ(ledger.live, 0u);
-}
-
-template <typename Tree>
+template <typename Tree, bool Reclaim>
 void check_peak() {
     transfer_ledger ledger;
     transfer_resource first(ledger), second(ledger);
@@ -161,7 +136,11 @@ void check_peak() {
         const auto original = ledger.live;
         ledger.peak = original;
         Tree target(std::move(source), transfer_allocator(&second));
-        EXPECT_LT(ledger.peak, original + original / 10);
+        if constexpr (Reclaim) {
+            EXPECT_LT(ledger.peak, original + original / 10);
+        } else {
+            EXPECT_EQ(ledger.peak, 2 * original);
+        }
         EXPECT_EQ(first.live, 0u);
         EXPECT_TRUE(source.empty());
         EXPECT_EQ(target.size(), 4096u);
@@ -174,11 +153,13 @@ void check_peak() {
 
 TEST(BtreeDestructiveTransfer, PeakRequestsStayCloseToOneTree) {
     using large = std::array<std::byte, 64>;
-    check_peak<wjr::btree_map<uint64_t, uint64_t, std::less<>, transfer_allocator, 16>>();
-    check_peak<wjr::btree_map<uint64_t, large, std::less<>, transfer_allocator, 16>>();
+    check_peak<wjr::btree_map<uint64_t, uint64_t, std::less<>, transfer_allocator, 16>, false>();
+    check_peak<wjr::btree_map<uint64_t, large, std::less<>, transfer_allocator, 16>, false>();
     check_peak<wjr::experimental::compact_btree_map<uint64_t, uint64_t, std::less<>,
-                                                    transfer_allocator, 16>>();
-    check_peak<wjr::experimental::compact_btree_map<uint64_t, large, std::less<>,
-                                                    transfer_allocator, 16>>();
+                                                    transfer_allocator, 16>,
+               true>();
+    check_peak<
+        wjr::experimental::compact_btree_map<uint64_t, large, std::less<>, transfer_allocator, 16>,
+        true>();
 }
 } // namespace

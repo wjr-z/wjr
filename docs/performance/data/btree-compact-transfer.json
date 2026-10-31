@@ -1,0 +1,644 @@
+{
+  "source": "4f33cb11",
+  "implementation": "2381b221",
+  "profiles": {
+    "WindowsClang": {
+      "context": {
+        "date": "2026-10-31T16:00:03+08:00",
+        "host_name": "WJR",
+        "executable": "build/clang20-release/bin/btree_transfer.exe",
+        "num_cpus": 20,
+        "mhz_per_cpu": 2688,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 49152,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 1310720,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 25165824,
+            "num_sharing": 20
+          }
+        ],
+        "load_avg": [],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "standard_library": "MSVC STL 143.202408",
+        "trace_seed": "1656023321",
+        "wjr_flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "wjr_source": "4f33cb1110b7097722ca8ea8f91b0018c721443b"
+      },
+      "raw_time_ns": {
+        "u64_map/legacy/reference": [
+          230842.4588880767,
+          227679.88757448865,
+          218652.51436686487,
+          194415.08426585927,
+          182685.4756000509
+        ],
+        "u64_map/legacy/stream": [
+          186798.229658527,
+          182493.80462019975,
+          183594.6898456185,
+          190446.9029643095,
+          185559.73476186328
+        ],
+        "u64_map/compact/reference": [
+          26939.41199309268,
+          26413.977321644605,
+          26735.03318949573,
+          25625.794883772738,
+          26119.85595770578
+        ],
+        "u64_map/compact/stream": [
+          23679.11651193277,
+          23343.603246459526,
+          23277.108507763598,
+          23612.851139138776,
+          23684.337335035987
+        ],
+        "large_map/legacy/reference": [
+          185460.6196067947,
+          185392.47730184364,
+          185002.21270678434,
+          182655.7521764972,
+          185754.4247069256
+        ],
+        "large_map/legacy/stream": [
+          267509.55447053333,
+          265675.7971902147,
+          266242.6752044232,
+          311876.4319543128,
+          261843.31247906326
+        ],
+        "large_map/compact/reference": [
+          37744.98080188394,
+          34956.46747578435,
+          35751.54420441919,
+          36207.045979405,
+          37632.915084039014
+        ],
+        "large_map/compact/stream": [
+          31650.961547482668,
+          30649.038359064485,
+          33440.12232325561,
+          33867.132680659946,
+          32306.992834237717
+        ]
+      },
+      "ratios": {
+        "u64_map/legacy/stream": {
+          "median": 0.8486512734563068,
+          "low": 0.7905556261150438,
+          "high": 1.0424851912214987
+        },
+        "u64_map/compact/stream": {
+          "median": 0.8939528815219175,
+          "low": 0.8640540674656112,
+          "high": 0.9242381530975978
+        },
+        "large_map/legacy/stream": {
+          "median": 1.4361029049250185,
+          "low": 1.409620863094847,
+          "high": 1.7074547515643077
+        },
+        "large_map/compact/stream": {
+          "median": 0.8922846910132995,
+          "low": 0.8120030188897254,
+          "high": 0.9688373890788871
+        }
+      },
+      "memory": [
+        {
+          "case": "u64_map/legacy/reference",
+          "source_before": "133440",
+          "transfer_peak": "266880",
+          "source_after": "0",
+          "dest_after": "133440",
+          "source_allocations": "4494",
+          "dest_allocations": "4494",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/legacy/stream",
+          "source_before": "133440",
+          "transfer_peak": "134480",
+          "source_after": "0",
+          "dest_after": "133440",
+          "source_allocations": "4494",
+          "dest_allocations": "4494",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/compact/reference",
+          "source_before": "114624",
+          "transfer_peak": "229248",
+          "source_after": "0",
+          "dest_after": "114624",
+          "source_allocations": "398",
+          "dest_allocations": "398",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/compact/stream",
+          "source_before": "114624",
+          "transfer_peak": "115776",
+          "source_after": "0",
+          "dest_after": "114624",
+          "source_allocations": "398",
+          "dest_allocations": "398",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/legacy/reference",
+          "source_before": "362816",
+          "transfer_peak": "725632",
+          "source_after": "0",
+          "dest_after": "362816",
+          "source_allocations": "4494",
+          "dest_allocations": "4494",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/legacy/stream",
+          "source_before": "362816",
+          "transfer_peak": "363912",
+          "source_after": "0",
+          "dest_after": "362816",
+          "source_allocations": "4494",
+          "dest_allocations": "4494",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/compact/reference",
+          "source_before": "441664",
+          "transfer_peak": "883328",
+          "source_after": "0",
+          "dest_after": "441664",
+          "source_allocations": "398",
+          "dest_allocations": "398",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/compact/stream",
+          "source_before": "441664",
+          "transfer_peak": "443712",
+          "source_after": "0",
+          "dest_after": "441664",
+          "source_allocations": "398",
+          "dest_allocations": "398",
+          "after_destroy": "0"
+        }
+      ],
+      "raw_sha256": {
+        "timing.json": "f2c088e5687d0f2cde8b6f53f25d2022fe9fd1a2e8e3c48b2b95128c95e16c55",
+        "memory.csv": "340c174156747acf786adba4a6f4d937240cc880b33ae463498156ba0a4ae4fc"
+      }
+    },
+    "LinuxGCC": {
+      "context": {
+        "date": "2026-10-31T08:00:04+00:00",
+        "host_name": "runnervm48cm3",
+        "executable": "./build-gcc/bin/btree_transfer",
+        "num_cpus": 4,
+        "mhz_per_cpu": 3251,
+        "cpu_scaling_enabled": false,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 524288,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 33554432,
+            "num_sharing": 4
+          }
+        ],
+        "load_avg": [
+          1.4292,
+          0.393555,
+          0.131836
+        ],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "standard_library": "libstdc++ 20240904",
+        "trace_seed": "1656023321",
+        "wjr_flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "wjr_source": "4f33cb1110b7097722ca8ea8f91b0018c721443b"
+      },
+      "raw_time_ns": {
+        "u64_map/legacy/reference": [
+          165965.2480919705,
+          158992.58396875026,
+          160155.67557140993,
+          159728.96564869903,
+          159688.8129761161
+        ],
+        "u64_map/legacy/stream": [
+          117366.9025077549,
+          116888.85793833341,
+          118695.38440155174,
+          117109.48746545544,
+          116920.79108520363
+        ],
+        "u64_map/compact/reference": [
+          34992.0177223412,
+          34789.964557552674,
+          34940.30210953677,
+          35026.12658181852,
+          35122.82447258054
+        ],
+        "u64_map/compact/stream": [
+          18082.93887217671,
+          18189.396470294672,
+          18027.331037043645,
+          18870.733103618662,
+          18034.62677638782
+        ],
+        "large_map/legacy/reference": [
+          203030.03902354912,
+          203581.58048951536,
+          202734.14146472752,
+          202708.80487986488,
+          202744.9902438947
+        ],
+        "large_map/legacy/stream": [
+          125112.46107672644,
+          124926.93113951937,
+          125208.0419167888,
+          126874.97305338009,
+          125863.73053967484
+        ],
+        "large_map/compact/reference": [
+          53120.876118325905,
+          52890.243934732265,
+          52404.355045283235,
+          52365.17752108923,
+          52930.87994881935
+        ],
+        "large_map/compact/stream": [
+          31734.177999368283,
+          29869.0090002367,
+          29429.604998739476,
+          29454.71600011729,
+          29501.45600027554
+        ]
+      },
+      "ratios": {
+        "u64_map/legacy/stream": {
+          "median": 0.7331762713784861,
+          "low": 0.7042971904187968,
+          "high": 0.7465466717924474
+        },
+        "u64_map/compact/stream": {
+          "median": 0.5167732542794002,
+          "low": 0.5132654138085365,
+          "high": 0.5424188654288798
+        },
+        "large_map/legacy/stream": {
+          "median": 0.6175641714558183,
+          "low": 0.6136455510323205,
+          "high": 0.6258976916595822
+        },
+        "large_map/compact/stream": {
+          "median": 0.5577863478315772,
+          "low": 0.5540120410135085,
+          "high": 0.6060168131118787
+        }
+      },
+      "memory": [
+        {
+          "case": "u64_map/legacy/reference",
+          "source_before": "132608",
+          "transfer_peak": "265216",
+          "source_after": "0",
+          "dest_after": "132608",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/legacy/stream",
+          "source_before": "132608",
+          "transfer_peak": "133648",
+          "source_after": "0",
+          "dest_after": "132608",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/compact/reference",
+          "source_before": "112896",
+          "transfer_peak": "225792",
+          "source_after": "0",
+          "dest_after": "112896",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/compact/stream",
+          "source_before": "112896",
+          "transfer_peak": "114048",
+          "source_after": "0",
+          "dest_after": "112896",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/legacy/reference",
+          "source_before": "361984",
+          "transfer_peak": "723968",
+          "source_after": "0",
+          "dest_after": "361984",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/legacy/stream",
+          "source_before": "361984",
+          "transfer_peak": "363080",
+          "source_after": "0",
+          "dest_after": "361984",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/compact/reference",
+          "source_before": "433664",
+          "transfer_peak": "867328",
+          "source_after": "0",
+          "dest_after": "433664",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/compact/stream",
+          "source_before": "433664",
+          "transfer_peak": "435712",
+          "source_after": "0",
+          "dest_after": "433664",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        }
+      ],
+      "raw_sha256": {
+        "timing.json": "956efbbeb9008dcc9847e7230bd3f6e5f585497a1c3c44441c8cd3552ec36701",
+        "memory.csv": "131454d033872044e5994c4f644b73ef93afd22b1c02c893a91527da3b7aecf3"
+      }
+    },
+    "LinuxClang": {
+      "context": {
+        "date": "2026-10-31T08:00:39+00:00",
+        "host_name": "runnervm48cm3",
+        "executable": "./build-clang/bin/btree_transfer",
+        "num_cpus": 4,
+        "mhz_per_cpu": 3384,
+        "cpu_scaling_enabled": false,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 524288,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 33554432,
+            "num_sharing": 4
+          }
+        ],
+        "load_avg": [
+          1.95898,
+          0.624512,
+          0.219238
+        ],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "standard_library": "libstdc++ 20240908",
+        "trace_seed": "1656023321",
+        "wjr_flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "wjr_source": "4f33cb1110b7097722ca8ea8f91b0018c721443b"
+      },
+      "raw_time_ns": {
+        "u64_map/legacy/reference": [
+          159254.86973210998,
+          158718.16092034773,
+          160174.79310315548,
+          161249.28352490146,
+          159787.48659152526
+        ],
+        "u64_map/legacy/stream": [
+          118407.18644147579,
+          119086.12146980899,
+          118369.9491518047,
+          118420.9237270849,
+          118372.703390234
+        ],
+        "u64_map/compact/reference": [
+          29618.251757934515,
+          29693.85442984423,
+          29299.494374764185,
+          29239.277074978152,
+          29176.974683136857
+        ],
+        "u64_map/compact/stream": [
+          17710.440000583778,
+          17592.034947256252,
+          17814.844631354725,
+          18567.631157649983,
+          17708.16126345141
+        ],
+        "large_map/legacy/reference": [
+          201855.3749994276,
+          203332.49038533116,
+          203612.71634646764,
+          201297.77403764793,
+          203337.04807767432
+        ],
+        "large_map/legacy/stream": [
+          124534.0686559859,
+          124434.13134324554,
+          124681.77014962993,
+          124763.29552216033,
+          124663.9970133856
+        ],
+        "large_map/compact/reference": [
+          46365.28114516449,
+          47534.63065057715,
+          46394.843439823504,
+          46519.78831287625,
+          46521.64608594283
+        ],
+        "large_map/compact/stream": [
+          28646.12040769573,
+          28856.512925079212,
+          28709.526531318625,
+          28412.221088703463,
+          28577.03537382677
+        ]
+      },
+      "ratios": {
+        "u64_map/legacy/stream": {
+          "median": 0.7410291567084191,
+          "low": 0.7340804657499457,
+          "high": 0.7502992775324056
+        },
+        "u64_map/compact/stream": {
+          "median": 0.6044623082587349,
+          "low": 0.5924469990522728,
+          "high": 0.6363795890182317
+        },
+        "large_map/legacy/stream": {
+          "median": 0.6131041663687758,
+          "low": 0.6111314341070342,
+          "high": 0.6197947101930017
+        },
+        "large_map/compact/stream": {
+          "median": 0.615783550325545,
+          "low": 0.5977162481298988,
+          "high": 0.6223732976994728
+        }
+      },
+      "memory": [
+        {
+          "case": "u64_map/legacy/reference",
+          "source_before": "132608",
+          "transfer_peak": "265216",
+          "source_after": "0",
+          "dest_after": "132608",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/legacy/stream",
+          "source_before": "132608",
+          "transfer_peak": "133648",
+          "source_after": "0",
+          "dest_after": "132608",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/compact/reference",
+          "source_before": "112896",
+          "transfer_peak": "225792",
+          "source_after": "0",
+          "dest_after": "112896",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        },
+        {
+          "case": "u64_map/compact/stream",
+          "source_before": "112896",
+          "transfer_peak": "114048",
+          "source_after": "0",
+          "dest_after": "112896",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/legacy/reference",
+          "source_before": "361984",
+          "transfer_peak": "723968",
+          "source_after": "0",
+          "dest_after": "361984",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/legacy/stream",
+          "source_before": "361984",
+          "transfer_peak": "363080",
+          "source_after": "0",
+          "dest_after": "361984",
+          "source_allocations": "4488",
+          "dest_allocations": "4488",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/compact/reference",
+          "source_before": "433664",
+          "transfer_peak": "867328",
+          "source_after": "0",
+          "dest_after": "433664",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        },
+        {
+          "case": "large_map/compact/stream",
+          "source_before": "433664",
+          "transfer_peak": "435712",
+          "source_after": "0",
+          "dest_after": "433664",
+          "source_allocations": "392",
+          "dest_allocations": "392",
+          "after_destroy": "0"
+        }
+      ],
+      "raw_sha256": {
+        "timing.json": "59cb5885bb7f926086c9a3f7fc48f4f7c371661baf5ebb999c3a7f740e7c03ba",
+        "memory.csv": "131454d033872044e5994c4f644b73ef93afd22b1c02c893a91527da3b7aecf3"
+      }
+    }
+  },
+  "production_scope": "compact-only; legacy stream rows are rejected prototypes"
+}
