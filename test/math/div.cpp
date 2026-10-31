@@ -31,6 +31,32 @@ TEST(div, div128by128_shift) {
     EXPECT_EQ(remainder, uint128_t(2, 1));
 }
 
+TEST(div, div128by128_noshift_borrow_and_preserved_dividend) {
+    constexpr uint64_t high_bit = UINT64_C(1) << 63;
+    constexpr uint64_t values[] = {0, 1, high_bit - 1, high_bit, UINT64_MAX - 1, UINT64_MAX};
+    for (const auto divisor0 : values) {
+        for (const auto high : values) {
+            const uint64_t divisor1 = high | high_bit;
+            const div3by2_divider_noshift<uint64_t> divider(divisor0, divisor1, 0);
+            for (const auto lo : values) {
+                for (const auto hi : values) {
+                    const bool subtract = hi > divisor1 || (hi == divisor1 && lo >= divisor0);
+                    const uint64_t expected_lo = subtract ? lo - divisor0 : lo;
+                    const uint64_t expected_hi =
+                        subtract ? hi - divisor1 - uint64_t(lo < divisor0) : hi;
+                    uint128_t remainder;
+                    EXPECT_EQ(div128by128to64_noshift(remainder, lo, hi, divider),
+                              uint64_t(subtract));
+                    EXPECT_EQ(remainder.low, expected_lo);
+                    EXPECT_EQ(remainder.high, expected_hi);
+                    EXPECT_EQ(divider.get_divisor0(), divisor0);
+                    EXPECT_EQ(divider.get_divisor1(), divisor1);
+                }
+            }
+        }
+    }
+}
+
 TEST(div, uint128_operators) {
     const uint128_t dividend(UINT64_MAX, UINT64_MAX);
     const uint128_t divisor(3, 0);
