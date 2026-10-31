@@ -47,7 +47,7 @@ struct counting_resource : identity_resource {
 };
 
 template <typename S, typename Tree>
-void validate(const btree_focused::workload<S> &data) {
+void validate_transfer(const btree_focused::workload<S> &data) {
     identity_resource first, second;
     Tree source(typename Tree::key_compare{}, typename Tree::allocator_type(&first));
     btree_focused::build<S>(source, data);
@@ -62,7 +62,7 @@ void validate(const btree_focused::workload<S> &data) {
 template <typename S, typename Tree>
 void register_transfer(const std::string &name, S spec) {
     const btree_focused::workload<S> data(4096, spec);
-    validate<S, Tree>(data);
+    validate_transfer<S, Tree>(data);
 #ifdef WJR_TRANSFER_MEMORY
     counts all;
     counting_resource first(all), second(all);
