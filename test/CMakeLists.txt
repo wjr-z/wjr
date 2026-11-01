@@ -72,6 +72,7 @@ list(FILTER TEST_SRCS EXCLUDE REGEX "/np/")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/parallel/tbb\\.cpp$")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/automatic_free_pool_failure\\.cpp$")
 list(FILTER TEST_SRCS EXCLUDE REGEX "/assert_contract\\.cpp$")
+list(FILTER TEST_SRCS EXCLUDE REGEX "/concurrency/scoped_executor\\.cpp$")
 
 add_executable(
    tests
@@ -286,6 +287,13 @@ if(WJR_ENABLE_TBB)
    target_link_libraries(tbb_tests PRIVATE wjr::tbb gtest_main)
    add_test(NAME wjr_tbb_tests COMMAND tbb_tests)
    set_tests_properties(wjr_tbb_tests PROPERTIES LABELS unit)
+endif()
+
+if(WJR_ENABLE_EXECUTOR)
+   add_executable(executor_tests concurrency/scoped_executor.cpp)
+   target_link_libraries(executor_tests PRIVATE wjr::executor gtest_main)
+   add_test(NAME wjr_executor_tests COMMAND executor_tests)
+   set_tests_properties(wjr_executor_tests PROPERTIES LABELS unit TIMEOUT 60)
 endif()
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

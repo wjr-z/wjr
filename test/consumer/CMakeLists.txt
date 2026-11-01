@@ -11,6 +11,28 @@ if(wjr_wjr_unavailable_FOUND)
 endif()
 
 option(WJR_TEST_TBB "Validate the installed optional oneTBB component." OFF)
+option(WJR_TEST_EXECUTOR "Validate the installed optional cooperative executor." OFF)
+if(WJR_TEST_EXECUTOR)
+    if(TARGET wjr::executor)
+        message(FATAL_ERROR "Ordinary package discovery imported the executor component.")
+    endif()
+    find_package(wjr CONFIG REQUIRED COMPONENTS executor)
+    find_package(wjr CONFIG REQUIRED COMPONENTS executor)
+    if(NOT wjr_executor_FOUND OR NOT TARGET Threads::Threads)
+        message(FATAL_ERROR "The executor component must retain its thread dependency.")
+    endif()
+    add_executable(wjr_executor_consumer executor.cpp)
+    target_link_libraries(wjr_executor_consumer PRIVATE wjr::executor)
+    add_test(NAME wjr_executor_consumer COMMAND wjr_executor_consumer)
+    file(GENERATE
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/executor-options-$<CONFIG>-$<COMPILE_LANGUAGE>.cmake"
+        CONTENT "set(WJR_OPTIONS [==[$<TARGET_PROPERTY:wjr_executor_consumer,COMPILE_OPTIONS>]==])
+include([==[${CMAKE_CURRENT_SOURCE_DIR}/check_portable.cmake]==])
+"
+        TARGET wjr_executor_consumer)
+    add_test(NAME wjr_executor_options COMMAND ${CMAKE_COMMAND}
+        -P "${CMAKE_CURRENT_BINARY_DIR}/executor-options-$<CONFIG>-CXX.cmake")
+endif()
 # Run before other optional components to verify that TBB imports neither NP nor ISA backends.
 if(WJR_TEST_TBB)
     if(TARGET wjr::tbb)

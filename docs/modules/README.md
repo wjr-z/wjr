@@ -86,6 +86,13 @@ compact representation and its consumer are not implemented.
 
 需要低开销地暂存数据流、事件或生产者消费者之间的数据时使用。它依赖 `wjr::assert` 和 `wjr::iterator`。
 
+## `wjr::executor`（可选）
+
+设置 `WJR_ENABLE_EXECUTOR=ON` 后提供单 worker 协作式 FIFO/RR CPU 执行器；
+多 producer 提交侵入式任务，scope join 覆盖最后访问后才允许回收借用存储。
+关闭、取消、预算和同步成本见[执行器合同](executor.md)，可运行示例见
+[examples/executor](../../examples/executor)。它独立于 EEVDF policy，不承诺多 worker 公平性。
+
 ## `wjr::tbb`（可选）
 
 设置 `WJR_ENABLE_TBB=ON` 后提供 `<wjr/parallel/tbb.hpp>` 的同步

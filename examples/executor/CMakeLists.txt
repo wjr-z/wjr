@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(wjr_executor_example LANGUAGES CXX)
+find_package(wjr CONFIG REQUIRED COMPONENTS executor)
+add_executable(wjr_executor_batches batches.cpp)
+target_link_libraries(wjr_executor_batches PRIVATE wjr::executor)
+enable_testing()
+add_test(NAME wjr_executor_batches COMMAND wjr_executor_batches)

@@ -110,7 +110,7 @@ jobs:
         shell: bash
         run: |
           cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
-            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_USE_GMP_TESTS=OFF \
+            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_USE_GMP_TESTS=OFF -DWJR_ENABLE_EXECUTOR=ON \
             -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
             -DCMAKE_C_COMPILER_LAUNCHER="python;$GITHUB_WORKSPACE/.github/scripts/sccache_launcher.py" \

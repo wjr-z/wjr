@@ -42,6 +42,7 @@ option(WJR_ENABLE_ASAN "Enable AddressSanitizer." OFF)
 option(WJR_ENABLE_NP "Enable the experimental tensor data model." OFF)
 option(WJR_ENABLE_NP_CBLAS "Enable the optional OpenBLAS LP64 tensor adapter." OFF)
 option(WJR_ENABLE_TBB "Enable the optional prebuilt oneTBB chunk adapter." OFF)
+option(WJR_ENABLE_EXECUTOR "Enable the optional cooperative CPU executor." OFF)
 if(WJR_ENABLE_NP_CBLAS AND NOT WJR_ENABLE_NP)
    message(FATAL_ERROR "WJR_ENABLE_NP_CBLAS requires WJR_ENABLE_NP=ON.")
 endif()
@@ -150,6 +151,9 @@ endif()
 # library : iterator
 #
 add_subdirectory(src/iterator)
+if(WJR_ENABLE_EXECUTOR)
+   add_subdirectory(src/concurrency/executor)
+endif()
 
 #
 # library : arch

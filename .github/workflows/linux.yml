@@ -185,7 +185,7 @@ jobs:
         run: |
           benchmark_args=()
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" || "${{matrix.sys.compiler}}" == "gcc" && "${{matrix.sys.version}}" == "11" ]]; then
-            benchmark_args+=(-DWJR_ENABLE_NP=ON)
+            benchmark_args+=(-DWJR_ENABLE_NP=ON -DWJR_ENABLE_EXECUTOR=ON)
           fi
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
             benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON -DWJR_ENABLE_NP_CBLAS=ON -DWJR_ENABLE_TBB=ON)
@@ -220,7 +220,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
             -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
-            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON -DWJR_TEST_TBB=ON
+            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON -DWJR_TEST_TBB=ON -DWJR_TEST_EXECUTOR=ON
           cmake --build consumer-build --parallel
           ctest --test-dir consumer-build --output-on-failure
           cmake -S examples/np -B cblas-example-build -GNinja \
@@ -235,6 +235,12 @@ jobs:
             -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install"
           cmake --build tbb-example-build --parallel
           ctest --test-dir tbb-example-build --output-on-failure
+          cmake -S examples/executor -B executor-example-build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
+            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install"
+          cmake --build executor-example-build --parallel
+          ctest --test-dir executor-example-build --output-on-failure
           g++ --version
           g++ -std=c++20 -O2 -march=x86-64 -DWJR_DEBUG_LEVEL=0 \
             -Iinclude test/consumer/tbb.cpp -ltbb -o tbb-gcc-consumer
