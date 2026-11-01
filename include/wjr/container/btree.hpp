@@ -56,6 +56,14 @@ template <typename Lookup, typename Compare, typename Key, typename Iterator>
 concept transparent_erase_lookup =
     transparent_lookup<Compare, Key, Lookup> && !std::convertible_to<const Lookup &, Iterator>;
 
+/// @brief Merge requires identical stored values, key interpretation and allocator type.
+template <typename Source, typename Destination>
+concept merge_compatible_traits =
+    std::same_as<typename Source::key_type, typename Destination::key_type> &&
+    std::same_as<typename Source::value_type, typename Destination::value_type> &&
+    std::same_as<typename Source::_Alty, typename Destination::_Alty> &&
+    (compact_slots_v<Source> == compact_slots_v<Destination>);
+
 /// @brief Restrict the fixed-capacity integer search to cheap, same-key set comparisons.
 template <typename Key, typename Value, typename Compare, typename Lookup>
 concept standard_integral_set_lookup =
@@ -911,6 +919,8 @@ class basic_btree {
     using storage_fn_type = container_fn<_Alty>;
 
     friend class container_fn<_Alty>;
+    template <typename Other>
+    friend class basic_btree;
 
     static constexpr size_t node_size = Traits::node_size;
     static constexpr size_t floor_half = node_size / 2;
@@ -1616,6 +1626,54 @@ public:
         }
     }
 
+    /// @brief Transfer acceptable source elements using this tree's ordering.
+    /// @pre Allocators compare equal. Comparisons/allocation/value operations retain the existing
+    /// no-throw contract; neither tree may be modified reentrantly by a hook.
+    /// @note Unique-key conflicts remain in source. Indirect legacy values retain their address;
+    /// compact and inline values retain their ordinary mutation invalidation contract.
+    template <btree_detail::merge_compatible_traits<Traits> Other>
+    void merge(basic_btree<Other> &source) {
+        if constexpr (std::same_as<Traits, Other>) {
+            if (this == std::addressof(source))
+                return;
+        }
+        if constexpr (!_Alty_traits::is_always_equal::value)
+            WJR_ASSERT(_get_allocator() == source._get_allocator());
+
+        auto current = source.begin();
+        while (current != source.end()) {
+            const auto &key = Traits::get_key(*current);
+            const auto position = _get_insert_multi_pos(key);
+            if constexpr (!multi) {
+                if (_same_insert_key(position, key)) {
+                    ++current;
+                    continue;
+                }
+            }
+            auto &slot = current.get_leaf()->m_values[current.pos()];
+            if constexpr (!compact_slots && !Traits::is_inline_value && !Other::is_inline_value) {
+                ivalue_type value = slot;
+                current = source.template _erase_iter<false>(current);
+                static_cast<void>(_insert_iter(position, value));
+            } else if constexpr (compact_slots) {
+                btree_detail::compact_temporary<value_type, _Alty> value(
+                    _get_allocator(), std::move(Other::from_ivalue(slot)));
+                current = source._erase_iter(current);
+                static_cast<void>(_insert_iter(position, value.get()));
+            } else {
+                ivalue_type value = _create_node(std::as_const(Other::from_ivalue(slot)));
+                current = source._erase_iter(current);
+                static_cast<void>(_insert_iter(position, value));
+            }
+        }
+    }
+
+    /// @copydoc merge(basic_btree<Other> &)
+    template <btree_detail::merge_compatible_traits<Traits> Other>
+    void merge(basic_btree<Other> &&source) {
+        merge(source);
+    }
+
     /// @brief Insert adjacent to a valid hint, falling back to ordinary search for a wrong hint.
     /// @pre hint belongs to this tree; insertion has the existing invalidation and failure
     /// contract.
@@ -2250,6 +2308,7 @@ private:
     void _erase_iter_reblance(node_type *parent, slot_usize_type par_pos,
                               slot_usize_type par_size) noexcept;
 
+    template <bool Destroy = true>
     WJR_NODISCARD WJR_NOINLINE WJR_HOT WJR_FLATTEN iterator
     _erase_iter(const_iterator iter) noexcept;
 
@@ -2730,6 +2789,7 @@ void basic_btree<Traits>::_erase_iter_reblance(node_type *parent, slot_usize_typ
 }
 
 template <typename Traits>
+template <bool Destroy>
 typename basic_btree<Traits>::iterator
 basic_btree<Traits>::_erase_iter(const_iterator iter) noexcept {
     auto &al = _get_allocator();
@@ -2741,7 +2801,8 @@ basic_btree<Traits>::_erase_iter(const_iterator iter) noexcept {
     slot_usize_type pos = iter.pos();
     node_type *parent = leaf->m_parent;
 
-    _destroy_slot(leaf->m_values[pos]);
+    if constexpr (Destroy)
+        _destroy_slot(leaf->m_values[pos]);
 
     union {
         slot_size_type cur_ssize;
