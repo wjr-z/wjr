@@ -12,6 +12,7 @@ and remaining acceptance work is in the [implementation status](../../docs/desig
 | Provider | Verified input/version | Available operation | Limit |
 | --- | --- | --- | --- |
 | Google Benchmark | v1.9.0, `context.json_schema_version=1` | Import and compare benchmark JSON | The bundled B+ tree fixture has an unknown input-data hash; its default comparison is inconclusive |
+| Google Benchmark MemoryManager | v1.9.2, schema 1 | Import allocation/byte metrics from separate measured passes | Explicit hook coverage, pass length and harness policy required; older repeated byte results can be corrupted |
 | LLVM-MCA | 18.1.8 JSON | Import and compare model estimates | Fixture is a Windows-produced simulation with an explicit Linux target; other versions are exploratory, not Linux runtime evidence |
 | cProfile | `wjr.cprofile-json/1`; exporter verified on CPython 3.12.7 | Import JSON, explicitly export a local `.prof` on its matching producer, summarize one profile | `.prof` is version-specific; exporter support outside the verified producer is untested |
 | Linux perf stat | JSON source-checked against Linux v6.8.12 | Import and summarize whole-process counters or unavailable diagnostics | The fixture worker denied both hardware and tool-event collection; no positive PMU capture is claimed. Other perf versions are exploratory |
@@ -20,6 +21,7 @@ and remaining acceptance work is in the [implementation status](../../docs/desig
 Provider guides document exact contracts, fixtures, and reproduction steps:
 [Google Benchmark](#supported-input-and-provenance), [LLVM-MCA](LLVM_MCA.md),
 [cProfile](CPROFILE.md), [perf stat](PERF_STAT.md), and [curl](CURL.md).
+[MemoryManager](MEMORY_MANAGER.md) documents native memory fields and their separate scope.
 Collection services, py-spy/Scalene/Tracy, iperf3/OTel, ETW/WPA and performance
 regression gates are not implemented.
 

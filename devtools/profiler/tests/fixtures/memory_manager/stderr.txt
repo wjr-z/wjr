@@ -1,0 +1,8 @@
+2026-11-01T19:02:33+08:00
+Running D:\repos\.cache\wjr\profiler-memory-manager-validation-20261101\build-fixed\memory_producer.exe
+Run on (20 X 2688 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x10)
+  L1 Instruction 32 KiB (x10)
+  L2 Unified 1280 KiB (x10)
+  L3 Unified 24576 KiB (x1)

@@ -1,0 +1,21 @@
+-----------------------------------------------------------------------------------------------
+Benchmark                                                     Time             CPU   Iterations
+-----------------------------------------------------------------------------------------------
+tracked_vector/iterations:16/repeats:5                      144 ns        0.000 ns           16
+tracked_vector/iterations:16/repeats:5                      113 ns        0.000 ns           16
+tracked_vector/iterations:16/repeats:5                    100.0 ns        0.000 ns           16
+tracked_vector/iterations:16/repeats:5                      125 ns        0.000 ns           16
+tracked_vector/iterations:16/repeats:5                      112 ns        0.000 ns           16
+tracked_vector/iterations:16/repeats:5_mean                 119 ns        0.000 ns            5
+tracked_vector/iterations:16/repeats:5_median               113 ns        0.000 ns            5
+tracked_vector/iterations:16/repeats:5_stddev              16.5 ns        0.000 ns            5
+tracked_vector/iterations:16/repeats:5_cv                 13.93 %          0.00 %             5
+no_tracked_allocation/iterations:16/repeats:5              25.0 ns        0.000 ns           16
+no_tracked_allocation/iterations:16/repeats:5              18.8 ns        0.000 ns           16
+no_tracked_allocation/iterations:16/repeats:5              18.8 ns        0.000 ns           16
+no_tracked_allocation/iterations:16/repeats:5              18.8 ns        0.000 ns           16
+no_tracked_allocation/iterations:16/repeats:5              18.8 ns        0.000 ns           16
+no_tracked_allocation/iterations:16/repeats:5_mean         20.0 ns        0.000 ns            5
+no_tracked_allocation/iterations:16/repeats:5_median       18.8 ns        0.000 ns            5
+no_tracked_allocation/iterations:16/repeats:5_stddev       2.80 ns        0.000 ns            5
+no_tracked_allocation/iterations:16/repeats:5_cv          13.98 %          0.00 %             5
