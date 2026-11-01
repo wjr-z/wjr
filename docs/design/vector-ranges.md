@@ -136,3 +136,45 @@ editing, checks non-common forward and single-pass views, moving/proxy sources,
 storage reuse, allocator/element/iteration failures, and actual narrow size-type
 growth and overflow. The installed-package consumer applies a stream update to
 its existing work queue through this API.
+
+## Single-element insertion ownership
+
+`emplace_back`, `push_back`, `emplace` and single-element `insert` retain ownership
+when construction, allocator hooks or element transfers throw. On growth, the
+incoming object is constructed before moving its argument sources; this preserves
+valid references into the old vector. Allocation and completed incoming/prefix/
+suffix regions remain guarded wherever unwinding can occur. A throwing transfer
+leaves the old objects alive, although their values can be moved from; no value-restoration
+guarantee is added. Allocation failure before construction leaves the old vector
+unchanged. Destruction and deallocation must not throw.
+Recovery also assumes a nonthrowing storage commit, as provided by the built-in
+growable storages; a custom storage retains its own `take_storage` contract.
+
+With spare capacity, middle insertion guards the extra tail object until element
+shifting and assignment finish. An assignment failure can partially change the
+old values, while every live object remains owned and the old size stays valid.
+The temporary incoming value keeps its existing allocator/lifetime behavior.
+
+Existing paths whose incoming construction, allocator lifetime operations and
+transfer cannot throw retain their direct implementation. The guarded growth
+path shares the bulk-append transaction core; its optional middle offset adds no
+runtime argument to append calls. Destructive relocation is used only with the
+existing relocation permission and nonthrowing allocator/commit requirements.
+Move-only values, construct-only end insertion, inline storage and allocator
+hooks keep their existing domains. No initialization pass or intermediate vector
+is introduced.
+
+Focused validation checks each construction/hook/move failure point, spare-capacity
+assignment, small/inplace storage, move-only ownership and self-referencing
+arguments. Windows Clang 18/C++20/baseline/O3 probes for six ordinary integer,
+unique-pointer and small-vector callers, including their generated helpers, have
+identical assembly after normalizing the internal helper name and its empty
+position-pack symbol. This is a correctness fix, not a throughput claim against
+the old leaking exception paths.
+
+The [caller probe](references/vector-emplace-codegen.cpp) can be compiled with
+`clang++ -std=c++20 -O3 -march=x86-64 -DNDEBUG -DWJR_DEBUG_LEVEL=0 -Iinclude
+-Ithird-party/fmt/include -S docs/design/references/vector-emplace-codegen.cpp`.
+For the reference, place `include/wjr/container/vector.hpp` from commit
+`a5dbf316` in a separate include overlay and put that overlay first. Compare
+within the same compiler/platform and keep ISA and exception flags equal.
