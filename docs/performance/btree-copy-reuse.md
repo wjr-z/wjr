@@ -124,3 +124,13 @@ Configure the existing btree benchmark profile and explicitly build
 `btree_copy` and `btree_copy_memory`; both remain `EXCLUDE_FROM_ALL`. Their common
 fixture separates timing/accounting. There is no new public configuration,
 scheduled workflow or compiler matrix.
+
+## Cursor ABI follow-up
+
+The [bounded ABI experiment](btree-copy-cursor-abi.md) compares the current
+scalar-key result plus cursor reference with returning the cursor directly.
+The latter removes an indirect cursor store, but adds minimum propagation
+through parent/position links and does not demonstrate a stable overall
+benefit in Windows/Linux controls, including a fair GCC follow-up without the
+avoidable clone-marker escape. The existing single-pass protocol is retained;
+only the never-mutated clone insertion marker is passed by value.
