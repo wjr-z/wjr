@@ -23,6 +23,10 @@ Provider guides document exact contracts, fixtures, and reproduction steps:
 Collection services, py-spy/Scalene/Tracy, iperf3/OTel, ETW/WPA and performance
 regression gates are not implemented.
 
+[Optional comparison charts](CHARTS.md) add offline SVG bars, sample dots and
+observed ranges with `compare --charts`. Only this renderer needs Matplotlib and
+Python 3.11+; ordinary import/compare remains standard-library-only on Python 3.10+.
+
 From the repository root:
 
 ```sh

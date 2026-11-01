@@ -1,5 +1,6 @@
 """Stable JSON and Markdown views of the same comparison model."""
 
+import hashlib
 import html
 import json
 from pathlib import Path
@@ -101,10 +102,27 @@ def markdown(report):
     return "\n".join(lines) + "\n"
 
 
-def write_report(report, destination):
+def write_report(report, destination, charts=False):
     text = markdown(report)
     json.dumps(report, allow_nan=False)
+    chart_outputs = None
+    if charts:
+        from .charts import render
+        chart_outputs = render(report)
+        text += "\n## Comparison charts\n\n"
+        text += "Eligibility is unchanged. Whiskers are observed ranges, not confidence intervals.\n\n"
+        for entry in chart_outputs[0]["entries"]:
+            if entry["file"]:
+                text += f"![Comparison {entry['comparison_index'] + 1}](charts/{entry['file']})\n\n"
+            else:
+                text += "- " + cell(entry["region_id"] + " / " + entry["metric"]) + ": " + cell(entry["reason"]) + "\n"
     output = Path(destination)
     output.mkdir(parents=True, exist_ok=False)
     write_json(output / "report.json", report)
     (output / "report.md").write_text(text, encoding="utf-8", newline="\n")
+    if chart_outputs is not None:
+        (output / "charts").mkdir()
+        chart_outputs[0]["report_sha256"] = hashlib.sha256((output / "report.json").read_bytes()).hexdigest()
+        write_json(output / "charts/index.json", chart_outputs[0])
+        for name, content in chart_outputs[1].items():
+            (output / "charts" / name).write_bytes(content)

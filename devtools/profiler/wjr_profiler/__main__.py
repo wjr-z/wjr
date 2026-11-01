@@ -32,6 +32,8 @@ def main(argv=None):
     comparing.add_argument("baseline")
     comparing.add_argument("candidate")
     comparing.add_argument("--out", required=True)
+    comparing.add_argument("--charts", action="store_true",
+                           help="optional SVG diagnostics for eligible comparisons (requires matplotlib)")
     comparing.add_argument("--context-axis", action="append", default=[],
                            help="explicit environmental comparison axis, e.g. build.compiler")
     comparing.add_argument("--exploratory", action="store_true",
@@ -72,7 +74,7 @@ def main(argv=None):
         else:
             report = compare(load_bundle(args.baseline), load_bundle(args.candidate),
                              args.context_axis, args.exploratory)
-            write_report(report, args.out)
+            write_report(report, args.out, charts=args.charts)
     except (ValueError, OSError, UnicodeError, OverflowError) as error:
         print("error: " + str(error), file=sys.stderr)
         return 2
