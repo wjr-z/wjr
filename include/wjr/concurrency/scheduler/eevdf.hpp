@@ -40,6 +40,9 @@ class eevdf_entity : private intrusive::list_node<eevdf_entity> {
     friend class intrusive::list_node_base<eevdf_entity>;
 
 public:
+    /// Accounting fields are written by successful enqueue before registration permits observation.
+    /// Failed admission and destruction inspect only the initialized owner pointer.
+    // cppcheck-suppress uninitMemberVar
     eevdf_entity() noexcept : hook(default_construct) {}
     eevdf_entity(const eevdf_entity &) = delete;
     eevdf_entity(eevdf_entity &&) = delete;
@@ -50,11 +53,11 @@ public:
     bool registered() const noexcept { return m_owner != nullptr; }
     uint32_t weight() const noexcept {
         WJR_ASSERT_L2(registered());
-        return m_parameters.weight;
+        return m_weight;
     }
     uint32_t request() const noexcept {
         WJR_ASSERT_L2(registered());
-        return m_parameters.request;
+        return m_request;
     }
     uint64_t virtual_runtime() const noexcept {
         WJR_ASSERT_L2(registered());
@@ -67,10 +70,11 @@ public:
 
 private:
     eevdf_queue *m_owner = nullptr;
-    eevdf_parameters m_parameters;
-    uint32_t m_fraction = 0;
-    uint64_t m_runtime = 0;
-    uint64_t m_deadline = 0;
+    uint32_t m_weight;
+    uint32_t m_request;
+    uint32_t m_fraction;
+    uint64_t m_runtime;
+    uint64_t m_deadline;
 };
 
 class eevdf_dispatch {
@@ -102,6 +106,8 @@ public:
     static constexpr uint64_t max_virtual_span = uint64_t{1} << 40;
     static constexpr uint64_t rebase_threshold = uint64_t{1} << 48;
 
+    /// begin_dispatch writes the origin before exposing current; all other paths avoid reading it.
+    // cppcheck-suppress uninitMemberVar
     eevdf_queue() = default;
     eevdf_queue(const eevdf_queue &) = delete;
     eevdf_queue(eevdf_queue &&) = delete;
@@ -139,7 +145,8 @@ public:
 
         auto aggregate = summarize();
         rebase(aggregate);
-        entity.m_parameters = parameters;
+        entity.m_weight = parameters.weight;
+        entity.m_request = parameters.request;
         entity.m_runtime = aggregate.base;
         if (aggregate.weight != 0) {
             entity.m_runtime += aggregate.sum / aggregate.weight;
@@ -240,12 +247,12 @@ private:
     eevdf_status account_current(uint32_t service, bool finished) noexcept {
         auto &entity = *m_current;
         const auto numerator = service * virtual_scale + entity.m_fraction;
-        const auto runtime = entity.m_runtime + numerator / entity.m_parameters.weight;
+        const auto runtime = entity.m_runtime + numerator / entity.m_weight;
         if (runtime - m_dispatch_base > max_virtual_span) {
             return fail_accounting();
         }
         entity.m_runtime = runtime;
-        entity.m_fraction = static_cast<uint32_t>(numerator % entity.m_parameters.weight);
+        entity.m_fraction = static_cast<uint32_t>(numerator % entity.m_weight);
         if (runtime >= entity.m_deadline) {
             entity.m_deadline = runtime + virtual_request(entity);
         }
@@ -273,8 +280,8 @@ private:
                 result.sum += (result.base - runtime) * result.weight;
                 result.base = runtime;
             }
-            result.sum += (runtime - result.base) * entity->m_parameters.weight;
-            result.weight += entity->m_parameters.weight;
+            result.sum += (runtime - result.base) * entity->m_weight;
+            result.weight += entity->m_weight;
         }
         return result;
     }
@@ -293,8 +300,8 @@ private:
     }
 
     static uint64_t virtual_request(const eevdf_entity &entity) noexcept {
-        const auto weight = entity.m_parameters.weight;
-        return (uint64_t{entity.m_parameters.request} * virtual_scale + weight - 1) / weight;
+        const auto weight = entity.m_weight;
+        return (uint64_t{entity.m_request} * virtual_scale + weight - 1) / weight;
     }
 
     void detach(eevdf_entity &entity) noexcept {
@@ -311,7 +318,7 @@ private:
 
     hook m_head;
     eevdf_entity *m_current = nullptr;
-    uint64_t m_dispatch_base = 0;
+    uint64_t m_dispatch_base;
     size_t m_size = 0;
     bool m_closed = false;
     bool m_faulted = false;
