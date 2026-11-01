@@ -381,9 +381,19 @@ namespace {
 
 enum class replacement_failure { allocation, copy, move, assignment, hook };
 
+/** @brief Keep the test observer within its state owner's lifetime, including early exits. */
+struct insertion_state_scope {
+    explicit insertion_state_scope(insertion_state &state) noexcept {
+        insertion_value::state = &state;
+    }
+    insertion_state_scope(const insertion_state_scope &) = delete;
+    insertion_state_scope &operator=(const insertion_state_scope &) = delete;
+    ~insertion_state_scope() { insertion_value::state = nullptr; }
+};
+
 WJR_NOINLINE void check_replacement_failure(bool grow, replacement_failure failure, int point) {
     insertion_state state;
-    insertion_value::state = &state;
+    insertion_state_scope observer(state);
     {
         std::array<insertion_value, 3> input{10, 11, 12};
         tracked_vector values{insertion_allocator<insertion_value>(state)};
@@ -501,7 +511,7 @@ TEST(vector_replace_range, source_increment_failure_cleans_uncommitted_tail) {
 
 TEST(vector_replace_range, throwing_input_rotation_keeps_completed_tail_owned) {
     insertion_state state;
-    insertion_value::state = &state;
+    insertion_state_scope observer(state);
     {
         tracked_vector values{insertion_allocator<insertion_value>(state)};
         values.reserve(16);
