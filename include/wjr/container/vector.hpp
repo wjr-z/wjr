@@ -1702,7 +1702,8 @@ private:
         _get_size() = new_size;
     }
 
-    WJR_CONSTEXPR20 iterator _erase(pointer pos) noexcept {
+    WJR_CONSTEXPR20 iterator
+    _erase(pointer pos) noexcept(std::is_nothrow_move_assignable_v<value_type>) {
         const pointer _end = end_unsafe();
         if (pos + 1 != _end) {
             std::move(pos + 1, _end, pos);
@@ -1713,7 +1714,8 @@ private:
         return _make_iterator(pos);
     }
 
-    WJR_CONSTEXPR20 iterator _erase(pointer first, pointer last) noexcept {
+    WJR_CONSTEXPR20 iterator
+    _erase(pointer first, pointer last) noexcept(std::is_nothrow_move_assignable_v<value_type>) {
         const pointer _end = end_unsafe();
         if (WJR_LIKELY(first != last)) {
             if (last != _end) {
@@ -2706,6 +2708,39 @@ using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 template <typename Storage>
 void swap(basic_vector<Storage> &lhs, basic_vector<Storage> &rhs) noexcept {
     lhs.swap(rhs);
+}
+
+/**
+ * @brief Remove matching elements in one stable compaction without allocating.
+ * @return The number of removed elements; capacity is unchanged.
+ * @note If comparison or assignment throws, values may change but all elements remain owned.
+ */
+template <typename Storage, typename U = typename basic_vector<Storage>::value_type>
+requires(std::is_move_assignable_v<typename basic_vector<Storage>::value_type> &&
+         requires(typename basic_vector<Storage>::reference element, const U &value) {
+             static_cast<bool>(element == value);
+         })
+WJR_CONSTEXPR20 auto erase(basic_vector<Storage> &values, const U &value) ->
+    typename basic_vector<Storage>::size_type {
+    const auto original_size = values.size();
+    values.erase(std::remove(values.begin(), values.end(), value), values.end());
+    return original_size - values.size();
+}
+
+/**
+ * @brief Remove elements satisfying predicate in one stable compaction without allocating.
+ * @return The number of removed elements; capacity is unchanged.
+ * @note If predicate or assignment throws, values may change but all elements remain owned.
+ */
+template <typename Storage, typename Predicate>
+requires(std::is_move_assignable_v<typename basic_vector<Storage>::value_type> &&
+         std::is_copy_constructible_v<Predicate> &&
+         std::predicate<Predicate &, typename basic_vector<Storage>::reference>)
+WJR_CONSTEXPR20 auto erase_if(basic_vector<Storage> &values, Predicate predicate) ->
+    typename basic_vector<Storage>::size_type {
+    const auto original_size = values.size();
+    values.erase(std::remove_if(values.begin(), values.end(), std::move(predicate)), values.end());
+    return original_size - values.size();
 }
 
 template <typename Storage>

@@ -8,6 +8,15 @@ through `assign_range`, `append_range`, `insert_range` and `replace_range`, alon
 constructor. These operations work in C++20 without depending on C++23 standard
 library container-range support.
 
+`wjr::erase(values, value)` and `wjr::erase_if(values, predicate)` provide stable
+bulk removal for dynamic, small, inplace and fixed storage. They return the
+number removed, retain capacity, and compact once without allocating. The
+predicate runs once per original element. Heterogeneous equality and move-only
+elements are supported. If comparison, predicate or move assignment throws, all
+elements remain owned; size is unchanged and values may have been modified.
+Member `erase` also propagates throwing move assignment, consistent with its
+conditional `noexcept` declaration.
+
 ```cpp
 wjr::vector<int> values;
 values.append_range(std::views::iota(0, 8));
