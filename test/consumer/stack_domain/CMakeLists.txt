@@ -19,3 +19,10 @@ if(TARGET tests)
 endif()
 add_test(NAME wjr_stack_domain COMMAND wjr_stack_domain)
 set_tests_properties(wjr_stack_domain PROPERTIES LABELS unit)
+
+# Preserve ASan's freed-heap shadow: arena unpoisoning must not hide a stale slab.
+add_test(NAME wjr_stack_domain_pool COMMAND wjr_stack_domain --pool-only)
+set_tests_properties(wjr_stack_domain_pool PROPERTIES
+    LABELS unit
+    ENVIRONMENT "ASAN_OPTIONS=allow_user_poisoning=0"
+)
