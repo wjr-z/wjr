@@ -2,6 +2,7 @@
 
 import math
 
+from .bundle import manifest_digest
 from .model import ENVIRONMENT_FIELDS, WORKLOAD_FIELDS, field, require, summarize, unknown
 from .mca_compare import eligibility as mca_eligibility
 from .adapters.perf_stat import comparison_reasons as perf_reasons
@@ -166,6 +167,13 @@ def _find_region(manifest, region_id):
     return next((region for region in manifest["regions"] if region["id"] == region_id), None)
 
 
+def _provenance(manifest):
+    return dict(manifest_sha256=manifest_digest(manifest),
+                synthetic=manifest.get("synthetic"),
+                producer={key: manifest["producer"][key] for key in ("provider", "version")},
+                host=manifest.get("host", {}), build=manifest.get("build", {}))
+
+
 def _statistics(observation):
     return summarize(observation["samples"] if observation else [])
 
@@ -199,6 +207,8 @@ def compare(baseline, candidate, context_axes=(), exploratory=False):
             for key in sorted(left.keys() | right.keys())]
     return dict(schema_version=1, baseline_id=baseline["manifest"]["bundle_id"],
                 candidate_id=candidate["manifest"]["bundle_id"],
+                provenance=dict(baseline=_provenance(baseline["manifest"]),
+                                candidate=_provenance(candidate["manifest"])),
                 contextual_axes=sorted(context_axes), exploratory_requested=exploratory, comparisons=rows,
                 diagnostics=baseline["normalized"]["diagnostics"] + candidate["normalized"]["diagnostics"],
                 limitations=["Descriptive statistics only; no statistical significance or regression gate.",
