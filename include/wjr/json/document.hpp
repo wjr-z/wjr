@@ -1771,7 +1771,13 @@ private:
                 val.clear();
                 val.reserve(n);
             } else if (n < val.size()) {
-                val.resize(n);
+                if constexpr (std::is_default_constructible_v<typename value_type::value_type>) {
+                    val.resize(n);
+                } else {
+                    while (val.size() != n) {
+                        val.pop_back();
+                    }
+                }
             }
 
             auto output = val.begin();

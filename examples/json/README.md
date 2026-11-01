@@ -34,3 +34,23 @@ allocators. Returned serialization output still uses its own allocator; use
 
 Resource propagation, default-path code generation, and performance tradeoffs
 are described in the [allocator design](../../docs/design/json-allocator-resources.md).
+
+## Fixed-size coordinate projection
+
+`json_fixed_coordinates` uses `<wjr/json/array.hpp>` to compare typed coordinate
+storage for a single two-dimensional Polygon feature. It counts allocation
+requests/bytes in the projected containers and verifies equal point counts and
+coordinate checksums. It does not measure parse throughput or RSS.
+
+```sh
+curl -L https://raw.githubusercontent.com/simdjson/simdjson-data/4197c425e857f0ec38e89822fdd0bd9ea21f4daf/jsonexamples/canada.json -o canada.json
+./build-json-example/json_fixed_coordinates canada.json
+```
+
+The 2,251,051-byte fixture has SHA-256
+`f83b3b354030d5dd58740c68ac4fecef64cb730a0d12a90362a7f23077f50d78`.
+The same build commands above build this second executable. The example retains
+one live DOM for both projections, excludes its allocations from the counters,
+and releases each typed result before constructing the other. No dataset or
+third-party implementation is copied into WJR. Exact-shape, error, move and
+lifetime contracts are in the [array adapter guide](../../docs/modules/json-fixed-array-conversion.md).
