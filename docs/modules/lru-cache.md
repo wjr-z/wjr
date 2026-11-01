@@ -35,7 +35,7 @@ owned by keys/values, buckets, allocator caches or process RSS.
 | `capacity`, `size`, `empty` | Observe without promotion or allocation |
 | `get(key)` | Return `T*` or null; a hit becomes MRU |
 | `peek(key) const` | Return `const T*` or null; no promotion |
-| `try_emplace(key, args...)` | Return `pair<T*, bool>`; duplicates promote without constructing T |
+| `try_emplace(key, args...)` | `pair<T*, bool>`; hits skip T construction |
 | `insert_or_assign(key, value)` | Assign or insert; promote on success |
 | `erase(key)` | Report removal; keep other entries in order |
 | `clear` | Destroy entries; retain capacity and buckets |

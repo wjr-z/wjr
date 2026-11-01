@@ -299,6 +299,8 @@ TEST(lru_cache, lookup_failures_and_stateful_hash_preserve_order) {
     cache.try_emplace(3, 30);
     EXPECT_FALSE(cache.peek(1));
     EXPECT_TRUE(cache.peek(2));
+    /// @note Equal consumes this shared state inside the following erase call.
+    // cppcheck-suppress redundantAssignment
     state.remaining = 0;
     EXPECT_THROW(cache.erase(3), std::runtime_error);
     state.remaining = std::numeric_limits<size_t>::max();
@@ -328,6 +330,8 @@ TEST(lru_cache, every_equality_failure_leaves_membership_and_recency) {
         cache.try_emplace(2, 20);
         state.remaining = fail;
         EXPECT_THROW(cache.try_emplace(3, 30), std::runtime_error);
+        /// @note Stop failure injection before the following lookups and admission.
+        // cppcheck-suppress redundantAssignment
         state.remaining = std::numeric_limits<size_t>::max();
         EXPECT_EQ(cache.size(), 2);
         EXPECT_EQ(*cache.peek(1), 10);
