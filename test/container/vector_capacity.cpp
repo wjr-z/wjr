@@ -18,6 +18,16 @@ struct state {
     int hook_budget = -1;
 };
 
+/** @brief Relocation ends the old lifetime without invoking a move or destructor. */
+struct relocation_only {
+    inline static int live = 0;
+    int number = 42;
+    relocation_only() noexcept { ++live; }
+    relocation_only(const relocation_only &) = delete;
+    relocation_only(relocation_only &&) = delete;
+    ~relocation_only() noexcept(false) { --live; }
+};
+
 template <wjr::relocate_t Mode, bool Nothrow = false>
 struct value {
     state *owner;
@@ -110,6 +120,11 @@ void check_transaction(bool shrink, bool fail_move) {
 
 namespace wjr {
 
+template <>
+struct get_relocate_mode<capacity_test::relocation_only> {
+    static constexpr relocate_t value = relocate_t::trivial;
+};
+
 template <relocate_t Mode, bool Nothrow>
 struct get_relocate_mode<capacity_test::value<Mode, Nothrow>> {
     static constexpr relocate_t value = Mode;
@@ -118,6 +133,26 @@ struct get_relocate_mode<capacity_test::value<Mode, Nothrow>> {
 } // namespace wjr
 
 namespace {
+
+TEST(vector_capacity, explicit_trivial_relocation_does_not_require_move_or_nothrow_destruction) {
+    using capacity_test::relocation_only;
+    {
+        wjr::vector<relocation_only> values(3);
+        values[1].number = 17;
+        values.reserve(16);
+        EXPECT_EQ(values.size(), 3);
+        EXPECT_EQ(relocation_only::live, 3);
+        EXPECT_EQ(values[1].number, 17);
+        values.shrink_to_fit();
+        EXPECT_EQ(values.size(), 3);
+        EXPECT_EQ(values.capacity(), 3);
+        EXPECT_EQ(relocation_only::live, 3);
+        EXPECT_EQ(values[0].number, 42);
+        EXPECT_EQ(values[1].number, 17);
+        EXPECT_EQ(values[2].number, 42);
+    }
+    EXPECT_EQ(relocation_only::live, 0);
+}
 
 TEST(vector_capacity, throwing_moves_preserve_source_lifetimes_and_release_new_storage) {
     using namespace capacity_test;
