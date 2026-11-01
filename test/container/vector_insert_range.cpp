@@ -2,6 +2,7 @@
 #include <concepts>
 #include <cstddef>
 #include <forward_list>
+#include <istream>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -374,4 +375,172 @@ TEST(vector_insert_range, count_is_checked_before_narrowing_storage_size) {
     EXPECT_EQ(source.begins, 0);
     EXPECT_EQ(state.allocations, allocations);
     EXPECT_TRUE(std::ranges::equal(values, std::array{10, 20}));
+}
+
+namespace {
+
+enum class replacement_failure { allocation, copy, move, assignment, hook };
+
+WJR_NOINLINE void check_replacement_failure(bool grow, replacement_failure failure, int point) {
+    insertion_state state;
+    insertion_value::state = &state;
+    {
+        std::array<insertion_value, 3> input{10, 11, 12};
+        tracked_vector values{insertion_allocator<insertion_value>(state)};
+        values.reserve(grow ? 4 : 16);
+        for (int value : {0, 1, 2, 3})
+            values.emplace_back(value);
+        auto *const storage = values.data();
+        const auto capacity = values.capacity();
+        state.fail_allocation = failure == replacement_failure::allocation;
+        state.copies = failure == replacement_failure::copy ? point : -1;
+        state.moves = failure == replacement_failure::move ? point : -1;
+        state.assignments = failure == replacement_failure::assignment ? point : -1;
+        state.hooks = failure == replacement_failure::hook ? point : -1;
+        if (state.fail_allocation) {
+            EXPECT_THROW(values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input),
+                         std::bad_alloc);
+        } else {
+            EXPECT_THROW(values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input),
+                         std::runtime_error);
+        }
+        state.fail_allocation = false;
+        state.copies = state.moves = state.assignments = state.hooks = -1;
+        EXPECT_EQ(values.data(), storage);
+        EXPECT_EQ(values.capacity(), capacity);
+        EXPECT_EQ(values.size(), 4);
+        EXPECT_EQ(state.live.size(), 7);
+        EXPECT_EQ(state.constructed - state.destroyed, 4);
+        EXPECT_EQ(state.allocations - state.releases, 1);
+        std::vector<int> expected;
+        for (const auto &value : values)
+            expected.push_back(value.value);
+        expected.erase(expected.begin() + 1);
+        expected.insert(expected.begin() + 1, {10, 11, 12});
+        values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input);
+        ASSERT_EQ(values.size(), expected.size());
+        for (std::size_t i = 0; i != expected.size(); ++i)
+            EXPECT_EQ(values[i].value, expected[i]);
+    }
+    EXPECT_TRUE(state.live.empty());
+    EXPECT_EQ(state.constructed, state.destroyed);
+    EXPECT_EQ(state.allocations, state.releases);
+}
+
+struct unsized_input {
+    sized_input input;
+    auto begin() { return input.begin(); }
+    auto end() const { return input.end(); }
+};
+
+std::istream &operator>>(std::istream &stream, insertion_value &value) {
+    return stream >> value.value;
+}
+
+} // namespace
+
+TEST(vector_replace_range, construction_assignment_and_allocation_failures_keep_ownership) {
+    check_replacement_failure(true, replacement_failure::allocation, 0);
+    for (int point = 0; point != 2; ++point) {
+        check_replacement_failure(true, replacement_failure::copy, point);
+        check_replacement_failure(false, replacement_failure::move, point);
+        check_replacement_failure(false, replacement_failure::hook, point);
+    }
+    for (int point = 0; point != 4; ++point)
+        check_replacement_failure(true, replacement_failure::move, point);
+    for (int point = 0; point != 6; ++point)
+        check_replacement_failure(true, replacement_failure::hook, point);
+    for (int point = 0; point != 3; ++point)
+        check_replacement_failure(false, replacement_failure::assignment, point);
+}
+
+TEST(vector_replace_range, sized_move_only_input_is_not_preconsumed) {
+    insertion_state state;
+    {
+        wjr::vector<int, insertion_allocator<int>> values{insertion_allocator<int>(state)};
+        values.append_range(std::array{10, 20, 30});
+        const auto allocations = state.allocations;
+        sized_input source{5};
+        values.replace_range(values.cbegin() + 1, values.cbegin() + 2, source);
+        EXPECT_EQ(source.begins, 1);
+        EXPECT_EQ(source.position, 5);
+        EXPECT_EQ(state.allocations, allocations + 1);
+        EXPECT_TRUE(std::ranges::equal(values, std::array{10, 0, 1, 2, 3, 4, 30}));
+        values.reserve(32);
+        const auto reuse_allocations = state.allocations;
+        unsized_input stream{{5}};
+        values.replace_range(values.cbegin() + 1, values.cbegin() + 2, stream);
+        EXPECT_EQ(stream.input.position, 5);
+        EXPECT_EQ(stream.input.begins, 1);
+        EXPECT_EQ(state.allocations, reuse_allocations);
+    }
+    EXPECT_EQ(state.constructed, state.destroyed);
+    EXPECT_EQ(state.allocations, state.releases);
+}
+
+TEST(vector_replace_range, source_increment_failure_cleans_uncommitted_tail) {
+    for (std::size_t point = 0; point != 5; ++point) {
+        insertion_state state;
+        {
+            wjr::vector<int, insertion_allocator<int>> values{insertion_allocator<int>(state)};
+            values.append_range(std::array{10, 20, 30});
+            auto *const storage = values.data();
+            sized_input input{5};
+            input.increment_failure = point;
+            EXPECT_THROW(values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input),
+                         std::runtime_error);
+            EXPECT_EQ(values.size(), 3);
+            EXPECT_EQ(values.data(), storage);
+            EXPECT_EQ(state.constructed - state.destroyed, 3);
+            EXPECT_EQ(state.allocations - state.releases, 1);
+        }
+        EXPECT_EQ(state.constructed, state.destroyed);
+        EXPECT_EQ(state.allocations, state.releases);
+    }
+}
+
+TEST(vector_replace_range, throwing_input_rotation_keeps_completed_tail_owned) {
+    insertion_state state;
+    insertion_value::state = &state;
+    {
+        tracked_vector values{insertion_allocator<insertion_value>(state)};
+        values.reserve(16);
+        for (int value : {0, 1, 2, 3})
+            values.emplace_back(value);
+        std::istringstream stream("10 11 12");
+        auto input = std::ranges::istream_view<insertion_value>(stream);
+        state.assignments = 1;
+        EXPECT_THROW(values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input),
+                     std::runtime_error);
+        state.assignments = -1;
+        EXPECT_EQ(values.size(), 6);
+        EXPECT_EQ(state.live.size(), values.size() + 1);
+    }
+    EXPECT_TRUE(state.live.empty());
+    EXPECT_EQ(state.constructed, state.destroyed);
+    EXPECT_EQ(state.allocations, state.releases);
+}
+
+TEST(vector_replace_range, bounded_size_checks_and_growth_do_not_wrap) {
+    insertion_state state;
+    using vector = wjr::vector<int, narrow_allocator<int>>;
+    static_assert(vector::get_growth_capacity(128, 129) == 255);
+    {
+        vector values{narrow_allocator<int>(state)};
+        values.append_range(std::array{10, 20});
+        const auto allocations = state.allocations;
+        sized_input too_large{300};
+        EXPECT_THROW(values.replace_range(values.cbegin(), values.cbegin() + 1, too_large),
+                     std::length_error);
+        EXPECT_EQ(too_large.begins, 0);
+        EXPECT_EQ(state.allocations, allocations);
+        unsized_input stream{{256}};
+        EXPECT_THROW(values.replace_range(values.cbegin(), values.cbegin(), stream),
+                     std::length_error);
+        EXPECT_EQ(values.size(), 255);
+        EXPECT_EQ(stream.input.position, 253);
+        EXPECT_EQ(state.constructed - state.destroyed, 255);
+    }
+    EXPECT_EQ(state.constructed, state.destroyed);
+    EXPECT_EQ(state.allocations, state.releases);
 }

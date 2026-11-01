@@ -4,7 +4,7 @@
 # Vector range modifiers
 
 `wjr::vector` and its existing storage specializations accept C++20 input ranges
-through `assign_range`, `append_range` and `insert_range`, alongside the existing `from_range`
+through `assign_range`, `append_range`, `insert_range` and `replace_range`, alongside the existing `from_range`
 constructor. These operations work in C++20 without depending on C++23 standard
 library container-range support.
 
@@ -15,6 +15,10 @@ std::istringstream input("2 3 5 7");
 values.assign_range(std::ranges::istream_view<int>(input));
 auto batch = std::views::iota(11, 14);
 auto first = values.insert_range(values.cbegin() + 1, batch);
+
+std::istringstream updates("20 21 22");
+values.replace_range(values.cbegin() + 1, values.cbegin() + 3,
+                     std::ranges::istream_view<int>(updates));
 ```
 
 The existing container-compatible range concept controls element conversion.
@@ -91,4 +95,44 @@ moving values/iterators, proxy references, stateful allocator hooks, storage reu
 returned positions, balanced lifetimes under constructor/assignment/iteration
 failures, rotation failure and oversized ranges. The installed-package consumer
 is included in the normal consumer tests. This is a range interoperability
-capability; it does not claim a throughput improvement or change growth policy.
+capability; it does not claim a throughput improvement.
+
+## Replacing an interval
+
+`replace_range(from, to, range)` replaces the half-open interval `[from, to)` and
+returns the vector by reference, matching the existing iterator-pair `replace`
+operation. A queued sequence can apply a parsed stream or a lazy computed view
+without first materializing a source container. The positions must be ordered
+and belong to the target; the source must not overlap its live elements. The
+element conversion and move/assignment requirements match range insertion.
+
+A sized or forward source obtains its count before modifying the target. Final
+size is checked before narrowing, and a sized oversized source is rejected before
+calling begin. An unsized forward source may need a distance pass. The operation
+assigns the common prefix, then either shifts the existing suffix left or inserts
+the excess through the existing counted insertion core. A known count grows the
+target at most once and reuses storage when capacity suffices.
+
+Unsized input is consumed once. After filling the old interval, any remaining
+input appends through that same counted core before rotation into position. This
+also supports move-only C++20 input iterators and distinct sentinel types; no
+temporary vector or source-sized storage is used. An empty or exactly matching
+input leaves the untouched suffix in place rather than move-assigning it to
+itself. Growth saturates at the size type's representable limit, so doubling a
+narrow allocator size type near its limit does not degrade to repeated single
+element reallocations. The existing maximum-size and fixed-capacity contracts
+remain in effect.
+
+Replacement provides a basic exception guarantee. Assignment, construction or
+source iteration may already have changed values; allocation failure after
+prefix assignment need not restore that prefix. All live elements remain owned,
+uncommitted construction/allocation is cleaned up, and the vector stays usable.
+Input failure can leave its completed tail at the old end before rotation. A
+throwing rotation can leave values partly permuted, without abandoning live
+elements. Destruction and deallocation must not throw, as for insertion.
+
+Validation compares interval/length combinations against ordinary sequence
+editing, checks non-common forward and single-pass views, moving/proxy sources,
+storage reuse, allocator/element/iteration failures, and actual narrow size-type
+growth and overflow. The installed-package consumer applies a stream update to
+its existing work queue through this API.

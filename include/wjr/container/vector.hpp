@@ -1052,7 +1052,9 @@ public:
 
     WJR_CONST constexpr static size_type get_growth_capacity(size_type old_capacity,
                                                              size_type new_size) noexcept {
-        return std::max<size_type>(old_capacity * 2, new_size);
+        constexpr auto limit = std::numeric_limits<size_type>::max();
+        const auto doubled = old_capacity > limit / 2 ? limit : old_capacity * 2;
+        return std::max<size_type>(doubled, new_size);
     }
 
 private:
@@ -1470,6 +1472,66 @@ public:
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to, const size_type n,
                                           const value_type &val) {
         _fill_replace(_get_pointer(from), _get_pointer(to), n, val);
+        return *this;
+    }
+
+    /**
+     * @brief Replace [from, to) with the elements of a C++20 range.
+     * @pre The positions are ordered and belong to this vector. The source does not overlap
+     * this vector's live elements. Fixed-capacity storage has room for the result.
+     * @details Known counts grow at most once. Unsized input is consumed once without a
+     * temporary container. On failure values can be modified, but every live element remains
+     * owned; input failure may leave a completed tail appended before its final rotation.
+     */
+    template <vector_detail::insertable_range<value_type> Range>
+    WJR_CONSTEXPR20 basic_vector &replace_range(const_iterator from, const_iterator to,
+                                                Range &&range) {
+        auto *const old_first = _get_pointer(from);
+        auto *const old_last = _get_pointer(to);
+        const auto removed = static_cast<size_type>(old_last - old_first);
+        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
+            const auto count = [&] {
+                if constexpr (std::ranges::sized_range<Range>)
+                    return std::ranges::size(range);
+                else
+                    return std::ranges::distance(range);
+            }();
+            if (count > max_size() - (size() - removed)) {
+                WJR_THROW(std::length_error("vector::replace_range: size overflow"));
+            }
+            auto first = [&] {
+                if constexpr (std::copy_constructible<std::ranges::iterator_t<Range>>)
+                    return wjr::_iter_base(std::ranges::begin(range));
+                else
+                    return std::ranges::begin(range);
+            }();
+            _replace_range_n<decltype(first)>(old_first, old_last, first,
+                                              static_cast<size_type>(count));
+        } else {
+            const auto original_size = size();
+            const auto last_offset = static_cast<size_type>(old_last - data());
+            auto output = old_first;
+            auto first = std::ranges::begin(range);
+            const auto last = std::ranges::end(range);
+            for (; output != old_last && first != last; ++output, (void)++first)
+                *output = *first;
+            if (first == last) {
+                if (output != old_last) {
+                    const auto tail_size = static_cast<size_type>(end_unsafe() - old_last);
+                    std::move(old_last, end_unsafe(), output);
+                    _erase_at_end(output + tail_size);
+                }
+            } else {
+                for (; first != last;) {
+                    if (size() == max_size()) {
+                        WJR_THROW(std::length_error("vector::replace_range: size overflow"));
+                    }
+                    _range_insert_n<decltype(first)>(end_unsafe(), first, 1);
+                }
+                if (last_offset != original_size && size() != original_size)
+                    std::rotate(data() + last_offset, data() + original_size, end_unsafe());
+            }
+        }
         return *this;
     }
 
@@ -2169,6 +2231,22 @@ private:
         const auto offset = static_cast<size_type>(pos - data());
         _realloc_insert(pos, std::forward<Args>(args)...);
         return begin() + offset;
+    }
+
+    template <typename Iter>
+    WJR_CONSTEXPR20 void _replace_range_n(pointer old_first, pointer old_last,
+                                          _insertion_cursor<Iter> first, size_type count) {
+        const auto removed = static_cast<size_type>(old_last - old_first);
+        const auto common = std::min(removed, count);
+        if (common != 0)
+            _assign_range_n(first, common, old_first);
+        if (count < removed) {
+            const auto tail_size = static_cast<size_type>(end_unsafe() - old_last);
+            std::move(old_last, end_unsafe(), old_first + count);
+            _erase_at_end(old_first + count + tail_size);
+        } else if (count > removed) {
+            _range_insert_n<Iter>(old_last, first, count - removed);
+        }
     }
 
     template <typename Iter>
