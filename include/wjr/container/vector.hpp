@@ -1866,17 +1866,21 @@ private:
 
     /**
      * @brief Construct incoming values before transferring old elements and committing storage.
-     * @note Omitting the position selects the old end and preserves append's call signature.
+     * @note Optional offsets select the position and removed span; append keeps its call signature.
      */
     template <bool NothrowIncoming, typename Construct, typename... Position>
     WJR_CONSTEXPR20 void _grow_insert(size_type n, size_type new_capacity, Construct &&construct,
                                       Position... positions) {
-        static_assert(sizeof...(Position) <= 1);
+        static_assert(sizeof...(Position) <= 2);
         auto &al = _get_allocator();
         const auto old_size = size();
-        const auto new_size = old_size + n;
         size_type position = old_size;
-        ((position = static_cast<size_type>(positions)), ...);
+        size_type removed = 0;
+        if constexpr (sizeof...(Position) != 0) {
+            unsigned int argument = 0;
+            (((argument++ == 0 ? position : removed) = static_cast<size_type>(positions)), ...);
+        }
+        const auto new_size = old_size - removed + n;
         const pointer old_begin = data();
         const pointer old_end = old_begin + old_size;
         _grow_storage_type new_storage;
@@ -1903,6 +1907,7 @@ private:
         const pointer new_begin = new_storage.data();
         const pointer new_position = new_begin + position;
         const pointer old_position = old_begin + position;
+        const pointer old_suffix = old_position + removed;
         element_guard prefix(new_begin, &al);
         element_guard incoming(new_position, &al);
         construct(new_position, n, al);
@@ -1925,15 +1930,18 @@ private:
             if constexpr (can_relocate) {
                 wjr::uninitialized_relocate_restrict_using_allocator(old_begin, old_position,
                                                                      new_begin, al);
-                wjr::uninitialized_relocate_restrict_using_allocator(old_position, old_end,
+                wjr::uninitialized_relocate_restrict_using_allocator(old_suffix, old_end,
                                                                      new_position + n, al);
+                if constexpr (sizeof...(Position) == 2) {
+                    destroy_using_allocator(old_position, old_suffix, al);
+                }
                 _deallocate();
             } else {
                 /** @note A throwing allocator hook must not end old lifetimes one by one. */
                 wjr::uninitialized_move_restrict_using_allocator(old_begin, old_position, new_begin,
                                                                  al);
                 prefix.current() = new_position;
-                wjr::uninitialized_move_restrict_using_allocator(old_position, old_end,
+                wjr::uninitialized_move_restrict_using_allocator(old_suffix, old_end,
                                                                  new_position + n, al);
                 suffix.current() = new_begin + new_size;
                 _destroy_and_deallocate();
@@ -2212,38 +2220,68 @@ private:
             const temporary_value_allocator tmp(al, val);
             const auto &real_val = *tmp.get();
 
+            constexpr bool needs_rollback =
+                !std::is_nothrow_move_assignable_v<value_type> ||
+                !std::is_nothrow_copy_assignable_v<value_type> ||
+                !std::is_nothrow_move_constructible_v<value_type> ||
+                !is_trivially_allocator_construct_v<_Alty, value_type, value_type &&>;
+            using tail_guard =
+                std::conditional_t<needs_rollback, _uninitialized_rollback<pointer, _Alty>,
+                                   _no_storage_rollback>;
+            tail_guard rollback(_end, &al);
+
             const auto _elements_after = static_cast<size_type>(_end - pos);
             if (_elements_after > n) {
                 wjr::uninitialized_move_n_restrict_using_allocator(_end - n, n, _end, al);
+                if constexpr (needs_rollback)
+                    rollback.current() = _end + n;
                 std::move_backward(pos, _end - n, _end);
                 std::fill_n(pos, n, real_val);
             } else {
                 wjr::uninitialized_fill_n_using_allocator(_end, n - _elements_after, al, real_val);
+                if constexpr (needs_rollback)
+                    rollback.current() = pos + n;
                 wjr::uninitialized_move_restrict_using_allocator(pos, _end, pos + n, al);
+                if constexpr (needs_rollback)
+                    rollback.current() = _end + n;
                 std::fill(pos, _end, real_val);
             }
 
             _get_size() += n;
+            rollback.release();
         } else {
             const auto old_size = static_cast<size_type>(_end - _begin);
             if constexpr (is_reallocatable::value) {
                 const auto new_capacity = get_growth_capacity(capacity(), old_size + n);
-
-                _grow_storage_type new_storage;
-                uninitialized_construct(new_storage, old_size + n, new_capacity);
-
-                const pointer _new_begin = new_storage.data();
-
-                const auto old_pos = static_cast<size_type>(pos - _begin);
-
-                wjr::uninitialized_fill_n_using_allocator(_new_begin + old_pos, n, al, val);
-                wjr::uninitialized_move_restrict_using_allocator(_begin, pos, _new_begin, al);
-                wjr::uninitialized_move_restrict_using_allocator(pos, _end,
-                                                                 _new_begin + old_pos + n, al);
-
-                _destroy_and_deallocate();
-
-                _take_storage(new_storage);
+                constexpr bool nothrow_incoming =
+                    std::is_nothrow_copy_constructible_v<value_type> &&
+                    is_trivially_allocator_construct_v<_Alty, value_type, const value_type &> &&
+                    is_trivially_allocator_destroy_v<_Alty, value_type>;
+                constexpr bool nothrow_transfer =
+                    std::is_nothrow_move_constructible_v<value_type> &&
+                    is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+                    std::is_nothrow_destructible_v<value_type> &&
+                    _is_nothrow_take_storage_impl<_grow_storage_type>;
+                if constexpr (nothrow_incoming && nothrow_transfer) {
+                    _grow_storage_type new_storage;
+                    uninitialized_construct(new_storage, old_size + n, new_capacity);
+                    const pointer new_begin = new_storage.data();
+                    const auto old_pos = static_cast<size_type>(pos - _begin);
+                    wjr::uninitialized_fill_n_using_allocator(new_begin + old_pos, n, al, val);
+                    wjr::uninitialized_move_restrict_using_allocator(_begin, pos, new_begin, al);
+                    wjr::uninitialized_move_restrict_using_allocator(pos, _end,
+                                                                     new_begin + old_pos + n, al);
+                    _destroy_and_deallocate();
+                    _take_storage(new_storage);
+                } else {
+                    _grow_insert<nothrow_incoming>(
+                        n, new_capacity,
+                        [&val](pointer destination, size_type count, _Alty &allocator) {
+                            wjr::uninitialized_fill_n_using_allocator(destination, count, allocator,
+                                                                      val);
+                        },
+                        static_cast<size_type>(pos - _begin));
+                }
             } else {
                 _unreallocatable_unreachable(old_size + n);
             }
@@ -2419,39 +2457,71 @@ private:
             const auto _rest = static_cast<size_type>(_buf_end - _end);
 
             if (WJR_LIKELY(_rest >= _delta)) {
+                constexpr bool needs_rollback =
+                    !std::is_pointer_v<Iter> ||
+                    !std::is_nothrow_assignable_v<value_type &, iterator_reference_t<Iter>> ||
+                    !std::is_nothrow_move_assignable_v<value_type> ||
+                    !std::is_nothrow_move_constructible_v<value_type> ||
+                    !is_trivially_allocator_construct_v<_Alty, value_type, value_type &&>;
+                using tail_guard =
+                    std::conditional_t<needs_rollback, _uninitialized_rollback<pointer, _Alty>,
+                                       _no_storage_rollback>;
+                tail_guard rollback(_end, &al);
+
                 const auto _elements_after = static_cast<size_type>(_end - old_first);
                 if (_elements_after > m) {
                     wjr::uninitialized_move_using_allocator(_end - _delta, _end, _end, al);
+                    if constexpr (needs_rollback)
+                        rollback.current() = _end + _delta;
                     std::move_backward(old_last, _end - _delta, _end);
                     std::copy(new_begin, new_last, old_first);
                 } else {
                     auto mid = new_begin;
                     std::advance(mid, _elements_after);
                     wjr::uninitialized_copy_using_allocator(mid, new_last, _end, al);
+                    if constexpr (needs_rollback)
+                        rollback.current() = old_first + m;
                     wjr::uninitialized_move_using_allocator(old_last, _end, old_first + m, al);
+                    if constexpr (needs_rollback)
+                        rollback.current() = _end + _delta;
                     std::copy(new_begin, mid, old_first);
                 }
                 _get_size() += _delta;
+                rollback.release();
             } else {
                 if constexpr (is_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(_end - _begin);
                     const auto old_pos = static_cast<size_type>(old_first - _begin);
                     const auto new_capacity = get_growth_capacity(capacity(), old_size + _delta);
-
-                    _grow_storage_type new_storage;
-                    uninitialized_construct(new_storage, old_size + _delta, new_capacity);
-
-                    const pointer _new_begin = new_storage.data();
-
-                    wjr::uninitialized_copy_restrict_using_allocator(new_begin, new_last,
-                                                                     _new_begin + old_pos, al);
-                    wjr::uninitialized_move_restrict_using_allocator(_begin, old_first, _new_begin,
-                                                                     al);
-                    wjr::uninitialized_move_restrict_using_allocator(old_last, _end,
-                                                                     _new_begin + old_pos + m, al);
-
-                    _destroy_and_deallocate();
-                    _take_storage(new_storage);
+                    constexpr bool nothrow_incoming =
+                        noexcept(_construct_range_n(new_begin, m, std::declval<pointer>()));
+                    constexpr bool nothrow_transfer =
+                        std::is_nothrow_move_constructible_v<value_type> &&
+                        is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+                        is_trivially_allocator_destroy_v<_Alty, value_type> &&
+                        std::is_nothrow_destructible_v<value_type> &&
+                        _is_nothrow_take_storage_impl<_grow_storage_type>;
+                    if constexpr (nothrow_incoming && nothrow_transfer) {
+                        _grow_storage_type new_storage;
+                        uninitialized_construct(new_storage, old_size + _delta, new_capacity);
+                        const pointer output = new_storage.data();
+                        wjr::uninitialized_copy_restrict_using_allocator(new_begin, new_last,
+                                                                         output + old_pos, al);
+                        wjr::uninitialized_move_restrict_using_allocator(_begin, old_first, output,
+                                                                         al);
+                        wjr::uninitialized_move_restrict_using_allocator(old_last, _end,
+                                                                         output + old_pos + m, al);
+                        _destroy_and_deallocate();
+                        _take_storage(new_storage);
+                    } else {
+                        _grow_insert<nothrow_incoming>(
+                            m, new_capacity,
+                            [new_begin](pointer destination, size_type count, _Alty &allocator) {
+                                wjr::uninitialized_copy_n_restrict_using_allocator(
+                                    new_begin, count, destination, allocator);
+                            },
+                            old_pos, n);
+                    }
                 } else {
                     _unreallocatable_unreachable(size() + _delta);
                 }
@@ -2479,36 +2549,69 @@ private:
                 const temporary_value_allocator tmp(al, val);
                 const auto &real_value = *tmp.get();
 
+                constexpr bool needs_rollback =
+                    !std::is_nothrow_move_assignable_v<value_type> ||
+                    !std::is_nothrow_copy_assignable_v<value_type> ||
+                    !std::is_nothrow_move_constructible_v<value_type> ||
+                    !is_trivially_allocator_construct_v<_Alty, value_type, value_type &&>;
+                using tail_guard =
+                    std::conditional_t<needs_rollback, _uninitialized_rollback<pointer, _Alty>,
+                                       _no_storage_rollback>;
+                tail_guard rollback(_end, &al);
+
                 const auto _elements_after = static_cast<size_type>(_end - old_first);
                 if (_elements_after > m) {
                     wjr::uninitialized_move_using_allocator(_end - _delta, _end, _end, al);
+                    if constexpr (needs_rollback)
+                        rollback.current() = _end + _delta;
                     std::move_backward(old_last, _end - _delta, _end);
                     std::fill_n(old_first, m, real_value);
                 } else {
                     wjr::uninitialized_fill_n_using_allocator(_end, m - _elements_after, al,
                                                               real_value);
+                    if constexpr (needs_rollback)
+                        rollback.current() = old_first + m;
                     wjr::uninitialized_move_using_allocator(old_last, _end, old_first + m, al);
+                    if constexpr (needs_rollback)
+                        rollback.current() = _end + _delta;
                     std::fill(old_first, _end, real_value);
                 }
                 _get_size() += _delta;
+                rollback.release();
             } else {
                 if constexpr (is_reallocatable::value) {
                     const auto old_size = static_cast<size_type>(_end - _begin);
                     const auto old_pos = static_cast<size_type>(old_first - _begin);
                     const auto new_capacity = get_growth_capacity(capacity(), old_size + _delta);
-
-                    _grow_storage_type new_storage;
-                    uninitialized_construct(new_storage, old_size + _delta, new_capacity);
-
-                    const pointer _ptr = new_storage.data();
-
-                    wjr::uninitialized_fill_n_using_allocator(_ptr + old_pos, m, al, val);
-                    wjr::uninitialized_move_restrict_using_allocator(_begin, old_first, _ptr, al);
-                    wjr::uninitialized_move_restrict_using_allocator(old_last, _end,
-                                                                     _ptr + old_pos + m, al);
-
-                    _destroy_and_deallocate();
-                    _take_storage(new_storage);
+                    constexpr bool nothrow_incoming =
+                        std::is_nothrow_copy_constructible_v<value_type> &&
+                        is_trivially_allocator_construct_v<_Alty, value_type, const value_type &> &&
+                        is_trivially_allocator_destroy_v<_Alty, value_type>;
+                    constexpr bool nothrow_transfer =
+                        std::is_nothrow_move_constructible_v<value_type> &&
+                        is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+                        std::is_nothrow_destructible_v<value_type> &&
+                        _is_nothrow_take_storage_impl<_grow_storage_type>;
+                    if constexpr (nothrow_incoming && nothrow_transfer) {
+                        _grow_storage_type new_storage;
+                        uninitialized_construct(new_storage, old_size + _delta, new_capacity);
+                        const pointer output = new_storage.data();
+                        wjr::uninitialized_fill_n_using_allocator(output + old_pos, m, al, val);
+                        wjr::uninitialized_move_restrict_using_allocator(_begin, old_first, output,
+                                                                         al);
+                        wjr::uninitialized_move_restrict_using_allocator(old_last, _end,
+                                                                         output + old_pos + m, al);
+                        _destroy_and_deallocate();
+                        _take_storage(new_storage);
+                    } else {
+                        _grow_insert<nothrow_incoming>(
+                            m, new_capacity,
+                            [&val](pointer destination, size_type count, _Alty &allocator) {
+                                wjr::uninitialized_fill_n_using_allocator(destination, count,
+                                                                          allocator, val);
+                            },
+                            old_pos, n);
+                    }
                 } else {
                     _unreallocatable_unreachable(size() + _delta);
                 }

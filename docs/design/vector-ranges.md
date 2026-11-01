@@ -164,17 +164,37 @@ Move-only values, construct-only end insertion, inline storage and allocator
 hooks keep their existing domains. No initialization pass or intermediate vector
 is introduced.
 
-Focused validation checks each construction/hook/move failure point, spare-capacity
-assignment, small/inplace storage, move-only ownership and self-referencing
-arguments. Windows Clang 18/C++20/baseline/O3 probes for six ordinary integer,
-unique-pointer and small-vector callers, including their generated helpers, have
-identical assembly after normalizing the internal helper name and its empty
-position-pack symbol. This is a correctness fix, not a throughput claim against
-the old leaking exception paths.
+## Bulk insertion and replacement ownership
 
-The [caller probe](references/vector-emplace-codegen.cpp) can be compiled with
-`clang++ -std=c++20 -O3 -march=x86-64 -DNDEBUG -DWJR_DEBUG_LEVEL=0 -Iinclude
--Ithird-party/fmt/include -S docs/design/references/vector-emplace-codegen.cpp`.
-For the reference, place `include/wjr/container/vector.hpp` from commit
-`a5dbf316` in a separate include overlay and put that overlay first. Compare
-within the same compiler/platform and keep ISA and exception flags equal.
+Count/value insertion and the legacy fill/forward-range `replace` overloads use
+that same transaction when growth can unwind. Replacement skips the removed old
+interval during transfer and destroys those old objects on commit. Its incoming
+range is still constructed in full before any old element is moved; allocation
+failure therefore does not assign an old prefix. This preserves the legacy
+ordering, distinct from the prefix-first `replace_range` contract above.
+
+With spare capacity, both shift layouts guard the complete newly constructed
+tail until all construction and assignment finishes. A later allocator hook,
+source increment, move or assignment failure destroys the uncommitted tail;
+the old size remains valid. Values can be moved from or partly assigned, so this
+is an ownership/basic guarantee. Existing nonthrowing construction/assignment
+paths discard the guard at compile time and retain their direct growth code.
+No intermediate vector or extra allocation is added.
+
+Focused validation covers each incoming and surviving-element failure point,
+both spare-capacity layouts, small/inplace storage, move-only resources,
+self-referencing fill arguments and a throwing forward-source increment. Windows
+Clang 18/C++20/baseline/O3 produces identical full assembly for the nine ordinary
+integer, unique-pointer and small-vector callers in the
+[caller probe](references/vector-emplace-codegen.cpp), including emitted helpers.
+MSVC 19.42/O2/Ob2 produces identical instruction bodies and relocation multisets
+for all 402 emitted functions/sections in this probe. These are caller/codegen
+checks, not final library-size or exception-path throughput claims.
+
+Compile the probe with `clang++ -std=c++20 -O3 -march=x86-64 -DNDEBUG
+-DWJR_DEBUG_LEVEL=0 -Iinclude -Ithird-party/fmt/include -S
+docs/design/references/vector-emplace-codegen.cpp`. For the reference, place
+`include/wjr/container/vector.hpp` from commit `035303d5` in a separate include
+overlay and put that overlay first. Keep the compiler, ISA and exception flags
+equal. Linux CI provides the compiler and ASan coverage; local Windows EH testing
+uses ordinary Release builds rather than the affected Clang 18 ASan runtime.

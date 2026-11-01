@@ -28,3 +28,18 @@ extern "C" WJR_NOINLINE void back_owner(wjr::vector<std::unique_ptr<int>> &value
 extern "C" WJR_NOINLINE void small_back(wjr::small_vector<int, 8> &value, int incoming) {
     value.emplace_back(incoming);
 }
+
+extern "C" WJR_NOINLINE void fill_insert(wjr::vector<int> &value, unsigned position, unsigned count,
+                                         int incoming) {
+    value.insert(value.cbegin() + position, count, incoming);
+}
+
+extern "C" WJR_NOINLINE void fill_replace(wjr::vector<int> &value, unsigned first, unsigned last,
+                                          unsigned count, int incoming) {
+    value.replace(value.cbegin() + first, value.cbegin() + last, count, incoming);
+}
+
+extern "C" WJR_NOINLINE void range_replace(wjr::vector<int> &value, unsigned first, unsigned last,
+                                           const int *begin, const int *end) {
+    value.replace(value.cbegin() + first, value.cbegin() + last, begin, end);
+}
