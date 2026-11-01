@@ -1,0 +1,997 @@
+{
+  "source": "a65bef5d",
+  "implementation": "77502091",
+  "n": 4096,
+  "iterations_per_repetition": 64,
+  "repetitions": 5,
+  "profiles": {
+    "WindowsClang": {
+      "context": {
+        "date": "2026-10-31T17:09:03+08:00",
+        "host_name": "WJR",
+        "executable": "build/clang20-release/bin/btree_range_erase.exe",
+        "num_cpus": 20,
+        "mhz_per_cpu": 2688,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 49152,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 1310720,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 25165824,
+            "num_sharing": 20
+          }
+        ],
+        "load_avg": [],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "contract": "N4096 ascending build excluded; lower bounds+erase timed; 64 iterations/rep; no counters",
+        "flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "source": "a65bef5d68cf9ddce8de88961a3c4f41c457b31c"
+      },
+      "raw_time_ns": {
+        "u64/legacy_reference/middle": [
+          59478.12428530597,
+          63828.12512129021,
+          62943.74998105923,
+          61485.93547550263,
+          66768.75091216061
+        ],
+        "u64/legacy_reference/front_partial": [
+          103006.24853698537,
+          101460.93586627103,
+          107829.68661260384,
+          100460.93666460365,
+          109124.99919868424
+        ],
+        "u64/legacy_batch/middle": [
+          39279.686234294786,
+          39162.50057045545,
+          37668.7501102424,
+          37560.93860829424,
+          38089.061263235635
+        ],
+        "u64/legacy_batch/front_partial": [
+          66825.00065835484,
+          63754.68706210086,
+          65370.31276820926,
+          62748.438267590245,
+          63573.43590934761
+        ],
+        "u64/compact_reference/middle": [
+          28929.688369316864,
+          28914.063250340405,
+          28690.62609534012,
+          28710.937840514816,
+          29407.8133720177
+        ],
+        "u64/compact_reference/front_partial": [
+          47109.37423624273,
+          45809.37525133777,
+          46432.811814156594,
+          46568.75012187811,
+          45240.625922815525
+        ],
+        "u64/compact_batch/middle": [
+          9021.875257531065,
+          8637.499377073254,
+          11162.4983674119,
+          8909.37394615321,
+          9031.250101543264
+        ],
+        "u64/compact_batch/front_partial": [
+          21574.999436779763,
+          20710.937405965524,
+          21912.501097176573,
+          19729.687892322545,
+          19585.937707233825
+        ],
+        "u64/std/middle": [
+          40973.43889952754,
+          37278.12440956768,
+          36970.3136584576,
+          40343.7506975024,
+          37707.81086132047
+        ],
+        "u64/std/front_partial": [
+          58579.68631062249,
+          57200.00012843229,
+          55262.501064134995,
+          61135.93713052978,
+          57562.49993282836
+        ],
+        "u64/absl/middle": [
+          9940.624750015559,
+          10009.373909269925,
+          9020.312745633419,
+          10565.625416347757,
+          9114.064141613198
+        ],
+        "u64/absl/front_partial": [
+          13926.562814958743,
+          13540.623513108585,
+          13143.749356459011,
+          14259.375575420563,
+          14045.311900190427
+        ],
+        "large/legacy_reference/middle": [
+          64317.18679777987,
+          61532.812878795085,
+          68232.81273682369,
+          66112.49864363344,
+          68201.56272624445
+        ],
+        "large/legacy_reference/front_partial": [
+          100901.56365549774,
+          101854.68704548839,
+          95090.62670076673,
+          96535.93815528438,
+          102487.49958918779
+        ],
+        "large/legacy_batch/middle": [
+          37759.37784666894,
+          37048.43697960314,
+          36414.06192400609,
+          39632.81142205233,
+          37906.24805333209
+        ],
+        "large/legacy_batch/front_partial": [
+          61767.18693495786,
+          72995.31330318132,
+          64748.43894466176,
+          64154.68851628248,
+          68753.12533338729
+        ],
+        "large/compact_reference/middle": [
+          43884.374463232234,
+          44564.061226992635,
+          44685.93783713004,
+          46307.81245396065,
+          41634.375065768836
+        ],
+        "large/compact_reference/front_partial": [
+          69887.49919401016,
+          70410.93795123743,
+          71748.43585744384,
+          71570.31245696999,
+          74771.87500626314
+        ],
+        "large/compact_batch/middle": [
+          9759.374734130688,
+          10465.624200151069,
+          9689.061698736623,
+          9910.938160828664,
+          10848.437796084909
+        ],
+        "large/compact_batch/front_partial": [
+          34635.93770902662,
+          32079.68734386668,
+          31909.37604813371,
+          34042.18819014204,
+          34093.7478995329
+        ],
+        "large/std/middle": [
+          37692.18710658606,
+          41857.81472187955,
+          38393.75040115556,
+          39317.18833882769,
+          39192.18897863175
+        ],
+        "large/std/front_partial": [
+          60054.686400690116,
+          61217.18820395472,
+          61632.813412870746,
+          59521.87552793475,
+          60364.06125531357
+        ],
+        "large/absl/middle": [
+          31300.001182898995,
+          32240.62447770848,
+          31206.24955954554,
+          30709.37509619398,
+          34637.50044829794
+        ],
+        "large/absl/front_partial": [
+          57717.1867917059,
+          54278.12538982835,
+          58881.251334241824,
+          56581.25087393273,
+          56439.06251862063
+        ]
+      },
+      "ratios": {
+        "u64/legacy_batch/middle": {
+          "median": 0.6051285675654412,
+          "observed_low": 0.5625526626626357,
+          "observed_high": 0.6604055979619856,
+          "batch_over_std": 1.0101106479853021,
+          "batch_over_absl": 3.8316566836682995
+        },
+        "u64/legacy_batch/front_partial": {
+          "median": 0.6189399960450859,
+          "observed_low": 0.5750143296985869,
+          "observed_high": 0.6651839299632961,
+          "batch_over_std": 1.1075732835873766,
+          "batch_over_absl": 4.577919757315921
+        },
+        "u64/compact_batch/middle": {
+          "median": 0.3120237781670084,
+          "observed_low": 0.2937144379898731,
+          "observed_high": 0.3890643003160148,
+          "batch_over_std": 0.23925746553442676,
+          "batch_over_absl": 0.9075762826191527
+        },
+        "u64/compact_batch/front_partial": {
+          "median": 0.4460409912037914,
+          "observed_low": 0.4157545716700636,
+          "observed_high": 0.4843545077064411,
+          "batch_over_std": 0.35979913016519127,
+          "batch_over_absl": 1.487153555486037
+        },
+        "large/legacy_batch/middle": {
+          "median": 0.5711382661575615,
+          "observed_low": 0.5336737628632778,
+          "observed_high": 0.6440923073047137,
+          "batch_over_std": 0.9634414109213445,
+          "batch_over_absl": 1.2063698536631071
+        },
+        "large/legacy_batch/front_partial": {
+          "median": 0.6416990639087471,
+          "observed_low": 0.6026802018055495,
+          "observed_high": 0.7676394176356054,
+          "batch_over_std": 1.072632251677106,
+          "batch_over_absl": 1.1443444240730225
+        },
+        "large/compact_batch/middle": {
+          "median": 0.22239755282504567,
+          "observed_low": 0.20923168651875995,
+          "observed_high": 0.260564444138957,
+          "batch_over_std": 0.252880444269961,
+          "batch_over_absl": 0.316643379753084
+        },
+        "large/compact_batch/front_partial": {
+          "median": 0.4756467733825967,
+          "observed_low": 0.4267563979833443,
+          "observed_high": 0.49559560877798814,
+          "batch_over_std": 0.5639479432332838,
+          "batch_over_absl": 0.6016513891852725
+        }
+      },
+      "raw_sha256": "e70225753a03e1b0c61aa32a62fb498f51e2c6f041fdc9d94cf6579079feb409"
+    },
+    "LinuxGCC": {
+      "context": {
+        "date": "2026-10-31T09:08:58+00:00",
+        "host_name": "runnervm48cm3",
+        "executable": "./build-gcc/bin/btree_range_erase",
+        "num_cpus": 4,
+        "mhz_per_cpu": 3243,
+        "cpu_scaling_enabled": false,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 524288,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 33554432,
+            "num_sharing": 4
+          }
+        ],
+        "load_avg": [
+          2.93994,
+          0.907227,
+          0.315918
+        ],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "contract": "N4096 ascending build excluded; lower bounds+erase timed; 64 iterations/rep; no counters",
+        "flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "source": "a65bef5d68cf9ddce8de88961a3c4f41c457b31c"
+      },
+      "raw_time_ns": {
+        "u64/legacy_reference/middle": [
+          50662.203126661254,
+          49457.14062465356,
+          48996.71875113754,
+          50425.84374881365,
+          50095.54687562812
+        ],
+        "u64/legacy_reference/front_partial": [
+          74672.73437478105,
+          74673.32812494121,
+          75035.99999947319,
+          75630.37500024628,
+          75775.57812576962
+        ],
+        "u64/legacy_batch/middle": [
+          28805.265625431177,
+          28552.374998991327,
+          28703.234375759836,
+          29268.000001803073,
+          28531.8906245724
+        ],
+        "u64/legacy_batch/front_partial": [
+          50946.8124996193,
+          49891.78124992222,
+          50432.87499972848,
+          50512.89062518727,
+          50923.85937555122
+        ],
+        "u64/compact_reference/middle": [
+          38375.73437470709,
+          38257.92187361898,
+          37776.32812629328,
+          38127.01562422305,
+          39744.406250319385
+        ],
+        "u64/compact_reference/front_partial": [
+          57000.45312440061,
+          56995.718749952575,
+          57245.640627145985,
+          56082.98437520531,
+          56023.500001112225
+        ],
+        "u64/compact_batch/middle": [
+          13274.7499990149,
+          13033.078126500897,
+          13294.187500179078,
+          12756.43749987232,
+          13048.093748579959
+        ],
+        "u64/compact_batch/front_partial": [
+          33063.89062585069,
+          32974.73437435805,
+          33675.15624974615,
+          33466.500001244625,
+          33583.859375685424
+        ],
+        "u64/std/middle": [
+          42758.250000218824,
+          42973.92187502247,
+          42359.10937433474,
+          41808.98437411429,
+          42859.32812453375
+        ],
+        "u64/std/front_partial": [
+          61063.28124966254,
+          60941.828124105865,
+          60404.00000095758,
+          60174.89062637438,
+          60296.26562464863
+        ],
+        "u64/absl/middle": [
+          10128.828125788303,
+          10510.765624971442,
+          9874.390624498019,
+          9586.984376586117,
+          9529.078123904355
+        ],
+        "u64/absl/front_partial": [
+          13659.296877355231,
+          13535.39062520781,
+          13617.578125124652,
+          13667.296876684886,
+          13474.312500427743
+        ],
+        "large/legacy_reference/middle": [
+          52102.00000060894,
+          52507.89062549721,
+          52882.21875066057,
+          52262.96875027181,
+          52390.10937652111
+        ],
+        "large/legacy_reference/front_partial": [
+          80935.54687493843,
+          80422.0937506983,
+          81631.84375131749,
+          81325.26562665276,
+          80556.99999887089
+        ],
+        "large/legacy_batch/middle": [
+          30153.375000452343,
+          30237.59374909396,
+          30353.874999278218,
+          30025.296875235697,
+          30658.499998947875
+        ],
+        "large/legacy_batch/front_partial": [
+          53230.124999581465,
+          53417.17187357098,
+          53533.57812376558,
+          53606.6406253699,
+          53822.281248505635
+        ],
+        "large/compact_reference/middle": [
+          56006.54687465401,
+          55829.35937398225,
+          55970.078125744396,
+          55989.07812509601,
+          55618.29687406039
+        ],
+        "large/compact_reference/front_partial": [
+          103074.12499899193,
+          102887.06249750312,
+          103749.70312310162,
+          103009.23437345233,
+          103006.17187564143
+        ],
+        "large/compact_batch/middle": [
+          13970.625000192527,
+          14799.406250931568,
+          14397.078125005792,
+          13750.6093771389,
+          13976.531249904056
+        ],
+        "large/compact_batch/front_partial": [
+          51369.45312478325,
+          52109.73437419497,
+          51460.359375532506,
+          51346.50000004903,
+          51008.42187455434
+        ],
+        "large/std/middle": [
+          44246.03125108284,
+          43977.390624005966,
+          44340.39062339856,
+          42693.843749663785,
+          43921.406249314285
+        ],
+        "large/std/front_partial": [
+          62361.59375072603,
+          62491.46874925948,
+          63169.93749799771,
+          62300.82812419546,
+          62669.34374976607
+        ],
+        "large/absl/middle": [
+          30972.015623520478,
+          30882.203126303408,
+          30986.124999632382,
+          31225.812501478602,
+          32169.23437610042
+        ],
+        "large/absl/front_partial": [
+          56194.4531245473,
+          56215.87500037606,
+          56171.53124903851,
+          55867.59375053596,
+          57029.46875119075
+        ]
+      },
+      "ratios": {
+        "u64/legacy_batch/middle": {
+          "median": 0.572969778072713,
+          "observed_low": 0.5631790341458195,
+          "observed_high": 0.5973461233283824,
+          "batch_over_std": 0.6712911397359093,
+          "batch_over_absl": 2.906836023333745
+        },
+        "u64/legacy_batch/front_partial": {
+          "median": 0.6731820809417067,
+          "observed_low": 0.6584150525003399,
+          "observed_high": 0.6822679379051289,
+          "batch_over_std": 0.836250755320616,
+          "batch_over_absl": 3.709388715162953
+        },
+        "u64/compact_batch/middle": {
+          "median": 0.34105599858985974,
+          "observed_low": 0.32096183345976664,
+          "observed_high": 0.3519184674522664,
+          "batch_over_std": 0.3051596767527479,
+          "batch_over_absl": 1.3214074918413794
+        },
+        "u64/compact_batch/front_partial": {
+          "median": 0.5871756815291056,
+          "observed_low": 0.576021754898859,
+          "observed_high": 0.601089832821541,
+          "batch_over_std": 0.554044434155256,
+          "batch_over_absl": 2.457595593999082
+        },
+        "large/legacy_batch/middle": {
+          "median": 0.5771622565583933,
+          "observed_low": 0.5677767987913828,
+          "observed_high": 0.5884323058345083,
+          "batch_over_std": 0.687571347914129,
+          "batch_over_absl": 0.9758430184301102
+        },
+        "large/legacy_batch/front_partial": {
+          "median": 0.6614346871157323,
+          "observed_low": 0.6520754959515705,
+          "observed_high": 0.6692474510219811,
+          "batch_over_std": 0.8566541832864178,
+          "batch_over_absl": 0.952648796227552
+        },
+        "large/compact_batch/middle": {
+          "median": 0.24971434234027468,
+          "observed_low": 0.24551789289765685,
+          "observed_high": 0.2660888067903749,
+          "batch_over_std": 0.317811744889536,
+          "batch_over_absl": 0.4510577314869114
+        },
+        "large/compact_batch/front_partial": {
+          "median": 0.49868784519402515,
+          "observed_low": 0.49164884659025554,
+          "observed_high": 0.50647509132122,
+          "batch_over_std": 0.822023456208044,
+          "batch_over_absl": 0.9141374329407549
+        }
+      },
+      "raw_sha256": "f364ebff2b7db84f206e04ea51e3f9ca490a44284916ccffa8af4544a4429054"
+    },
+    "LinuxClang": {
+      "context": {
+        "date": "2026-10-31T09:10:22+00:00",
+        "host_name": "runnervm48cm3",
+        "executable": "./build-clang/bin/btree_range_erase",
+        "num_cpus": 4,
+        "mhz_per_cpu": 3257,
+        "cpu_scaling_enabled": false,
+        "caches": [
+          {
+            "type": "Data",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Instruction",
+            "level": 1,
+            "size": 32768,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 2,
+            "size": 524288,
+            "num_sharing": 2
+          },
+          {
+            "type": "Unified",
+            "level": 3,
+            "size": 33554432,
+            "num_sharing": 4
+          }
+        ],
+        "load_avg": [
+          4.17139,
+          1.75586,
+          0.665527
+        ],
+        "library_version": "v1.9.0",
+        "library_build_type": "release",
+        "json_schema_version": 1,
+        "contract": "N4096 ascending build excluded; lower bounds+erase timed; 64 iterations/rep; no counters",
+        "flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "source": "a65bef5d68cf9ddce8de88961a3c4f41c457b31c"
+      },
+      "raw_time_ns": {
+        "u64/legacy_reference/middle": [
+          41026.43749748225,
+          40862.95312655253,
+          41056.140624107225,
+          41047.87499947804,
+          40822.421873532025
+        ],
+        "u64/legacy_reference/front_partial": [
+          60941.23437927479,
+          61034.06250224097,
+          61271.062502754605,
+          60933.98437645448,
+          62315.85937399586
+        ],
+        "u64/legacy_batch/middle": [
+          29508.531250499458,
+          28704.468750806456,
+          28703.578127231565,
+          28810.046875271666,
+          29143.32812276044
+        ],
+        "u64/legacy_batch/front_partial": [
+          49123.468746969935,
+          48896.92187637351,
+          48174.468748829466,
+          48471.250001291824,
+          48517.78124770334
+        ],
+        "u64/compact_reference/middle": [
+          28574.765627009667,
+          28507.984374481766,
+          28329.390625803087,
+          28523.718751394255,
+          28359.828122326293
+        ],
+        "u64/compact_reference/front_partial": [
+          47136.26562269368,
+          45648.04687401391,
+          45326.734376516244,
+          45122.14062657449,
+          46368.515626671324
+        ],
+        "u64/compact_batch/middle": [
+          12386.328123614732,
+          12244.78124406403,
+          12632.265623313544,
+          12345.968752658366,
+          12189.031251885752
+        ],
+        "u64/compact_batch/front_partial": [
+          25367.828124345237,
+          25158.031251137912,
+          25181.687500985816,
+          25806.45312333374,
+          25600.796872637944
+        ],
+        "u64/std/middle": [
+          43721.890623515945,
+          43549.28125183122,
+          43014.23437658158,
+          43202.42187638712,
+          42711.09374576199
+        ],
+        "u64/std/front_partial": [
+          61941.406249932385,
+          62253.67187751018,
+          61936.71875065476,
+          62185.03125099417,
+          61721.40625571032
+        ],
+        "u64/absl/middle": [
+          10443.76562298055,
+          10116.218750688688,
+          10235.624999577198,
+          10255.093748856581,
+          10240.312500631177
+        ],
+        "u64/absl/front_partial": [
+          14594.234378328963,
+          14465.093751248049,
+          14358.890623178411,
+          14843.031251654536,
+          14350.843749344478
+        ],
+        "large/legacy_reference/middle": [
+          41928.32812499603,
+          42537.17187774342,
+          42551.49999998764,
+          42614.70312538762,
+          42712.5624993252
+        ],
+        "large/legacy_reference/front_partial": [
+          62965.43750217154,
+          63251.95312451015,
+          62261.12500318237,
+          63024.79687736451,
+          62152.15624960635
+        ],
+        "large/legacy_batch/middle": [
+          31806.28124832552,
+          31834.62500055967,
+          32137.671875265285,
+          31876.015631482347,
+          31656.67187721155
+        ],
+        "large/legacy_batch/front_partial": [
+          53289.671876122215,
+          49711.45312637759,
+          49513.93749852428,
+          49584.78124894583,
+          50694.90624887152
+        ],
+        "large/compact_reference/middle": [
+          40328.18750365763,
+          39988.67187515742,
+          47333.04687709605,
+          47147.234373490224,
+          47347.515624629465
+        ],
+        "large/compact_reference/front_partial": [
+          95633.85937561009,
+          96703.87499838285,
+          73436.98437844992,
+          96663.82812811846,
+          96559.48437359286
+        ],
+        "large/compact_batch/middle": [
+          12539.859375326756,
+          12339.76562398098,
+          12515.2968730724,
+          12956.703128175206,
+          12864.640624776768
+        ],
+        "large/compact_batch/front_partial": [
+          40503.249999712665,
+          41001.906250226486,
+          43439.296876002234,
+          44777.25000207045,
+          45122.96875036626
+        ],
+        "large/std/middle": [
+          45222.01562506823,
+          45494.109375709966,
+          45100.26562742908,
+          44489.000000424996,
+          44382.1093774055
+        ],
+        "large/std/front_partial": [
+          65275.92187177689,
+          63794.51562432692,
+          64997.26562303465,
+          64629.42187912546,
+          64052.39062257095
+        ],
+        "large/absl/middle": [
+          34847.17187696163,
+          34675.390624183674,
+          34697.46874618096,
+          34739.57812571982,
+          34966.85937598443
+        ],
+        "large/absl/front_partial": [
+          61641.21875196216,
+          62063.89062946016,
+          61700.34375152511,
+          62375.68749689615,
+          61750.000002192
+        ]
+      },
+      "ratios": {
+        "u64/legacy_batch/middle": {
+          "median": 0.7022312594662822,
+          "observed_low": 0.6991299642611191,
+          "observed_high": 0.7228510680213185,
+          "batch_over_std": 0.6668618476460505,
+          "batch_over_absl": 2.8133952819795214
+        },
+        "u64/legacy_batch/front_partial": {
+          "median": 0.7949295730711342,
+          "observed_low": 0.7730691549915857,
+          "observed_high": 0.8061752279890588,
+          "batch_over_std": 0.7832851106404498,
+          "batch_over_absl": 3.3541283646030444
+        },
+        "u64/compact_batch/middle": {
+          "median": 0.4330705598291811,
+          "observed_low": 0.4265662721784265,
+          "observed_high": 0.4459067189326612,
+          "batch_over_std": 0.28577029287809963,
+          "batch_over_absl": 1.2056242181962127
+        },
+        "u64/compact_batch/front_partial": {
+          "median": 0.5557264737823076,
+          "observed_low": 0.53372983452948,
+          "observed_high": 0.5719243981996532,
+          "batch_over_std": 0.4095455634634212,
+          "batch_over_absl": 1.7537271835626023
+        },
+        "large/legacy_batch/middle": {
+          "median": 0.7481434262145616,
+          "observed_low": 0.7411559977866391,
+          "observed_high": 0.7664906594762614,
+          "batch_over_std": 0.7058633592880325,
+          "batch_over_absl": 0.9163791478800535
+        },
+        "large/legacy_batch/front_partial": {
+          "median": 0.7895038150836823,
+          "observed_low": 0.782804878784646,
+          "observed_high": 0.8574066467156517,
+          "batch_over_std": 0.7691768188697632,
+          "batch_over_absl": 0.8050437752973755
+        },
+        "large/compact_batch/middle": {
+          "median": 0.2659723214301118,
+          "observed_low": 0.2606211848961727,
+          "observed_high": 0.32400933866034276,
+          "batch_over_std": 0.2780440248161258,
+          "batch_over_absl": 0.3609675203868621
+        },
+        "large/compact_batch/front_partial": {
+          "median": 0.4498708454980321,
+          "observed_low": 0.4188379214420311,
+          "observed_high": 0.6144447396945072,
+          "batch_over_std": 0.672128817077236,
+          "batch_over_absl": 0.7034703947281009
+        }
+      },
+      "raw_sha256": "f9cac4b7919371a9e59d1af107100a11f73b5a31faf2cf3f19e65c37781964c0"
+    }
+  },
+  "windows_separate_requested_memory_pass": {
+    "allocator": "independent polymorphic_allocator resources forwarding to new_delete_resource; counters absent from timing",
+    "rows": [
+      {
+        "case": "legacy_reference",
+        "first": 1024,
+        "last": 3072,
+        "before": 154464,
+        "after": 76864,
+        "erase_allocations": 0,
+        "erase_deallocations": 2305,
+        "mapped": "u64"
+      },
+      {
+        "case": "legacy_reference",
+        "first": 1,
+        "last": 3071,
+        "before": 154464,
+        "after": 38400,
+        "erase_allocations": 0,
+        "erase_deallocations": 3454,
+        "mapped": "u64"
+      },
+      {
+        "case": "legacy_batch",
+        "first": 1024,
+        "last": 3072,
+        "before": 154464,
+        "after": 76864,
+        "erase_allocations": 0,
+        "erase_deallocations": 2305,
+        "mapped": "u64"
+      },
+      {
+        "case": "legacy_batch",
+        "first": 1,
+        "last": 3071,
+        "before": 154464,
+        "after": 38400,
+        "erase_allocations": 0,
+        "erase_deallocations": 3454,
+        "mapped": "u64"
+      },
+      {
+        "case": "compact_reference",
+        "first": 1024,
+        "last": 3072,
+        "before": 147168,
+        "after": 73152,
+        "erase_allocations": 0,
+        "erase_deallocations": 257,
+        "mapped": "u64"
+      },
+      {
+        "case": "compact_reference",
+        "first": 1,
+        "last": 3071,
+        "before": 147168,
+        "after": 36576,
+        "erase_allocations": 0,
+        "erase_deallocations": 384,
+        "mapped": "u64"
+      },
+      {
+        "case": "compact_batch",
+        "first": 1024,
+        "last": 3072,
+        "before": 147168,
+        "after": 73152,
+        "erase_allocations": 0,
+        "erase_deallocations": 257,
+        "mapped": "u64"
+      },
+      {
+        "case": "compact_batch",
+        "first": 1,
+        "last": 3071,
+        "before": 147168,
+        "after": 36576,
+        "erase_allocations": 0,
+        "erase_deallocations": 384,
+        "mapped": "u64"
+      },
+      {
+        "case": "legacy_reference",
+        "first": 1024,
+        "last": 3072,
+        "before": 383840,
+        "after": 191552,
+        "erase_allocations": 0,
+        "erase_deallocations": 2305,
+        "mapped": "large"
+      },
+      {
+        "case": "legacy_reference",
+        "first": 1,
+        "last": 3071,
+        "before": 383840,
+        "after": 95856,
+        "erase_allocations": 0,
+        "erase_deallocations": 3454,
+        "mapped": "large"
+      },
+      {
+        "case": "legacy_batch",
+        "first": 1024,
+        "last": 3072,
+        "before": 383840,
+        "after": 191552,
+        "erase_allocations": 0,
+        "erase_deallocations": 2305,
+        "mapped": "large"
+      },
+      {
+        "case": "legacy_batch",
+        "first": 1,
+        "last": 3071,
+        "before": 383840,
+        "after": 95856,
+        "erase_allocations": 0,
+        "erase_deallocations": 3454,
+        "mapped": "large"
+      },
+      {
+        "case": "compact_reference",
+        "first": 1024,
+        "last": 3072,
+        "before": 554848,
+        "after": 276544,
+        "erase_allocations": 0,
+        "erase_deallocations": 257,
+        "mapped": "large"
+      },
+      {
+        "case": "compact_reference",
+        "first": 1,
+        "last": 3071,
+        "before": 554848,
+        "after": 138720,
+        "erase_allocations": 0,
+        "erase_deallocations": 384,
+        "mapped": "large"
+      },
+      {
+        "case": "compact_batch",
+        "first": 1024,
+        "last": 3072,
+        "before": 554848,
+        "after": 276544,
+        "erase_allocations": 0,
+        "erase_deallocations": 257,
+        "mapped": "large"
+      },
+      {
+        "case": "compact_batch",
+        "first": 1,
+        "last": 3071,
+        "before": 554848,
+        "after": 138720,
+        "erase_allocations": 0,
+        "erase_deallocations": 384,
+        "mapped": "large"
+      }
+    ]
+  }
+}

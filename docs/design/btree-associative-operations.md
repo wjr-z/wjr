@@ -40,11 +40,13 @@ destroying an element, so a key argument may refer to a key in the same tree.
 `erase(first, last)` removes a valid half-open range and returns its successor,
 or `end()`. Empty ranges are accepted. As with the existing engine, mutation can
 invalidate other iterators and references. The implementation counts a partial
-range before its first mutation and advances using each erase's returned
-iterator; it does not retain a potentially invalidated `last` as its stopping
-condition. Erasing the complete tree uses `clear`. Partial-range work is a
-forward count plus the existing iterator erasures, with no auxiliary allocation;
-this is not a new promise of the standard map's complexity or invalidation rules.
+range before its first mutation and advances using the surviving successor;
+it does not retain a potentially invalidated `last` as its stopping condition.
+Range length is counted by leaf metadata, complete leaves can be removed at
+once, and partial leaves are batched when they retain minimum occupancy.
+Underflow uses the existing iterator erase/rebalance, and complete-tree erase
+uses `clear`. There is no auxiliary allocation or new promise of standard-map
+complexity or invalidation rules; see the [range erase comparison](../performance/btree-range-erase.md).
 
 For maps, `value_compare`/`value_comp()` compare pair keys and ignore mapped
 values. For sets, `value_compare` is `key_compare`. The returned comparator
