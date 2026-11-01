@@ -11,7 +11,8 @@ import sys
 import tempfile
 import unittest
 from unittest import mock
-import xml.etree.ElementTree as ET
+# nosemgrep: python.lang.security.use-defused-xml.use-defused-xml
+import xml.etree.ElementTree as ET  # nosec B405: only SVG bytes rendered inside these tests.
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -31,6 +32,11 @@ def comparison(values=(10, 20, 30, 40, 50)):
     for bundle in (left, right):
         bundle["manifest"]["raw_source"]["path"] = "raw/input.json"
     return compare(left, right)
+
+
+def _rendered_svg(content):
+    """Inspect our renderer's output, never externally supplied XML."""
+    return ET.fromstring(content)  # nosec B314: test-generated Matplotlib SVG; labels are escaped.
 
 
 class ChartPolicyTests(unittest.TestCase):
@@ -104,7 +110,7 @@ class SvgTests(unittest.TestCase):
         for entry in index["entries"]:
             content = assets[entry["file"]]
             self.assertEqual(hashlib.sha256(content).hexdigest(), entry["sha256"])
-            text = " ".join(ET.fromstring(content).itertext())
+            text = " ".join(_rendered_svg(content).itertext())
             for marker in ("SYNTHETIC SCHEMA DATA", "NOT confidence intervals", "in_process_repetition",
                            "ns/iteration", "COMPARABLE", "lower is better", "ALL observations"):
                 self.assertIn(marker, text)
@@ -127,7 +133,7 @@ class SvgTests(unittest.TestCase):
         report = compare(baseline, copy.deepcopy(baseline))
         report["comparisons"] = report["comparisons"][:1]
         _, assets = render(report)
-        text = " ".join(ET.fromstring(next(iter(assets.values()))).itertext())
+        text = " ".join(_rendered_svg(next(iter(assets.values()))).itertext())
         self.assertIn("MODEL ESTIMATE", text)
         self.assertIn("skylake", text)
         self.assertIn("not measured runtime", text)
@@ -140,7 +146,7 @@ class SvgTests(unittest.TestCase):
             report["comparisons"] = report["comparisons"][:1]
             _, assets = render(report)
             self.assertEqual(len(assets), 1)
-            labels = list(ET.fromstring(next(iter(assets.values()))).itertext())
+            labels = list(_rendered_svg(next(iter(assets.values()))).itertext())
             self.assertTrue(any(label in ("0", "0.0") for label in labels))
 
     def test_labels_are_literal_and_never_paths_or_markup(self):
@@ -149,7 +155,7 @@ class SvgTests(unittest.TestCase):
         report["comparisons"][0]["region_id"] = '../../<script>alert(1)</script> $\\input{secret}$'
         _, assets = render(report)
         self.assertEqual(list(assets), ["comparison-0001.svg"])
-        root = ET.fromstring(next(iter(assets.values())))
+        root = _rendered_svg(next(iter(assets.values())))
         self.assertFalse(any(node.tag.endswith("script") for node in root.iter()))
         self.assertIn("$\\input{secret}$", " ".join(root.itertext()))
 

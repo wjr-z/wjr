@@ -102,8 +102,7 @@ def _svg(report, row, matplotlib, Figure):
         figure.text(0.04, 0.86, _label(status, 110), color="#844400", va="top")
         figure.text(0.04, 0.79, _label(f"{row['kind']}; {row['time_basis']}; scope: {row['scope']}", 115),
                     va="top", fontsize=9)
-        levels = "; ".join(f"{side}: n={row[side]['statistics']['n']} "
-                           f"({row[side]['observation']['sample_level']})"
+        levels = "; ".join(f"{side}: n={row[side]['statistics']['n']} ({row[side]['observation']['sample_level']})"
                            for side in ("baseline", "candidate"))
         footer = "Bars: medians. Whiskers: observed min/max, NOT confidence intervals.\n"
         footer += "Dots: at most 256 observations/side, evenly selected by order; summaries use ALL observations.\n"
