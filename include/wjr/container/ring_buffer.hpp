@@ -576,8 +576,7 @@ public:
         noexcept(basic_ring_buffer(std::move(other), al, in_place_empty)))
         : basic_ring_buffer(std::move(other), al, in_place_empty) {}
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 basic_ring_buffer(Iter first, Iter last,
                                       const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
@@ -865,8 +864,7 @@ public:
 
     WJR_CONST static size_type max_size() noexcept { return std::numeric_limits<size_type>::max(); }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 self_type &assign(Iter first, Iter last) {
         _range_assign(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
@@ -1464,8 +1462,8 @@ private:
     cpair<_Alty, storage_type> m_pair;
 };
 
-template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>>
-requires(is_iterator_v<Iter>)
+template <legacy_iterator Iter, typename T = iterator_value_t<Iter>,
+          typename Alloc = std::allocator<T>>
 basic_ring_buffer(Iter, Iter,
                   Alloc = Alloc()) -> basic_ring_buffer<default_ring_buffer_storage<T, Alloc>>;
 

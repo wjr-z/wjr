@@ -799,8 +799,7 @@ public:
                                                                           in_place_empty)))
         : basic_vector(std::move(other), al, in_place_empty) {}
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 basic_vector(Iter first, Iter last, const allocator_type &al = allocator_type())
         : basic_vector(al) {
         _range_construct(wjr::_iter_base(first), wjr::_iter_base(last),
@@ -840,8 +839,7 @@ public:
         return *this;
     }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 basic_vector &assign(Iter first, Iter last) {
         _range_assign(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
@@ -1209,8 +1207,7 @@ public:
         return begin() + old_pos;
     }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 iterator insert(const_iterator pos, Iter first, Iter last) {
         const auto old_pos = static_cast<size_type>(pos - cbegin());
         _range_insert(data() + old_pos, wjr::_iter_base(first), wjr::_iter_base(last),
@@ -1368,8 +1365,7 @@ public:
         return *this;
     }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 basic_vector &append(Iter first, Iter last) {
         _range_append(wjr::_iter_base(first), wjr::_iter_base(last), iterator_category_t<Iter>());
         return *this;
@@ -1394,8 +1390,7 @@ public:
      */
     WJR_CONSTEXPR20 basic_vector &truncate(const size_type n) { return chop(size() - n); }
 
-    template <typename Iter>
-    requires(is_iterator_v<Iter>)
+    template <legacy_iterator Iter>
     WJR_CONSTEXPR20 basic_vector &replace(const_iterator from, const_iterator to, Iter first,
                                           Iter last) {
         _range_replace(_get_pointer(from), _get_pointer(to), wjr::_iter_base(first),
@@ -2157,8 +2152,8 @@ private:
     _pair_type m_pair;
 };
 
-template <typename Iter, typename T = iterator_value_t<Iter>, typename Alloc = std::allocator<T>>
-requires(is_iterator_v<Iter>)
+template <legacy_iterator Iter, typename T = iterator_value_t<Iter>,
+          typename Alloc = std::allocator<T>>
 basic_vector(Iter, Iter, Alloc = Alloc()) -> basic_vector<default_vector_storage<T, Alloc>>;
 
 template <typename S>

@@ -1,11 +1,15 @@
 #include <array>
 #include <iterator>
+#include <list>
 #include <memory>
+#include <sstream>
 #include <type_traits>
 #include <vector>
 
 #include <gtest/gtest.h>
 
+#include <wjr/container/ring_buffer.hpp>
+#include <wjr/container/vector.hpp>
 #include <wjr/memory/copy.hpp>
 #include <wjr/memory/uninitialized.hpp>
 #include <wjr/span.hpp>
@@ -88,6 +92,35 @@ static_assert(wjr::is_contiguous_iterator_v<int[3]>);
 static_assert(wjr::is_contiguous_iterator_v<std::move_iterator<int *>>);
 static_assert(!wjr::is_contiguous_iterator_v<std::move_iterator<nontrivial *>>);
 static_assert(!std::contiguous_iterator<std::move_iterator<int *>>);
+
+template <typename... Iters>
+constexpr bool admission_matches_traits =
+    ((wjr::legacy_iterator<Iters> == wjr::is_iterator_v<Iters> &&
+      wjr::contiguous_storage_iterator<Iters> == wjr::is_contiguous_iterator_v<Iters>) &&
+     ...);
+
+static_assert(admission_matches_traits<int *, const int *, volatile int *, int[3], void *,
+                                       void (*)(), int, void, input_cursor, counted,
+                                       std::move_iterator<int *>, std::move_iterator<nontrivial *>,
+                                       std::list<int>::iterator, std::istream_iterator<int>,
+                                       std::back_insert_iterator<std::vector<int>>>);
+static_assert(!wjr::legacy_iterator<input_cursor>);
+static_assert(wjr::legacy_iterator<std::back_insert_iterator<std::vector<int>>>);
+static_assert(wjr::contiguous_storage_iterator<int[3]>);
+static_assert(wjr::contiguous_storage_iterator<std::move_iterator<int *>>);
+
+template <typename Iter>
+concept has_contiguous_aliases = requires {
+    typename wjr::iterator_contiguous_value_t<Iter>;
+    typename wjr::iterator_contiguous_pointer_t<Iter>;
+};
+
+static_assert(has_contiguous_aliases<const int *>);
+static_assert(has_contiguous_aliases<std::move_iterator<int *>>);
+static_assert(!has_contiguous_aliases<int>);
+static_assert(!has_contiguous_aliases<void *>);
+static_assert(!has_contiguous_aliases<std::list<int>::iterator>);
+static_assert(!has_contiguous_aliases<std::move_iterator<nontrivial *>>);
 static_assert(std::contiguous_iterator<wjr::span<int>::iterator>);
 static_assert(wjr::is_contiguous_iterator_v<wjr::span<int>::iterator>);
 static_assert(std::same_as<wjr::iterator_contiguous_pointer_t<const_counted>, const int *>);
@@ -201,4 +234,24 @@ TEST(iterator, counted_relocation_preserves_output_state) {
     std::destroy_n(destination, 3);
     alloc.deallocate(source, 3);
     alloc.deallocate(destination, 5);
+}
+
+TEST(iterator, legacy_pairs_keep_container_deduction_and_category_dispatch) {
+    const int source[] = {2, 4, 6};
+    wjr::basic_vector values(std::begin(source), std::end(source));
+    static_assert(std::same_as<decltype(values), wjr::vector<int>>);
+    const std::list<int> nodes = {7, 9};
+    values.assign(nodes.begin(), nodes.end());
+    values.append(std::begin(source), std::end(source));
+    values.insert(values.begin() + 1, nodes.begin(), nodes.end());
+    values.replace(values.begin(), values.begin() + 2, std::begin(source), std::end(source));
+    EXPECT_EQ((std::vector<int>(values.begin(), values.end())),
+              (std::vector<int>{2, 4, 6, 9, 9, 2, 4, 6}));
+
+    std::istringstream stream("11 13 17");
+    wjr::basic_ring_buffer ring(std::istream_iterator<int>{stream}, std::istream_iterator<int>{});
+    static_assert(std::same_as<decltype(ring), wjr::ring_buffer<int>>);
+    EXPECT_EQ((std::vector<int>(ring.begin(), ring.end())), (std::vector<int>{11, 13, 17}));
+    ring.assign(nodes.begin(), nodes.end());
+    EXPECT_EQ((std::vector<int>(ring.begin(), ring.end())), (std::vector<int>{7, 9}));
 }
