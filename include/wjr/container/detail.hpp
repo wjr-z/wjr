@@ -18,13 +18,26 @@ WJR_REGISTER_HAS_TYPE(_container_resize,
                       std::declval<std::add_lvalue_reference_t<Container>>().resize(
                           std::declval<Size>(), std::declval<Args>()...),
                       Container, Size);
-WJR_REGISTER_HAS_TYPE(_container_append, std::declval<Container>().append(std::declval<Args>()...),
-                      Container);
+WJR_REGISTER_HAS_TYPE(_container_append,
+                      std::declval<Container &>().append(std::declval<Args>()...), Container);
+
+namespace container_detail {
+
+template <typename Container, typename... Args>
+concept member_resizable =
+    requires(Container &cont, Args &&...args) { cont.resize(std::forward<Args>(args)...); };
+
+template <typename Container, typename... Args>
+concept member_appendable =
+    requires(Container &cont, Args &&...args) { cont.append(std::forward<Args>(args)...); };
+
+} // namespace container_detail
 
 template <typename Container>
 struct resize_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(has__container_resize_v<Container, Args...>)>
-    WJR_INTRINSIC_INLINE static void
+    template <typename... Args>
+    requires container_detail::member_resizable<Container, Args...>
+    WJR_INTRINSIC_INLINE static constexpr void
     resize(Container &cont,
            Args &&...args) noexcept(noexcept(cont.resize(std::forward<Args>(args)...))) {
         cont.resize(std::forward<Args>(args)...);
@@ -34,9 +47,16 @@ struct resize_fn_impl_base {
 template <typename Container>
 struct resize_fn_impl : resize_fn_impl_base<Container> {};
 
+/// @brief Whether resize customization accepts the forwarded arguments on a container lvalue.
+template <typename Container, typename... Args>
+concept resizable_container = requires(Container &cont, Args &&...args) {
+    resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
+};
+
 struct resize_fn {
     template <typename Container, typename... Args>
-    void operator()(Container &cont, Args &&...args) const
+    requires resizable_container<Container, Args...>
+    constexpr void operator()(Container &cont, Args &&...args) const
         noexcept(noexcept(resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...))) {
         resize_fn_impl<Container>::resize(cont, std::forward<Args>(args)...);
     }
@@ -46,8 +66,9 @@ inline constexpr resize_fn resize{};
 
 template <typename Container>
 struct append_fn_impl_base {
-    template <typename... Args, WJR_REQUIRES(has__container_append_v<Container, Args...>)>
-    WJR_INTRINSIC_INLINE static void
+    template <typename... Args>
+    requires container_detail::member_appendable<Container, Args...>
+    WJR_INTRINSIC_INLINE static constexpr void
     append(Container &cont,
            Args &&...args) noexcept(noexcept(cont.append(std::forward<Args>(args)...))) {
         cont.append(std::forward<Args>(args)...);
@@ -57,9 +78,16 @@ struct append_fn_impl_base {
 template <typename Container>
 struct append_fn_impl : append_fn_impl_base<Container> {};
 
+/// @brief Whether append customization accepts the forwarded arguments on a container lvalue.
+template <typename Container, typename... Args>
+concept appendable_container = requires(Container &cont, Args &&...args) {
+    append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
+};
+
 struct append_fn {
     template <typename Container, typename... Args>
-    void operator()(Container &cont, Args &&...args) const
+    requires appendable_container<Container, Args...>
+    constexpr void operator()(Container &cont, Args &&...args) const
         noexcept(noexcept(append_fn_impl<Container>::append(cont, std::forward<Args>(args)...))) {
         append_fn_impl<Container>::append(cont, std::forward<Args>(args)...);
     }
@@ -73,35 +101,49 @@ WJR_REGISTER_HAS_TYPE(container_resize,
                                                         std::declval<Args>()...),
                       Container, Size);
 
-WJR_REGISTER_HAS_TYPE(container_reserve, std::declval<Container>().reserve(std::declval<Size>()),
+WJR_REGISTER_HAS_TYPE(container_reserve, std::declval<Container &>().reserve(std::declval<Size>()),
                       Container, Size);
 WJR_REGISTER_HAS_TYPE(container_append,
                       append_fn_impl<Container>::append(std::declval<Container &>(),
                                                         std::declval<Args>()...),
                       Container);
-WJR_REGISTER_HAS_TYPE(
-    container_insert,
-    (std::declval<Container>().insert(std::declval<Container>().cbegin(), std::declval<Args>()...),
-     std::declval<Container>().insert(std::declval<Container>().cend(), std::declval<Args>()...)),
-    Container);
+WJR_REGISTER_HAS_TYPE(container_insert,
+                      (std::declval<Container &>().insert(std::declval<Container &>().cbegin(),
+                                                          std::declval<Args>()...),
+                       std::declval<Container &>().insert(std::declval<Container &>().cend(),
+                                                          std::declval<Args>()...)),
+                      Container);
 
-template <typename Container, typename Size, WJR_REQUIRES(has_container_resize_v<Container, Size>)>
-WJR_INTRINSIC_INLINE void try_uninitialized_resize(Container &cont, Size sz) {
-    if constexpr (has_container_resize_v<Container, Size, default_construct_t>) {
+template <typename Container, typename Size>
+requires(resizable_container<Container, Size &> ||
+         resizable_container<Container, Size &, decltype((default_construct))>)
+WJR_INTRINSIC_INLINE constexpr void try_uninitialized_resize(Container &cont, Size sz) {
+    if constexpr (resizable_container<Container, Size &, decltype((default_construct))>) {
         resize(cont, sz, default_construct);
     } else {
         resize(cont, sz);
     }
 }
 
-template <typename Container, typename Size,
-          WJR_REQUIRES(has_container_append_v<Container, Size> ||
-                       has_container_resize_v<Container, Size>)>
-WJR_INTRINSIC_INLINE void try_uninitialized_append(Container &cont, Size sz) {
-    if constexpr (has_container_append_v<Container, Size, default_construct_t>) {
+namespace container_detail {
+
+template <typename Container, typename Size>
+concept append_by_resize =
+    requires(Container &cont, Size &sz) { wjr::try_uninitialized_resize(cont, cont.size() + sz); };
+
+} // namespace container_detail
+
+template <typename Container, typename Size>
+requires(appendable_container<Container, Size &, decltype((default_construct))> ||
+         container_detail::append_by_resize<Container, Size> ||
+         appendable_container<Container, Size &>)
+WJR_INTRINSIC_INLINE constexpr void try_uninitialized_append(Container &cont, Size sz) {
+    if constexpr (appendable_container<Container, Size &, decltype((default_construct))>) {
         append(cont, sz, default_construct);
-    } else {
+    } else if constexpr (container_detail::append_by_resize<Container, Size>) {
         try_uninitialized_resize(cont, cont.size() + sz);
+    } else {
+        append(cont, sz);
     }
 }
 
