@@ -6,6 +6,7 @@
 #include <memory>
 #include <new>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -19,6 +20,7 @@ struct append_state {
     int allocations = 0, deallocations = 0;
     int created = 0, destroyed = 0;
     int copy_budget = -1, move_budget = -1, default_budget = -1, hook_budget = -1;
+    int assignment_budget = -1;
     bool fail_allocate = false;
 };
 
@@ -227,6 +229,263 @@ struct token {
     explicit token(append_state &s) : state(&s) { ++state->tokens; }
     ~token() { --state->tokens; }
 };
+
+/** @brief Keep the bulk append model construct-only while testing middle insertion separately. */
+template <bool ThrowingMove>
+struct emplace_value : append_value<ThrowingMove> {
+    using base = append_value<ThrowingMove>;
+    using base::base;
+    emplace_value() = default;
+    emplace_value(const emplace_value &) = default;
+    emplace_value(emplace_value &&) noexcept(!ThrowingMove) = default;
+    emplace_value &operator=(emplace_value &&other) {
+        consume(this->state->assignment_budget);
+        this->value = std::exchange(other.value, -1);
+        return *this;
+    }
+};
+
+enum class emplace_site { back, middle, end };
+
+template <typename Vector>
+void verify_emplace_failure(emplace_site site, failure mode, int budget, bool spare = false) {
+    append_state state;
+    active_scope scope(state);
+    {
+        using value = typename Vector::value_type;
+        value source(state, 99);
+        {
+            Vector target(typename Vector::size_type(spare ? 8 : 3), wjr::in_place_reserve,
+                          typename Vector::allocator_type(state));
+            const auto initial = spare ? 3u : target.capacity();
+            for (unsigned int i = 0; i != initial; ++i) {
+                target.emplace_back(state, static_cast<int>(i));
+            }
+            auto *const original_data = target.data();
+            const auto capacity = target.capacity();
+            const auto blocks = state.allocations - state.deallocations;
+            state.fail_allocate = mode == failure::allocation;
+            state.copy_budget = mode == failure::copy ? budget : -1;
+            state.move_budget = mode == failure::move ? budget : -1;
+            state.default_budget = mode == failure::default_constructor ? budget : -1;
+            state.hook_budget = mode == failure::hook ? budget : -1;
+            const auto insert = [&] {
+                if (site == emplace_site::back) {
+                    if (mode == failure::default_constructor) {
+                        target.emplace_back();
+                    } else {
+                        target.emplace_back(source);
+                    }
+                } else {
+                    const auto position =
+                        site == emplace_site::middle ? target.cbegin() + 1 : target.cend();
+                    if (mode == failure::default_constructor) {
+                        target.emplace(position);
+                    } else {
+                        target.emplace(position, source);
+                    }
+                }
+            };
+            if (mode == failure::allocation) {
+                EXPECT_THROW(insert(), std::bad_alloc);
+            } else {
+                EXPECT_THROW(insert(), std::runtime_error);
+            }
+            state.fail_allocate = false;
+            state.copy_budget = state.move_budget = state.default_budget = state.hook_budget = -1;
+            EXPECT_EQ(target.data(), original_data);
+            EXPECT_EQ(target.capacity(), capacity);
+            EXPECT_EQ(target.size(), initial);
+            EXPECT_EQ(state.allocations - state.deallocations, blocks);
+            EXPECT_EQ(state.live, static_cast<int>(initial) + 1);
+            insert();
+            EXPECT_EQ(target.size(), initial + 1);
+        }
+        EXPECT_EQ(state.live, 1);
+    }
+    EXPECT_EQ(state.live, 0);
+    EXPECT_EQ(state.allocations, state.deallocations);
+    EXPECT_EQ(state.created, state.destroyed);
+}
+
+TEST(vector_emplace_rollback, allocation_and_incoming_construction_failures) {
+    using value = emplace_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 4, append_allocator<value>>;
+    for (const auto site : {emplace_site::back, emplace_site::middle, emplace_site::end}) {
+        for (const auto mode : {failure::allocation, failure::copy, failure::default_constructor}) {
+            verify_emplace_failure<vector>(site, mode, 0);
+            verify_emplace_failure<small>(site, mode, 0);
+        }
+    }
+}
+
+TEST(vector_emplace_rollback, old_element_moves_keep_every_live_object_owned) {
+    using value = emplace_value<true>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    for (const auto site : {emplace_site::back, emplace_site::middle, emplace_site::end}) {
+        for (int budget = 0; budget != 3; ++budget) {
+            verify_emplace_failure<vector>(site, failure::move, budget);
+        }
+    }
+}
+
+TEST(vector_emplace_rollback, spare_capacity_incoming_failures_leave_no_extra_objects) {
+    using value = emplace_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 4, append_allocator<value>>;
+    for (const auto site : {emplace_site::back, emplace_site::middle, emplace_site::end}) {
+        for (const auto mode : {failure::copy, failure::default_constructor, failure::hook}) {
+            verify_emplace_failure<vector>(site, mode, 0, true);
+            verify_emplace_failure<small>(site, mode, 0, true);
+        }
+    }
+    verify_emplace_failure<vector>(emplace_site::middle, failure::hook, 1, true);
+    verify_emplace_failure<small>(emplace_site::middle, failure::hook, 1, true);
+}
+
+TEST(vector_emplace_rollback,
+     throwing_incoming_with_trusted_relocation_needs_only_storage_cleanup) {
+    append_state state;
+    {
+        append_value<false> source(state, 99);
+        {
+            wjr::vector<append_value<false>> target(2, wjr::in_place_reserve);
+            target.emplace_back(state, 1);
+            target.emplace_back(state, 2);
+            auto *const original = target.data();
+            state.copy_budget = 0;
+            EXPECT_THROW(target.emplace_back(source), std::runtime_error);
+            EXPECT_EQ(target.size(), 2);
+            EXPECT_EQ(target.data(), original);
+            EXPECT_EQ(state.live, 3);
+            EXPECT_EQ(target[0].value, 1);
+            EXPECT_EQ(target[1].value, 2);
+            state.copy_budget = -1;
+            target.emplace_back(source);
+            EXPECT_EQ(target.back().value, 99);
+        }
+        EXPECT_EQ(state.live, 1);
+    }
+    EXPECT_EQ(state.live, 0);
+}
+
+TEST(vector_emplace_rollback, allocator_hooks_cover_incoming_prefix_and_suffix) {
+    using value = emplace_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 4, append_allocator<value>>;
+    for (const auto site : {emplace_site::back, emplace_site::middle, emplace_site::end}) {
+        for (int budget = 0; budget != 4; ++budget) {
+            verify_emplace_failure<vector>(site, failure::hook, budget);
+        }
+        for (int budget = 0; budget != 5; ++budget) {
+            verify_emplace_failure<small>(site, failure::hook, budget);
+        }
+    }
+}
+
+template <typename Vector>
+void verify_spare_assignment_failure(int budget) {
+    append_state state;
+    {
+        const auto allocator = [&] {
+            using allocator_type = typename Vector::allocator_type;
+            if constexpr (std::is_constructible_v<allocator_type, append_state &>) {
+                return allocator_type(state);
+            } else {
+                return allocator_type();
+            }
+        }();
+        Vector target(typename Vector::size_type(8), wjr::in_place_reserve, allocator);
+        for (int i = 0; i != 3; ++i) {
+            target.emplace_back(state, i);
+        }
+        state.assignment_budget = budget;
+        EXPECT_THROW(target.emplace(target.cbegin() + 1, state, 9), std::runtime_error);
+        state.assignment_budget = -1;
+        EXPECT_EQ(target.size(), 3);
+        EXPECT_EQ(state.live, 3);
+        target.clear();
+        EXPECT_EQ(state.live, 0);
+        target.emplace_back(state, 10);
+        EXPECT_EQ(target.front().value, 10);
+    }
+    EXPECT_EQ(state.live, 0);
+    EXPECT_EQ(state.allocations, state.deallocations);
+    EXPECT_EQ(state.created, state.destroyed);
+}
+
+TEST(vector_emplace_rollback, spare_capacity_assignment_failure_destroys_uncommitted_tail) {
+    using value = emplace_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 4, append_allocator<value>>;
+    using inplace = wjr::inplace_vector<value, 8>;
+    for (int budget = 0; budget != 2; ++budget) {
+        verify_spare_assignment_failure<vector>(budget);
+        verify_spare_assignment_failure<small>(budget);
+        verify_spare_assignment_failure<inplace>(budget);
+    }
+}
+
+TEST(vector_emplace_rollback, move_only_hook_failure_preserves_old_object_lifetimes) {
+    using owner = std::unique_ptr<token>;
+    for (const auto site : {emplace_site::back, emplace_site::middle, emplace_site::end}) {
+        for (int budget = 0; budget != 4; ++budget) {
+            append_state state;
+            {
+                owner source = std::make_unique<token>(state);
+                {
+                    wjr::vector<owner, append_allocator<owner>> target(
+                        3, wjr::in_place_reserve, append_allocator<owner>(state));
+                    for (int i = 0; i != 3; ++i) {
+                        target.emplace_back(std::make_unique<token>(state));
+                    }
+                    state.hook_budget = budget;
+                    if (site == emplace_site::back) {
+                        EXPECT_THROW(target.emplace_back(std::move(source)), std::runtime_error);
+                    } else if (site == emplace_site::middle) {
+                        EXPECT_THROW(target.emplace(target.cbegin() + 1, std::move(source)),
+                                     std::runtime_error);
+                    } else {
+                        EXPECT_THROW(target.emplace(target.cend(), std::move(source)),
+                                     std::runtime_error);
+                    }
+                    state.hook_budget = -1;
+                    EXPECT_EQ(target.size(), 3);
+                    EXPECT_EQ(source != nullptr, budget == 0);
+                    EXPECT_EQ(state.tokens, budget == 0 ? 4 : 4 - budget);
+                    for (int i = 0; i != 3; ++i) {
+                        EXPECT_EQ(target[i] == nullptr, i < budget - 1);
+                    }
+                }
+                EXPECT_EQ(state.tokens, budget == 0 ? 1 : 0);
+            }
+            EXPECT_EQ(state.tokens, 0);
+            EXPECT_EQ(state.allocations, state.deallocations);
+            EXPECT_EQ(state.created, state.destroyed);
+        }
+    }
+}
+
+TEST(vector_emplace_rollback, incoming_alias_is_copied_before_source_relocation) {
+    for (const bool spare : {false, true}) {
+        wjr::vector<std::string> target(2, wjr::in_place_reserve);
+        target.emplace_back(100, 'x');
+        target.emplace_back(100, 'y');
+        if (spare) {
+            target.reserve(8);
+        }
+        target.emplace(target.cbegin() + 1, target[0].c_str());
+        ASSERT_EQ(target.size(), 3);
+        EXPECT_EQ(target[0], std::string(100, 'x'));
+        EXPECT_EQ(target[1], std::string(100, 'x'));
+        EXPECT_EQ(target[2], std::string(100, 'y'));
+    }
+    wjr::vector<std::string> target(1, wjr::in_place_reserve);
+    target.emplace_back(100, 'z');
+    target.emplace_back(target[0]);
+    EXPECT_EQ(target[0], target[1]);
+}
 
 TEST(vector_append_rollback, move_only_relocation_does_not_destroy_source_prefix_on_hook_failure) {
     using owner = std::unique_ptr<token>;
