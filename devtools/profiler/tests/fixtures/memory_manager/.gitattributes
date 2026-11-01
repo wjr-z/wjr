@@ -1,0 +1,4 @@
+raw.json -text whitespace=cr-at-eol
+rejected-1.9.0.json -text whitespace=cr-at-eol
+stdout.txt -text whitespace=cr-at-eol
+stderr.txt -text whitespace=cr-at-eol

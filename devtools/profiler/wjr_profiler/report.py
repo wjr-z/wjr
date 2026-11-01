@@ -55,8 +55,22 @@ def _side_lines(name, side):
         lines.append("Locations: " + cell(", ".join(observation["source_locators"])))
         lines.append("Sample level: " + cell(observation["sample_level"]))
         lines.extend(_counter_lines(observation))
+        lines.extend(_memory_lines(observation))
         lines.extend(_model_lines(observation))
     return lines
+
+
+def _memory_lines(observation):
+    if observation["sample_level"] != "memory_pass_repetition":
+        return []
+    metadata = observation["metadata"]
+    instrumentation = metadata["instrumentation"]
+    count, threads = metadata["pass_iterations"], metadata["pass_threads"]
+    description = f"MemoryManager pass: {count} iterations, {threads} thread"
+    return [cell(description + "; repetitions are not independent process runs."),
+            "Declared hook coverage: " + cell(instrumentation["coverage"]),
+            "Declared harness policy: " + cell(instrumentation["harness_policy"]),
+            "Byte totals/peaks are per-pass, not RSS; allocs_per_iter already uses memory-pass iterations."]
 
 
 def _model_lines(observation):

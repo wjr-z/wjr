@@ -23,7 +23,7 @@ def safe_metadata(value):
     return value
 
 
-def _format(raw, manifest):
+def _format(raw, manifest, verified_version="1.9.0"):
     require(isinstance(raw, dict), "Google Benchmark JSON must be an object")
     context, rows = raw.get("context"), raw.get("benchmarks")
     require(isinstance(context, dict), "Google Benchmark context must be an object")
@@ -33,7 +33,7 @@ def _format(raw, manifest):
             "unsupported Google Benchmark json_schema_version; expected 1")
     declared = manifest["producer"]["version"].removeprefix("v")
     reported = str(context.get("library_version", "unknown")).removeprefix("v")
-    verified = schema == 1 and declared == "1.9.0" and reported == "1.9.0"
+    verified = schema == 1 and declared == verified_version and reported == verified_version
     return context, rows, verified
 
 

@@ -29,7 +29,7 @@ sampled 或 derived 类型区分，不能自动参加跨 provider 排名或回�
 | --- | --- |
 | P04b perf record | 有真实热点需求后读取匹配版本 `perf script` 导出；记录 build-id、符号和 lost samples。不解码 `perf.data`、不 attach 全系统、不自动提权 |
 | P06a py-spy | 固定一个 speedscope sampled 格式；保留 weights、采样频率、线程、GIL/idle/native 状态和丢样；权限不足时只支持离线导入 |
-| P06b allocation | 精确 allocator 计数、采样字节与 RSS 分开；验证 hook coverage 和扰动，不全局替换 `new`。需要 Python 分配/拷贝归因时再评估 Scalene |
+| P06b allocation | 已交付 [MemoryManager 1.9.2 原生字段导入](../../devtools/profiler/MEMORY_MANAGER.md)，明确独立 pass、hook coverage、字节和分配单位；不全局替换 `new`。采样、RSS 和 Python 分配/拷贝归因仍按需验收 |
 | P07a iperf3 | 固定实际 JSON 版本和两端授权 workload，记录方向、协议、并发、omit、zerocopy；不能由 HTTP 延迟推导链路吞吐 |
 | P07b OTel | 为实际 SDK/proto/exporter 固定版本和输入格式；trace/span 因果关系、clock uncertainty 与跨机时间线分别验收 |
 | P08 ETW/WPA | 固定 ADK、导出命令/profile、表头、单位和 locale；保留 ETL 与官方导出表。不做通用 ETL decoder、不增加 Windows 编译矩阵 |

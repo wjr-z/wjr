@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from .adapters import cprofile_json, google_benchmark, llvm_mca, curl_json, perf_stat
+from .adapters import cprofile_json, google_benchmark, google_benchmark_memory, llvm_mca, curl_json, perf_stat
 from .bundle import import_bundle, load_bundle
 from .compare import compare
 from .cprofile_report import write_summary
@@ -13,6 +13,7 @@ from .curl_report import write_summary as write_curl_summary
 from .perf_report import write_summary as write_perf_summary
 
 PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
+             "google-benchmark-memory": google_benchmark_memory.import_artifact,
              "cprofile-json": cprofile_json.import_artifact,
              "llvm-mca": llvm_mca.import_artifact,
              "curl-json": curl_json.import_artifact,

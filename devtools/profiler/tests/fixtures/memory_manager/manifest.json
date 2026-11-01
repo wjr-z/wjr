@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "bundle_id": "native-memory-manager-validation",
+  "created_at": "2026-11-01T11:02:33.208189+00:00",
+  "revision": "producer.cpp identified by SHA-256",
+  "dirty_patch_sha256": "none",
+  "producer": {
+    "provider": "google-benchmark-memory",
+    "version": "1.9.2"
+  },
+  "host": {
+    "id": "WJR",
+    "os": "Windows-11-10.0.22631-SP0",
+    "arch": "x86_64",
+    "abi": "MSVC x64",
+    "cpu": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "core": "OS selected; no affinity pin",
+    "stability": "shared_development_host"
+  },
+  "build": {
+    "compiler": "Clang 18.1.8 clang-cl",
+    "flags": "Release /O2 /Ob2 /DNDEBUG /MD C++20, no ISA flags",
+    "fingerprint": "memory-count-fixture-v1.9.2-clang18-md-release",
+    "standard": "C++20",
+    "sanitizer": "none",
+    "lto": false,
+    "pgo": false
+  },
+  "raw_source": {
+    "sha256": "d04661372fe19f01a127802cebcb58c3fd166fee844135e8e2c16bfea8af4c53"
+  },
+  "workloads": {
+    "tracked": {
+      "version": "1",
+      "parameters": {
+        "elements": 64,
+        "element_bytes": 8,
+        "pass_iterations": 16,
+        "initial_value": 7,
+        "input_encoding": "uint64 little endian; repeated initial_value"
+      },
+      "input_sha256": "750ee73c39f9f5d22eaf11d6339d14c10802cc577ac3261cc1a5c5ebd705a2cc",
+      "scope": "MemoryManager Start/Stop; typed allocator only",
+      "threads": 1,
+      "clock": "not_applicable",
+      "time_mode": "not_applicable",
+      "sample_level": "memory_pass_repetition",
+      "instrumentation": {
+        "kind": "google-benchmark-memory-manager/1",
+        "manager_id": "producer.cpp tracked_allocator<uint64_t>/1",
+        "coverage": "only the vector typed allocator; no global new/malloc interception",
+        "harness_policy": "Google Benchmark manager/setup/teardown allocations are outside this allocator hook",
+        "pass_iterations": 16,
+        "collection_method": "exact_instrumented"
+      }
+    },
+    "control": {
+      "version": "1",
+      "parameters": {
+        "elements": 0,
+        "element_bytes": 8,
+        "pass_iterations": 16,
+        "initial_value": 7,
+        "input_encoding": "uint64 little endian; repeated initial_value"
+      },
+      "input_sha256": "aae89fc0f03e2959ae4d701a80cc3915918c950b159f6abb6c92c1433b1a8534",
+      "scope": "MemoryManager Start/Stop; typed allocator only",
+      "threads": 1,
+      "clock": "not_applicable",
+      "time_mode": "not_applicable",
+      "sample_level": "memory_pass_repetition",
+      "instrumentation": {
+        "kind": "google-benchmark-memory-manager/1",
+        "manager_id": "producer.cpp tracked_allocator<uint64_t>/1",
+        "coverage": "only the vector typed allocator; no global new/malloc interception",
+        "harness_policy": "Google Benchmark manager/setup/teardown allocations are outside this allocator hook",
+        "pass_iterations": 16,
+        "collection_method": "exact_instrumented"
+      }
+    }
+  },
+  "semantic_contracts": {
+    "tracked": {
+      "version": "1",
+      "semantics": "one 512-byte vector allocation/free per iteration",
+      "correctness_evidence": "producer Stop counter assertions and zero successful process exit"
+    },
+    "control": {
+      "version": "1",
+      "semantics": "no tracked allocation",
+      "correctness_evidence": "producer Stop counter assertions and zero successful process exit"
+    }
+  },
+  "regions": [
+    {
+      "id": "tracked",
+      "variant": "self-check",
+      "workload_id": "tracked",
+      "contract_id": "tracked",
+      "source_sha256": "5bf7df83fe48feecbf84e21e4cbc1ab32e5ca43c4206a216f8a7a266ee17dee9",
+      "benchmark": "tracked_vector/iterations:16/repeats:5"
+    },
+    {
+      "id": "control",
+      "variant": "self-check",
+      "workload_id": "control",
+      "contract_id": "control",
+      "source_sha256": "5bf7df83fe48feecbf84e21e4cbc1ab32e5ca43c4206a216f8a7a266ee17dee9",
+      "benchmark": "no_tracked_allocation/iterations:16/repeats:5"
+    }
+  ]
+}
