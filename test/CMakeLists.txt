@@ -133,6 +133,15 @@ set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
    PROPERTIES LABELS configuration)
 
 FetchContent_GetProperties(cpu_features)
+foreach(_BENCHMARK_PROVIDER_MODE IN ITEMS installed preexisting disabled incompatible source)
+   add_test(NAME wjr_benchmark_${_BENCHMARK_PROVIDER_MODE}
+      COMMAND ${CMAKE_COMMAND}
+      -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/benchmark-provider
+      -B ${CMAKE_CURRENT_BINARY_DIR}/benchmark-${_BENCHMARK_PROVIDER_MODE}
+      ${WJR_POLICY_CMAKE_ARGS}
+      -DMODE=${_BENCHMARK_PROVIDER_MODE}
+   )
+endforeach()
 if(WJR_ARCH STREQUAL "x86" AND cpu_features_SOURCE_DIR)
    foreach(_WJR_FMT_MODE IN ITEMS installed preexisting disabled incompatible)
       add_test(NAME wjr_fmt_${_WJR_FMT_MODE}
