@@ -1975,9 +1975,23 @@ private:
         allocation.release();
     }
 
-    /** @brief Reuse the guarded growth transaction without adding incoming elements. */
-    WJR_CONSTEXPR20 void _reallocate_guarded(size_type new_capacity) {
-        _grow_insert<true>(0, new_capacity, [](pointer, size_type, _Alty &) noexcept {});
+    /** @brief Transfer capacity without ending source lifetimes before construction succeeds. */
+    WJR_INTRINSIC_INLINE WJR_CONSTEXPR20 void _reallocate_guarded(size_type new_capacity) {
+        auto &al = _get_allocator();
+        const auto old_size = size();
+        _grow_storage_type new_storage;
+        uninitialized_construct(new_storage, old_size, new_capacity);
+        const auto deallocate = [&al](_grow_storage_type *storage) { storage->deallocate(al); };
+        std::unique_ptr<_grow_storage_type, decltype(deallocate)> allocation(&new_storage,
+                                                                             deallocate);
+        _uninitialized_rollback<pointer, _Alty> elements(new_storage.data(), &al);
+        wjr::uninitialized_move_n_restrict_using_allocator(data(), old_size, new_storage.data(),
+                                                           al);
+        elements.current() = new_storage.data() + old_size;
+        _destroy_and_deallocate();
+        _take_storage(new_storage);
+        elements.release();
+        allocation.release();
     }
 
     template <typename Iter>
