@@ -702,9 +702,9 @@ private:
     static constexpr bool _is_nothrow_relocation =
         is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
         is_trivially_allocator_destroy_v<_Alty, value_type> &&
-        std::is_nothrow_destructible_v<value_type> &&
         (get_relocate_mode_v<value_type> == relocate_t::trivial ||
-         std::is_nothrow_move_constructible_v<value_type>);
+         (std::is_nothrow_destructible_v<value_type> &&
+          std::is_nothrow_move_constructible_v<value_type>));
 
     static_assert(
         std::is_same_v<_grow_storage_type, storage_type> ||
