@@ -11,7 +11,7 @@ import re
 import subprocess
 
 
-DEFAULT_IGNORE_REGEX = "(test|third-party|benchmark|build|_deps|simd.*(sse|avx|simd_cast))"
+DEFAULT_IGNORE_REGEX = "simd.*(sse|avx|simd_cast)"
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,30 +21,66 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--profile", required=True, help="Merged llvm profile")
     parser.add_argument("--output-dir", required=True, help="Coverage output directory")
     parser.add_argument("--details-dir", default="details", help="HTML detail subdirectory")
+    parser.add_argument("--generate-html", action="store_true", help="Generate file-level HTML")
     parser.add_argument(
         "--source-root",
         type=Path,
         default=Path(__file__).resolve().parents[1],
-        help="Repository root used to normalize LCOV source paths",
+        help="Repository root containing the include and src coverage directories",
     )
     parser.add_argument(
       "--ignore-regex",
-      default=DEFAULT_IGNORE_REGEX,
-      help="llvm-cov ignore regex",
+      help="Custom llvm-cov filename ignore regex (default excludes legacy SIMD files)",
     )
     return parser.parse_args()
 
 
-def run_report(args: argparse.Namespace) -> str:
-    command = [
+def default_ignore_regex(source_root: Path) -> str:
+    # Match separators from both native Windows and POSIX coverage mappings.
+    prefix = re.escape(source_root.resolve().as_posix()).replace("/", r"[/\\]")
+    return "^" + prefix + r"[/\\].*" + DEFAULT_IGNORE_REGEX
+
+
+def coverage_command(args: argparse.Namespace, action: str, *options: str) -> list[str]:
+    source_root = args.source_root.resolve()
+    ignore_regex = args.ignore_regex
+    if ignore_regex is None:
+        ignore_regex = default_ignore_regex(source_root)
+    return [
         args.llvm_cov,
-        "report",
+        action,
         args.binary,
         f"-instr-profile={args.profile}",
+        f"-ignore-filename-regex={ignore_regex}",
+        *options,
+        str(source_root / "include"),
+        str(source_root / "src"),
+    ]
+
+
+def write_html(args: argparse.Namespace) -> None:
+    subprocess.run(
+        coverage_command(
+            args,
+            "show",
+            "-show-line-counts-or-regions",
+            "-use-color",
+            "-show-instantiation-summary",
+            "-show-branches=count",
+            "-format=html",
+            "-output-dir=" + str(Path(args.output_dir) / args.details_dir),
+        ),
+        check=True,
+    )
+
+
+def run_report(args: argparse.Namespace) -> str:
+    command = coverage_command(
+        args,
+        "report",
         "-show-region-summary=true",
         "-show-branch-summary=true",
-        f"-ignore-filename-regex={args.ignore_regex}",
-    ]
+    )
     result = subprocess.run(command, check=True, capture_output=True, text=True)
     return result.stdout
 
@@ -75,14 +111,7 @@ def normalize_lcov(report: str, source_root: Path) -> str:
 
 
 def write_lcov(args: argparse.Namespace) -> None:
-    command = [
-        args.llvm_cov,
-        "export",
-        args.binary,
-        f"-instr-profile={args.profile}",
-        "-format=lcov",
-        f"-ignore-filename-regex={args.ignore_regex}",
-    ]
+    command = coverage_command(args, "export", "-format=lcov")
     result = subprocess.run(command, check=True, capture_output=True, text=True)
     report = normalize_lcov(result.stdout, args.source_root)
     (Path(args.output_dir) / "lcov.info").write_text(
@@ -234,6 +263,8 @@ def write_dashboard(args: argparse.Namespace, report: str) -> None:
 
 def main() -> None:
     args = parse_args()
+    if args.generate_html:
+        write_html(args)
     report = run_report(args)
     write_dashboard(args, report)
     write_lcov(args)
