@@ -54,6 +54,11 @@ struct lifetime_value {
     lifetime_value(lifetime_value &&) = delete;
 };
 
+struct movable_lifetime_value : lifetime_value {
+    explicit movable_lifetime_value(int input) : lifetime_value(input) {}
+    movable_lifetime_value(movable_lifetime_value &&other) noexcept : lifetime_value(other.value) {}
+};
+
 } // namespace json_array_test
 
 namespace wjr::json {
@@ -86,6 +91,14 @@ struct document_serializer_impl<json_array_test::lifetime_value> {
     }
 };
 
+template <>
+struct document_serializer_impl<json_array_test::movable_lifetime_value> {
+    using value_type = json_array_test::movable_lifetime_value;
+    static value_type construct(const document &doc, in_place_document_serializer_from_t) {
+        return value_type(value_to<int>(doc));
+    }
+};
+
 } // namespace wjr::json
 
 namespace {
@@ -105,6 +118,12 @@ static_assert(can_project<std::array<unsupported, 0>, document>);
 static_assert(!can_project<std::array<unsupported, 1>, document>);
 static_assert(can_project<std::array<immovable, 2>, const document &>);
 static_assert(!can_project<std::array<std::string_view, 2>, wjr::json::pmr_document>);
+static_assert(can_project<std::array<lifetime_value, 1>, const document &>);
+#if defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(12, 1, 0)
+static_assert(!can_project<std::array<lifetime_value, 2>, const document &>);
+#else
+static_assert(can_project<std::array<lifetime_value, 2>, const document &>);
+#endif
 
 template <typename Document = document>
 Document parse(std::string_view input) {
@@ -249,7 +268,7 @@ TEST(json_fixed_array, wrong_kind_and_child_error_remain_distinct) {
 }
 
 TEST(json_fixed_array, partial_construction_is_destroyed_and_assignment_is_not_transactional) {
-    using output_type = std::array<lifetime_value, 2>;
+    using output_type = std::array<movable_lifetime_value, 2>;
     EXPECT_EQ(lifetime_value::live, 0);
     EXPECT_THROW((void)value_to<output_type>(parse("[1,false]")),
                  wjr::bad_expected_access<wjr::json::error_code>);
@@ -259,6 +278,16 @@ TEST(json_fixed_array, partial_construction_is_destroyed_and_assignment_is_not_t
                  wjr::bad_expected_access<wjr::json::error_code>);
     EXPECT_EQ(output, (std::array{1, 8}));
 }
+
+    #if !defined(WJR_COMPILER_GCC) || WJR_HAS_GCC(12, 1, 0)
+TEST(json_fixed_array, immovable_partial_construction_is_destroyed) {
+    using output_type = std::array<lifetime_value, 2>;
+    EXPECT_EQ(lifetime_value::live, 0);
+    EXPECT_THROW((void)value_to<output_type>(parse("[1,false]")),
+                 wjr::bad_expected_access<wjr::json::error_code>);
+    EXPECT_EQ(lifetime_value::live, 0);
+}
+    #endif
 #endif
 
 } // namespace

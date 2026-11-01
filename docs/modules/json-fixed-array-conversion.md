@@ -28,6 +28,15 @@ does not require a child serializer. Engaged PMR string elements retain their
 destination resource during assignment; document output uses the destination
 document's allocator policy.
 
+GCC 11 has an aggregate-return unwinding defect: a later element throwing can
+leave an earlier nontrivial element undestroyed, independently of WJR. For N > 1
+and nontrivial destructors, the adapter uses a named local aggregate on GCC 11.
+The array must therefore be movable/copyable in that compiler domain; otherwise
+construction is rejected by its constraint. Existing-array assignment is not
+restricted. GCC 12+, Clang and MSVC retain direct immovable construction. Empty,
+single-element and trivially destructible arrays retain their direct return path
+on every supported compiler, including the double coordinate example.
+
 Source cv/ref and [borrowed-value rules](json-nullable-conversion.md) apply
 recursively, including arrays of string views. Length checking is not lifetime
 extension. This adapter composes with `<wjr/json/optional.hpp>` in either include

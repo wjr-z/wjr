@@ -16,6 +16,15 @@ namespace detail {
 template <typename T, std::size_t N>
 inline constexpr bool needs_document_value_conversion<std::array<T, N>> = true;
 
+/** @brief GCC 11 cannot unwind nontrivial array prefixes in direct aggregate returns. */
+template <typename T, std::size_t N>
+inline constexpr bool fixed_array_return_supported =
+#if defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(12, 1, 0)
+    N < 2 || std::is_trivially_destructible_v<T> || std::is_move_constructible_v<std::array<T, N>>;
+#else
+    true;
+#endif
+
 /** @brief Report a projection shape mismatch without instantiating a throw path for each T. */
 [[noreturn]] void throw_array_size_mismatch();
 
@@ -38,7 +47,15 @@ private:
 
     template <bool Move, typename Array, std::size_t... Index>
     constexpr static value_type construct(Array &array, std::index_sequence<Index...>) {
-        return {{value_to<T>(element<Move>(array, Index))...}};
+#if defined(WJR_COMPILER_GCC) && !WJR_HAS_GCC(12, 1, 0)
+        if constexpr (N > 1 && !std::is_trivially_destructible_v<T>) {
+            value_type result{{ value_to<T>(element<Move>(array, Index))... }};
+            return result;
+        } else
+#endif
+        {
+            return {{value_to<T>(element<Move>(array, Index))...}};
+        }
     }
 
     template <typename Source>
@@ -50,6 +67,7 @@ private:
 public:
     template <typename Document>
     requires(is_document_v<remove_cvref_t<Document>> &&
+             detail::fixed_array_return_supported<T, N> &&
              (N == 0 || has_construct_from_document_v<T, Document &&>))
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         auto &array = doc.template get<array_t>();
