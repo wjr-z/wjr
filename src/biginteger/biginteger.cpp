@@ -11,15 +11,11 @@ from_chars_result<const char *> _from_chars_impl(const char *first, const char *
     const auto *_first = first;
 
     do {
-        if (WJR_UNLIKELY(first == last)) {
-            break;
-        }
-
         if constexpr (Check) {
             first = skip_whitespace(first, last);
-            if (WJR_UNLIKELY(first == last)) {
-                break;
-            }
+        }
+        if (WJR_UNLIKELY(first == last)) {
+            break;
         }
 
         uint8_t ch = *first;
