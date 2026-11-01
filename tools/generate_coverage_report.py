@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a small HTML dashboard around an llvm-cov report."""
+"""Build an HTML dashboard and repository-relative LCOV from llvm-cov."""
 
 from __future__ import annotations
 
@@ -22,6 +22,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", required=True, help="Coverage output directory")
     parser.add_argument("--details-dir", default="details", help="HTML detail subdirectory")
     parser.add_argument(
+        "--source-root",
+        type=Path,
+        default=Path(__file__).resolve().parents[1],
+        help="Repository root used to normalize LCOV source paths",
+    )
+    parser.add_argument(
       "--ignore-regex",
       default=DEFAULT_IGNORE_REGEX,
       help="llvm-cov ignore regex",
@@ -41,6 +47,47 @@ def run_report(args: argparse.Namespace) -> str:
     ]
     result = subprocess.run(command, check=True, capture_output=True, text=True)
     return result.stdout
+
+
+def normalize_lcov(report: str, source_root: Path) -> str:
+    source_root = source_root.resolve()
+    records = []
+    for record in report.split("end_of_record"):
+        lines = record.strip().splitlines()
+        source = next((line[3:] for line in lines if line.startswith("SF:")), None)
+        if source is None:
+            continue
+        path = Path(source)
+        if not path.is_absolute():
+            path = source_root / path
+        try:
+            relative = path.resolve().relative_to(source_root)
+        except ValueError:
+            # System headers and external dependencies are not repository files.
+            continue
+        records.append("\n".join(
+            "SF:" + relative.as_posix() if line.startswith("SF:") else line
+            for line in lines
+        ) + "\nend_of_record\n")
+    if not records:
+        raise ValueError("llvm-cov export did not contain repository source files")
+    return "".join(records)
+
+
+def write_lcov(args: argparse.Namespace) -> None:
+    command = [
+        args.llvm_cov,
+        "export",
+        args.binary,
+        f"-instr-profile={args.profile}",
+        "-format=lcov",
+        f"-ignore-filename-regex={args.ignore_regex}",
+    ]
+    result = subprocess.run(command, check=True, capture_output=True, text=True)
+    report = normalize_lcov(result.stdout, args.source_root)
+    (Path(args.output_dir) / "lcov.info").write_text(
+        report, encoding="utf-8", newline="\n"
+    )
 
 
 def total_metrics(report: str) -> list[tuple[str, int, int, str]]:
@@ -189,6 +236,7 @@ def main() -> None:
     args = parse_args()
     report = run_report(args)
     write_dashboard(args, report)
+    write_lcov(args)
     print(report, end="")
 
 
