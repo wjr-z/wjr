@@ -40,6 +40,10 @@ well as the HTML dashboard. It uses the same profile and filename exclusions as
 the dashboard, converts source paths to repository-relative forward-slash paths,
 and omits files outside the source checkout. No raw profile needs to be uploaded.
 
+HTML, summary and LCOV reports select the repository's `include/` and `src/`
+directories explicitly. Legacy SIMD exclusions are scoped below the source root,
+so names such as `benchmark` or `build` in the checkout path do not hide sources.
+
 The Coverage workflow continues to run every Monday at 04:43 UTC and on manual
 dispatch. Only runs on `main` upload coverage to Codacy and publish Pages.
 Other branches produce report artifacts for verification. Pushes and pull requests

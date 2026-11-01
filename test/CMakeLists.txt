@@ -190,10 +190,6 @@ if(WJR_ENABLE_COVERAGE)
       -fprofile-instr-generate -fcoverage-mapping
    )
 
-   set(COVERAGE_IGNORE
-      "(test|third-party|benchmark|build|_deps|simd.*(sse|avx|simd_cast))"
-   )
-
    # add coverage target
    add_custom_target(coverage
       DEPENDS tests
@@ -212,18 +208,7 @@ if(WJR_ENABLE_COVERAGE)
       COMMAND ${LLVM_PROFDATA_PATH} merge
       -sparse default.profraw -o default.profdata
 
-      # Generate HTML coverage report (only for include and src directories)
-      COMMAND ${LLVM_COV_PATH} show $<TARGET_FILE:tests>
-      -instr-profile=default.profdata
-      -show-line-counts-or-regions
-      -use-color
-      -show-instantiation-summary
-      -show-branches=count
-      -format=html
-      -output-dir=coverage/details
-      -ignore-filename-regex="${COVERAGE_IGNORE}"
-
-      # Generate the summary dashboard and text report.
+      # Use the same source selection for HTML, summary and LCOV reports.
       COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_SOURCE_DIR}/tools/generate_coverage_report.py
       --llvm-cov ${LLVM_COV_PATH}
@@ -231,6 +216,7 @@ if(WJR_ENABLE_COVERAGE)
       --profile ${CMAKE_BINARY_DIR}/default.profdata
       --output-dir ${CMAKE_BINARY_DIR}/coverage
       --details-dir details
+      --generate-html
 
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Generating coverage dashboard for include and src directories..."
