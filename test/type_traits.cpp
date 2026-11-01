@@ -32,6 +32,35 @@ struct not_swappable {
     ~not_swappable() = default;
 };
 
+template <typename T>
+concept byte_convertible = requires(T value) {
+    { wjr::to_u8(value) } -> std::same_as<uint8_t>;
+    { wjr::to_char(value) } -> std::same_as<char>;
+};
+
+template <typename T>
+concept sign_convertible = requires(T value) {
+    wjr::to_signed(value);
+    wjr::to_unsigned(value);
+};
+
+static_assert(byte_integral<char> && byte_integral<signed char> && byte_integral<unsigned char>);
+static_assert(byte_integral<char8_t> && byte_integral<const volatile char>);
+static_assert(!byte_integral<bool> && byte_integral<const bool>);
+static_assert(!byte_integral<void> && !byte_integral<int *> && !byte_integral<char &>);
+static_assert(byte_convertible<char> && byte_convertible<const unsigned char &>);
+static_assert(!byte_convertible<bool> && !byte_convertible<int>);
+static_assert(!byte_convertible<float> && !byte_convertible<std::byte>);
+static_assert(sign_convertible<const unsigned long &> && sign_convertible<char8_t>);
+static_assert(!sign_convertible<bool> && !sign_convertible<float>);
+static_assert(!sign_convertible<signed_enum> && !sign_convertible<base>);
+static_assert(std::same_as<decltype(to_signed(uint64_t{})), int64_t>);
+static_assert(std::same_as<decltype(to_unsigned(int64_t{})), uint64_t>);
+static_assert(to_u8<signed char>(-1) == UINT8_MAX);
+static_assert(to_u8<const bool>(true) == 1);
+static_assert(noexcept(to_u8('x')) && noexcept(to_char(uint8_t{})));
+static_assert(noexcept(to_signed(uint32_t{})) && noexcept(to_unsigned(int32_t{})));
+
 static_assert(in_place_max.operator int() == std::numeric_limits<int>::max());
 static_assert(in_place_min.operator int() == std::numeric_limits<int>::min());
 static_assert(is_void_or_v<void, std::false_type>);
