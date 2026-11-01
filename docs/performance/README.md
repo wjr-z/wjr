@@ -16,3 +16,10 @@ dispatch. Timing and memory are reported separately. Ratios compare implementati
 within one machine/compiler profile; different machines do not isolate OS effects.
 
 [Explicit B-tree hint measurements](btree-hints.md) retain sorted/local-run wins and random-input losses; ordinary range defaults are unchanged.
+
+The `all` benchmark profile's `wjr_vector_move_round_trip` cases measure move
+construction followed by a restoring move assignment: two ownership transfers
+per iteration, with the same nonempty input reused. This is not a single-move
+latency. The former `wjr_vector_move_construct` series consumed its input on the
+first iteration and then reused vectors without owned storage; its results are not comparable
+to the corrected series.
