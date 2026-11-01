@@ -2,6 +2,7 @@
 #define WJR_CONTAINER_BTREE_SET_HPP__
 
 #include <wjr/container/btree.hpp>
+#include <wjr/container/detail/btree_compare.hpp>
 
 namespace wjr {
 
@@ -229,6 +230,30 @@ public:
         return this->_emplace_multi(std::forward<Args>(args)...);
     }
 };
+
+template <std::equality_comparable Key, typename Pr, typename Alloc, size_t NodeSize>
+WJR_NODISCARD bool operator==(const btree_set<Key, Pr, Alloc, NodeSize> &lhs,
+                              const btree_set<Key, Pr, Alloc, NodeSize> &rhs) {
+    return btree_detail::equal_sequence(lhs, rhs);
+}
+
+template <btree_detail::ordered_value Key, typename Pr, typename Alloc, size_t NodeSize>
+WJR_NODISCARD auto operator<=>(const btree_set<Key, Pr, Alloc, NodeSize> &lhs,
+                               const btree_set<Key, Pr, Alloc, NodeSize> &rhs) {
+    return btree_detail::compare_sequence(lhs, rhs);
+}
+
+template <std::equality_comparable Key, typename Pr, typename Alloc, size_t NodeSize>
+WJR_NODISCARD bool operator==(const btree_multiset<Key, Pr, Alloc, NodeSize> &lhs,
+                              const btree_multiset<Key, Pr, Alloc, NodeSize> &rhs) {
+    return btree_detail::equal_sequence(lhs, rhs);
+}
+
+template <btree_detail::ordered_value Key, typename Pr, typename Alloc, size_t NodeSize>
+WJR_NODISCARD auto operator<=>(const btree_multiset<Key, Pr, Alloc, NodeSize> &lhs,
+                               const btree_multiset<Key, Pr, Alloc, NodeSize> &rhs) {
+    return btree_detail::compare_sequence(lhs, rhs);
+}
 
 } // namespace wjr
 

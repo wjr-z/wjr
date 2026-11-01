@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <wjr/container/btree.hpp>
+#include <wjr/container/detail/btree_compare.hpp>
 
 namespace wjr::btree_detail {
 
@@ -272,7 +273,16 @@ template <typename Key, typename Value, typename Pr, typename Alloc, size_t Node
 requires btree_detail::compact_map_domain<Key, Value>
 WJR_NODISCARD bool operator==(const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
-    return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+    return btree_detail::equal_sequence(lhs, rhs);
+}
+
+template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
+requires btree_detail::compact_map_domain<Key, Value> &&
+         btree_detail::ordered_value<
+             typename compact_btree_map<Key, Value, Pr, Alloc, NodeSize>::value_type>
+WJR_NODISCARD auto operator<=>(const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
+                               const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
+    return btree_detail::compare_sequence(lhs, rhs);
 }
 
 template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
@@ -283,31 +293,39 @@ WJR_NODISCARD bool operator!=(const compact_btree_map<Key, Value, Pr, Alloc, Nod
 }
 
 template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
-requires btree_detail::compact_map_domain<Key, Value>
+requires btree_detail::compact_map_domain<Key, Value> &&
+         btree_detail::ordered_value<
+             typename compact_btree_map<Key, Value, Pr, Alloc, NodeSize>::value_type>
 WJR_NODISCARD bool operator<(const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                              const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
-    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    return btree_detail::compare_sequence(lhs, rhs) < 0;
 }
 
 template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
-requires btree_detail::compact_map_domain<Key, Value>
+requires btree_detail::compact_map_domain<Key, Value> &&
+         btree_detail::ordered_value<
+             typename compact_btree_map<Key, Value, Pr, Alloc, NodeSize>::value_type>
 WJR_NODISCARD bool operator>(const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                              const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
-    return rhs < lhs;
+    return btree_detail::compare_sequence(lhs, rhs) > 0;
 }
 
 template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
-requires btree_detail::compact_map_domain<Key, Value>
+requires btree_detail::compact_map_domain<Key, Value> &&
+         btree_detail::ordered_value<
+             typename compact_btree_map<Key, Value, Pr, Alloc, NodeSize>::value_type>
 WJR_NODISCARD bool operator<=(const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
-    return !(rhs < lhs);
+    return btree_detail::compare_sequence(lhs, rhs) <= 0;
 }
 
 template <typename Key, typename Value, typename Pr, typename Alloc, size_t NodeSize>
-requires btree_detail::compact_map_domain<Key, Value>
+requires btree_detail::compact_map_domain<Key, Value> &&
+         btree_detail::ordered_value<
+             typename compact_btree_map<Key, Value, Pr, Alloc, NodeSize>::value_type>
 WJR_NODISCARD bool operator>=(const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &lhs,
                               const compact_btree_map<Key, Value, Pr, Alloc, NodeSize> &rhs) {
-    return !(lhs < rhs);
+    return btree_detail::compare_sequence(lhs, rhs) >= 0;
 }
 
 } // namespace wjr::experimental
