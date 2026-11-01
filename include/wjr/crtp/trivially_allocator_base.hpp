@@ -46,39 +46,21 @@ struct is_trivially_allocator<std::allocator<T>> : std::true_type {};
 template <typename Alloc>
 inline constexpr bool is_trivially_allocator_v = is_trivially_allocator<Alloc>::value;
 
-/// @private
-template <typename Enable, typename Alloc, typename Obj, typename... Args>
-struct _is_trivially_allocator_construct_impl : std::false_type {};
-
-/// @private
-template <typename Alloc, typename Obj, typename... Args>
-struct _is_trivially_allocator_construct_impl<
-    std::enable_if_t<!has_is_non_trivially_allocator_construct_v<Alloc, Obj, Args...>>, Alloc, Obj,
-    Args...> : std::true_type {};
-
+/// @brief Consult the allocator marker only when an applicable construction hook exists.
 template <typename Alloc, typename Obj, typename... Args>
 struct is_trivially_allocator_construct
-    : std::disjunction<_is_trivially_allocator_construct_impl<void, Alloc, Obj, Args...>,
-                       is_trivially_allocator<Alloc>> {};
+    : std::conditional_t<has_is_non_trivially_allocator_construct_v<Alloc, Obj, Args...>,
+                         is_trivially_allocator<Alloc>, std::true_type> {};
 
 template <typename Alloc, typename Obj, typename... Args>
 inline constexpr bool is_trivially_allocator_construct_v =
     is_trivially_allocator_construct<Alloc, Obj, Args...>::value;
 
-/// @private
-template <typename Alloc, typename Obj, typename = void>
-struct _is_trivially_allocator_destroy_impl : std::false_type {};
-
-/// @private
-template <typename Alloc, typename Obj>
-struct _is_trivially_allocator_destroy_impl<
-    Alloc, Obj, std::enable_if_t<!has_is_non_trivially_allocator_destroy_v<Alloc, Obj>>>
-    : std::true_type {};
-
+/// @brief Consult the allocator marker only when an applicable destruction hook exists.
 template <typename Alloc, typename Obj>
 struct is_trivially_allocator_destroy
-    : std::disjunction<_is_trivially_allocator_destroy_impl<Alloc, Obj>,
-                       is_trivially_allocator<Alloc>> {};
+    : std::conditional_t<has_is_non_trivially_allocator_destroy_v<Alloc, Obj>,
+                         is_trivially_allocator<Alloc>, std::true_type> {};
 
 template <typename Alloc, typename Obj>
 inline constexpr bool is_trivially_allocator_destroy_v =
