@@ -13,6 +13,7 @@
 #include <cstring>
 #include <memory>
 
+#include <wjr/concept/integral.hpp>
 #include <wjr/iterator/detail.hpp>
 
 #include <bit>
@@ -178,8 +179,7 @@ WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T builtin_byteswap(T x) noexcept {
 
 #endif
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 T byteswap(T x) noexcept {
 #if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
     static_assert(std::numeric_limits<T>::digits <= 64, "Unsupported bit width");
@@ -211,16 +211,14 @@ WJR_INTRINSIC_INLINE void maybe_null_memcpy(void *dst, void const *src, size_t s
     std::memcpy(dst, src, size);
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_PURE WJR_INTRINSIC_INLINE T read_memory(const void *ptr) noexcept {
     T x;
     builtin_memcpy(std::addressof(x), ptr, sizeof(T));
     return x;
 }
 
-template <typename T>
-requires(is_nonbool_unsigned_integral_v<T>)
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_INLINE void write_memory(void *ptr, T x) noexcept {
     builtin_memcpy(ptr, std::addressof(x), sizeof(T));
 }
