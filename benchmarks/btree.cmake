@@ -21,11 +21,15 @@ add_executable(btree_join EXCLUDE_FROM_ALL src/btree_merge.cpp)
 add_executable(btree_join_memory EXCLUDE_FROM_ALL src/btree_merge.cpp)
 target_compile_definitions(btree_join PRIVATE WJR_BENCHMARK_JOIN=1)
 target_compile_definitions(btree_join_memory PRIVATE WJR_BENCHMARK_JOIN=1 WJR_MERGE_MEMORY=1)
+add_executable(btree_shard_range EXCLUDE_FROM_ALL src/btree_shard_range.cpp)
+add_executable(btree_shard_range_memory EXCLUDE_FROM_ALL src/btree_shard_range.cpp)
+target_compile_definitions(btree_shard_range_memory PRIVATE WJR_SHARD_MEMORY=1)
 target_link_libraries(benchmarks PRIVATE benchmark::benchmark)
 target_link_libraries(btree_hint PRIVATE benchmark::benchmark)
 target_link_libraries(btree_bulk_build PRIVATE benchmark::benchmark)
 target_link_libraries(btree_merge PRIVATE benchmark::benchmark)
 target_link_libraries(btree_join PRIVATE benchmark::benchmark)
+target_link_libraries(btree_shard_range PRIVATE benchmark::benchmark)
 
 find_package(Git QUIET)
 set(btree_source "unknown")
@@ -46,7 +50,8 @@ string(REPLACE ";" " " btree_flags "${btree_flags}")
 string(REPLACE "\"" "\\\"" btree_flags "${btree_flags}")
 
 foreach(btree_target IN ITEMS benchmarks btree_memory btree_hint
-        btree_bulk_build btree_bulk_memory btree_merge btree_merge_memory btree_join btree_join_memory)
+        btree_bulk_build btree_bulk_memory btree_merge btree_merge_memory btree_join btree_join_memory
+        btree_shard_range btree_shard_range_memory)
     # The general container path needs config/assert, never wjr::isa or GMP.
     target_link_libraries(${btree_target} PRIVATE wjr::assert wjr::iterator)
     target_compile_options(${btree_target} PRIVATE ${WJR_BASELINE_FLAGS})
@@ -89,7 +94,8 @@ if(WJR_BENCHMARK_ABSEIL)
     set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Use the selected C++ standard")
     add_subdirectory("${WJR_BENCHMARK_ABSEIL_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/abseil" EXCLUDE_FROM_ALL)
     foreach(btree_target IN ITEMS benchmarks btree_memory btree_bulk_build btree_bulk_memory
-            btree_merge btree_merge_memory btree_join btree_join_memory)
+            btree_merge btree_merge_memory btree_join btree_join_memory
+            btree_shard_range btree_shard_range_memory)
         target_link_libraries(${btree_target} PRIVATE absl::btree)
         target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_ABSEIL=1)
     endforeach()

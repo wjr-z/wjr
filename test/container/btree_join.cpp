@@ -1,6 +1,7 @@
 #include <wjr/container/btree_map.hpp>
 #include <wjr/container/btree_set.hpp>
 #include <wjr/container/experimental/btree_join.hpp>
+#include <wjr/container/experimental/btree_join_range.hpp>
 #include <wjr/container/experimental/compact_btree_map.hpp>
 
 #include <algorithm>
@@ -9,11 +10,18 @@
 #include <memory_resource>
 #include <random>
 #include <set>
+#include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
 
 namespace {
+template <typename T>
+const void *construction_tag() noexcept {
+    static char marker;
+    return &marker;
+}
+
 template <typename Destination, typename Source>
 concept accepts_append = requires(Destination &destination, Source &source) {
     { wjr::experimental::append_btree_disjoint(destination, source) } -> std::same_as<void>;
@@ -87,6 +95,10 @@ struct owner {
     size_t deallocations = 0;
     size_t value_constructions = 0;
     size_t value_destructions = 0;
+    size_t fail_allocation = 0;
+    const void *fail_construct_tag = nullptr;
+    size_t matching_constructions = 0;
+    size_t fail_matching_construction = 0;
     std::function<void()> observe;
 };
 template <typename T>
@@ -100,6 +112,8 @@ struct owner_allocator {
     owner_allocator(const owner_allocator<U> &other) noexcept
         : state(other.state), identity(other.identity) {}
     T *allocate(size_t count) {
+        if (state->fail_allocation != 0 && state->allocations + 1 == state->fail_allocation)
+            throw std::bad_alloc();
         auto *ptr = std::allocator<T>{}.allocate(count);
         EXPECT_TRUE(state->blocks.emplace(ptr, std::pair{count, alignof(T)}).second);
         ++state->allocations;
@@ -121,6 +135,11 @@ struct owner_allocator {
     }
     template <typename U, typename... Args>
     void construct(U *ptr, Args &&...args) {
+        if (state->fail_construct_tag == construction_tag<U>()) {
+            ++state->matching_constructions;
+            if (state->matching_constructions == state->fail_matching_construction)
+                throw std::runtime_error("metadata construction");
+        }
         std::construct_at(ptr, std::forward<Args>(args)...);
         if constexpr (requires(U &value) {
                           value.first;
@@ -290,6 +309,291 @@ TEST(BtreeJoin, PmrSourceCanBeDestroyedAfterAppend) {
     for (const auto &[key, value] : destination) {
         EXPECT_EQ(value.get_allocator().resource(), &resource);
         EXPECT_EQ(value, std::pmr::string(80, key < 1000 ? 'a' : 'b'));
+    }
+}
+
+template <typename Destination, typename Iter, typename Sentinel = Iter>
+concept accepts_shard_range = requires(Destination &destination, Iter first, Sentinel last) {
+    wjr::experimental::append_btree_disjoint(destination, first, last);
+};
+static_assert(accepts_shard_range<legacy, std::vector<legacy>::iterator>);
+static_assert(!accepts_shard_range<legacy, std::vector<legacy>::const_iterator>);
+static_assert(!accepts_shard_range<legacy, std::vector<compact>::iterator>);
+static_assert(!accepts_shard_range<legacy, std::move_iterator<std::vector<legacy>::iterator>>);
+
+template <bool Compact, size_t N>
+void check_shard_range(int shards, int elements, int prefix = 0) {
+    using allocator = owner_allocator<char>;
+    using legacy_tree = wjr::btree_map<int, payload, std::less<>, allocator, N>;
+    using compact_tree =
+        wjr::experimental::compact_btree_map<int, payload, std::less<>, allocator, N>;
+    using tree = std::conditional_t<Compact, compact_tree, legacy_tree>;
+    owner state;
+    {
+        tree destination(std::less<>{}, allocator(&state, 11));
+        std::vector<tree> sources;
+        sources.reserve(shards);
+        for (int s = 0; s < shards; ++s) {
+            sources.emplace_back(std::less<>{}, allocator(&state, 100 + s));
+            for (int i = 0; i < elements; ++i)
+                sources.back().try_emplace((s + 1) * 4096 + i, (s + 1) * 4096 + i);
+        }
+        for (int i = 0; i < prefix; ++i)
+            destination.try_emplace(i, i);
+        std::map<int, const payload *> addresses;
+        for (const auto &entry : destination)
+            addresses.emplace(entry.first, &entry.second);
+        for (const auto &source : sources)
+            for (const auto &entry : source)
+                addresses.emplace(entry.first, &entry.second);
+        const auto constructions = state.value_constructions;
+        const auto destructions = state.value_destructions;
+        const auto moves = payload::moves;
+        const auto inspect = [&](const tree &current) {
+            EXPECT_EQ(static_cast<size_t>(std::distance(current.begin(), current.end())),
+                      current.size());
+            if (current.empty())
+                return;
+            const auto first = current.begin();
+            const auto middle = std::next(first, current.size() / 2);
+            const auto last = std::prev(current.end());
+            for (auto position : {first, middle, last}) {
+                EXPECT_EQ(current.find(position->first), position);
+                EXPECT_EQ(&position->second, addresses.at(position->first));
+            }
+            EXPECT_EQ(current.lower_bound(first->first), first);
+            EXPECT_EQ(current.upper_bound(last->first), current.end());
+        };
+        state.observe = [&] {
+            size_t count = destination.size();
+            for (const auto &source : sources)
+                count += source.size();
+            EXPECT_EQ(count, addresses.size());
+            inspect(destination);
+            for (const auto &source : sources)
+                inspect(source);
+        };
+        wjr::experimental::append_btree_disjoint(destination, sources.begin(), sources.end());
+        state.observe = {};
+        EXPECT_EQ(destination.size(), addresses.size());
+        EXPECT_EQ(state.value_constructions, constructions);
+        EXPECT_EQ(state.value_destructions, destructions);
+        EXPECT_EQ(payload::moves, moves);
+        EXPECT_EQ(destination.get_allocator().identity, 11);
+        for (int s = 0; s < shards; ++s) {
+            EXPECT_TRUE(sources[s].empty());
+            EXPECT_EQ(sources[s].get_allocator().identity, 100 + s);
+            sources[s].try_emplace(-1, -1);
+        }
+        for (const auto &entry : destination) {
+            EXPECT_EQ(&entry.second, addresses.at(entry.first));
+            EXPECT_EQ(entry.second.value, entry.first);
+        }
+        while (!destination.empty())
+            destination.erase(destination.begin());
+    }
+    EXPECT_TRUE(state.blocks.empty());
+    EXPECT_EQ(state.allocations, state.deallocations);
+    EXPECT_EQ(state.value_constructions, state.value_destructions);
+    EXPECT_EQ(payload::live, 0);
+}
+
+TEST(BtreeJoinRange, NormalizesManyRootsWithoutMovingValues) {
+    check_shard_range<false, 16>(8, 512);
+    check_shard_range<true, 16>(8, 512);
+    check_shard_range<true, 16>(8, 512, 512);
+    check_shard_range<true, 16>(20, 150);
+    check_shard_range<true, 4>(12, 9);
+    check_shard_range<true, 5>(12, 16);
+    check_shard_range<true, 64>(8, 1000);
+}
+
+TEST(BtreeJoinRange, EmptySingleReferenceAndMixedShapeInputs) {
+    legacy destination;
+    std::vector<legacy> empty(4);
+    wjr::experimental::append_btree_disjoint(destination, empty.begin(), empty.end());
+    EXPECT_TRUE(destination.empty());
+    empty[2].try_emplace(7, 42);
+    wjr::experimental::append_btree_disjoint(destination, empty.begin(), empty.end());
+    EXPECT_EQ(destination.at(7), 42);
+    std::vector<legacy> sources(4);
+    std::vector<std::reference_wrapper<legacy>> references;
+    for (int s = 0; s < 4; ++s) {
+        for (int i = 0; i < (s == 0 ? 3 : s == 1 ? 16 : 512); ++i)
+            sources[s].try_emplace(10000 + s * 4096 + i, i);
+        references.push_back(sources[s]);
+    }
+    const auto expected =
+        1u + sources[0].size() + sources[1].size() + sources[2].size() + sources[3].size();
+    wjr::experimental::append_btree_disjoint(destination, references.begin(), references.end());
+    EXPECT_EQ(destination.size(), expected);
+    for (const auto &source : sources)
+        EXPECT_TRUE(source.empty());
+    std::vector<legacy> counted(3);
+    for (int s = 0; s < 3; ++s)
+        for (int i = 0; i < 150; ++i)
+            counted[s].try_emplace(40000 + s * 4096 + i, i);
+    const auto before = destination.size();
+    wjr::experimental::append_btree_disjoint(
+        destination, std::counted_iterator(counted.begin(), ptrdiff_t(counted.size())),
+        std::default_sentinel);
+    EXPECT_EQ(destination.size(), before + 450);
+}
+
+TEST(BtreeJoinRange, StringSeparatorsAndReverseOrdering) {
+    std::vector<wjr::btree_set<std::string>> shards(8);
+    std::map<std::string, const std::string *> addresses;
+    for (int s = 0; s < 8; ++s) {
+        for (int i = 1000; i < 1150; ++i)
+            shards[s].insert(std::to_string(s) + std::to_string(i) + std::string(40, 'x'));
+        for (const auto &key : shards[s])
+            addresses.emplace(key, &key);
+    }
+    wjr::btree_set<std::string> result;
+    wjr::experimental::append_btree_disjoint(result, shards.begin(), shards.end());
+    EXPECT_EQ(result.size(), addresses.size());
+    for (const auto &key : result)
+        EXPECT_EQ(&key, addresses.at(key));
+    using reverse_tree = wjr::experimental::compact_btree_map<int, int, std::greater<>>;
+    std::vector<reverse_tree> reverse(8);
+    for (int s = 0; s < 8; ++s)
+        for (int i = 0; i < 150; ++i)
+            reverse[s].try_emplace((8 - s) * 4096 + i, i);
+    reverse_tree descending;
+    wjr::experimental::append_btree_disjoint(descending, reverse.begin(), reverse.end());
+    EXPECT_EQ(descending.size(), 1200);
+    int previous = 100000;
+    for (const auto &entry : descending) {
+        EXPECT_LT(entry.first, previous);
+        previous = entry.first;
+    }
+    while (!descending.empty())
+        descending.erase(descending.begin());
+}
+
+TEST(BtreeJoinRange, DuplicateGroupsAndImmovableLegacyValues) {
+    std::vector<wjr::btree_multiset<int>> shards(8);
+    std::multiset<int> expected;
+    for (int s = 0; s < 8; ++s) {
+        for (int i = 0; i < 512; ++i) {
+            shards[s].insert(s * 100 + i % 7);
+            expected.insert(s * 100 + i % 7);
+        }
+    }
+    wjr::btree_multiset<int> result;
+    wjr::experimental::append_btree_disjoint(result, shards.begin(), shards.end());
+    EXPECT_TRUE(std::equal(result.begin(), result.end(), expected.begin(), expected.end()));
+    EXPECT_EQ(result.erase(203), expected.erase(203));
+    EXPECT_EQ(result.size(), expected.size());
+    struct immovable {
+        int value;
+        explicit immovable(int value) noexcept : value(value) {}
+        immovable(const immovable &) = delete;
+        immovable(immovable &&) = delete;
+    };
+    using tree = wjr::btree_map<int, immovable>;
+    std::vector<tree> owners(8);
+    std::map<int, const immovable *> addresses;
+    for (int s = 0; s < 8; ++s) {
+        for (int i = 0; i < 150; ++i)
+            owners[s].try_emplace(s * 4096 + i, i);
+        for (const auto &entry : owners[s])
+            addresses.emplace(entry.first, &entry.second);
+    }
+    tree index;
+    wjr::experimental::append_btree_disjoint(index, owners.begin(), owners.end());
+    for (const auto &entry : index)
+        EXPECT_EQ(&entry.second, addresses.at(entry.first));
+}
+
+template <typename Tree>
+struct fault_iterator {
+    using value_type = Tree;
+    using difference_type = ptrdiff_t;
+    using iterator_concept = std::forward_iterator_tag;
+    Tree *position = nullptr;
+    size_t *increments = nullptr;
+    size_t fail_at = 0;
+    Tree &operator*() const { return *position; }
+    fault_iterator &operator++() {
+        if (++*increments == fail_at)
+            throw std::runtime_error("owner iterator increment");
+        ++position;
+        return *this;
+    }
+    fault_iterator operator++(int) {
+        auto old = *this;
+        ++*this;
+        return old;
+    }
+    bool operator==(const fault_iterator &other) const { return position == other.position; }
+};
+static_assert(std::forward_iterator<fault_iterator<legacy>>);
+
+TEST(BtreeJoinRange, ThrowingForwardIterationFinishesBeforeMutation) {
+    for (size_t failure : {1, 5, 8}) {
+        legacy destination;
+        std::vector<legacy> sources(4);
+        for (int s = 0; s < 4; ++s)
+            for (int i = 0; i < 150; ++i)
+                sources[s].try_emplace(s * 4096 + i, i);
+        size_t increments = 0;
+        fault_iterator<legacy> first{sources.data(), &increments, failure};
+        fault_iterator<legacy> last{sources.data() + sources.size(), &increments, failure};
+        EXPECT_THROW(wjr::experimental::append_btree_disjoint(destination, first, last),
+                     std::runtime_error);
+        EXPECT_TRUE(destination.empty());
+        for (const auto &source : sources)
+            EXPECT_EQ(source.size(), 150);
+    }
+}
+
+TEST(BtreeJoinRange, PreparationFailuresLeaveEverySourceUnchanged) {
+    using allocator = owner_allocator<char>;
+    using traits = wjr::btree_detail::compact_map_traits<int, payload, std::less<>, allocator, 16>;
+    using tree = wjr::experimental::compact_btree_map<int, payload, std::less<>, allocator, 16>;
+    for (int failure = 0; failure < 5; ++failure) {
+        owner state;
+        {
+            tree destination(std::less<>{}, allocator(&state, 11));
+            std::vector<tree> sources;
+            sources.reserve(20);
+            for (int s = 0; s < 20; ++s) {
+                sources.emplace_back(std::less<>{}, allocator(&state, 100 + s));
+                for (int i = 0; i < 150; ++i)
+                    sources.back().try_emplace((s + 1) * 4096 + i, i);
+            }
+            const auto blocks = state.blocks;
+            const auto constructions = state.value_constructions;
+            const auto destructions = state.value_destructions;
+            const auto moves = payload::moves;
+            if (failure < 3) {
+                state.fail_allocation = state.allocations + failure + 1;
+                EXPECT_THROW(wjr::experimental::append_btree_disjoint(destination, sources.begin(),
+                                                                      sources.end()),
+                             std::bad_alloc);
+            } else {
+                state.fail_construct_tag = construction_tag<typename traits::inner_node_type *>();
+                state.fail_matching_construction = 20 + failure - 2;
+                EXPECT_THROW(wjr::experimental::append_btree_disjoint(destination, sources.begin(),
+                                                                      sources.end()),
+                             std::runtime_error);
+            }
+            state.fail_allocation = 0;
+            state.fail_construct_tag = nullptr;
+            EXPECT_TRUE(destination.empty());
+            EXPECT_EQ(state.blocks, blocks);
+            EXPECT_EQ(state.value_constructions, constructions);
+            EXPECT_EQ(state.value_destructions, destructions);
+            EXPECT_EQ(payload::moves, moves);
+            for (const auto &source : sources) {
+                EXPECT_EQ(source.size(), 150);
+                for (const auto &entry : source)
+                    EXPECT_EQ(entry.second.self, &entry.second);
+            }
+        }
+        EXPECT_TRUE(state.blocks.empty());
+        EXPECT_EQ(payload::live, 0);
     }
 }
 } // namespace

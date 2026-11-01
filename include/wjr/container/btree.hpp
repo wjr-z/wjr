@@ -45,6 +45,7 @@ namespace btree_detail {
 
 struct ordered_builder_access;
 struct disjoint_join_access;
+struct disjoint_range_access;
 
 /// @brief Admit transparent lookup types comparable with keys in both directions.
 /// @note Callability does not imply noexcept; B-tree query comparisons must not throw.
@@ -937,6 +938,7 @@ class basic_btree {
     friend class container_fn<_Alty>;
     friend struct btree_detail::ordered_builder_access;
     friend struct btree_detail::disjoint_join_access;
+    friend struct btree_detail::disjoint_range_access;
     template <typename Other>
     friend class basic_btree;
 

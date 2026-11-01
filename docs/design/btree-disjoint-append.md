@@ -59,3 +59,6 @@ graph 路径没有 value construction/destruction、move 或单值 allocation；
 等高 inner 图的工作量为 O(height + N)，不会逐元素访问。
 不同高度仍是普通 merge 的复杂度和代价，因此大量大小不等分片的累加不能据此假定获得相同收益。
 [跨平台计时、成熟 node-hint 对照和负例](../performance/btree-disjoint-append.md)给出适用边界。
+
+多个等高分片可使用独立 `btree_join_range.hpp` 的[owner-range 重载](btree-shard-range.md)，
+一次规范化所有 root，避免逐次累加升高后的回退；两树接口无需引入其 workspace 或模板定义。
