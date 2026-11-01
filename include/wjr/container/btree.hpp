@@ -2004,7 +2004,7 @@ private:
     }
 
     /// @brief Release retired storage, advancing before any cursor leaf is unlinked or freed.
-    void _destroy_copy_branch(node_type *current, list_node_type *&cursor) noexcept {
+    list_node_type *_destroy_copy_branch(node_type *current, list_node_type *cursor) noexcept {
         const auto size = current->size();
         if (size < 0) {
             auto *const leaf = current->as_leaf();
@@ -2017,9 +2017,10 @@ private:
         } else {
             auto *const inner = current->as_inner();
             for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i)
-                _destroy_copy_branch(inner->m_sons[i], cursor);
+                cursor = _destroy_copy_branch(inner->m_sons[i], cursor);
             _drop_inner_node(inner);
         }
+        return cursor;
     }
 
     /// @brief Clone a branch immediately before the next unconsumed retired leaf.
@@ -2066,23 +2067,23 @@ private:
             _construct_leaf_value(destination, i, from_ivalue(source->m_values[i]));
     }
 
-    /// @brief Reuse a leaf in its existing chain position; every stored value is still copied.
-    WJR_INTRINSIC_INLINE ikey_type _reuse_copy_leaf(leaf_node_type *leaf,
-                                                    const leaf_node_type *source,
-                                                    list_node_type *&cursor) noexcept {
+    /// @brief Reuse leaf storage and repair its minimum through initialized ownership links.
+    WJR_INTRINSIC_INLINE list_node_type *_reuse_copy_leaf(leaf_node_type *leaf,
+                                                          const leaf_node_type *source,
+                                                          list_node_type *cursor) noexcept {
         WJR_ASSERT_L2(cursor == static_cast<list_node_type *>(leaf));
         const auto size = source->size();
         _reuse_copy_slots(leaf, source, static_cast<slot_usize_type>(-leaf->size()),
                           static_cast<slot_usize_type>(-size));
         leaf->size() = size;
-        cursor = leaf->next();
-        return to_ikey(leaf->get_key(0));
+        _replace_subtree_minimum(leaf, to_ikey(leaf->get_key(0)));
+        return leaf->next();
     }
 
-    /// @brief Preserve compatible ownership links; only replacement storage needs new links.
-    WJR_INTRINSIC_INLINE ikey_type _reuse_copy_branch(node_type *&owned, const node_type *source,
-                                                      list_node_type *&cursor, node_type *parent,
-                                                      slot_usize_type position) noexcept {
+    /// @brief Return the next retired leaf by value; keep cold clone state separate from hot state.
+    WJR_INTRINSIC_INLINE list_node_type *
+    _reuse_copy_branch(node_type *&owned, const node_type *source, list_node_type *cursor,
+                       node_type *parent, slot_usize_type position) noexcept {
         if (owned != nullptr) {
             const bool old_leaf = owned->size() < 0;
             const bool source_leaf = source->size() < 0;
@@ -2090,37 +2091,35 @@ private:
                 return _reuse_copy_leaf(owned->as_leaf(), source->as_leaf(), cursor);
             if (!old_leaf && !source_leaf)
                 return _reuse_copy_inner(owned->as_inner(), source->as_inner(), cursor);
-            _destroy_copy_branch(owned, cursor);
+            cursor = _destroy_copy_branch(owned, cursor);
         }
-        auto [key, copied] = _clone_copy_branch(source, cursor);
+        auto *clone_cursor = cursor;
+        auto [key, copied] = _clone_copy_branch(source, clone_cursor);
         owned = copied;
         copied->m_parent = parent;
         if (parent != nullptr)
             copied->pos() = position;
-        return key;
+        /// Fresh root links must exist before propagating a child-zero minimum.
+        _replace_subtree_minimum(copied, key);
+        return clone_cursor;
     }
 
-    /// @brief Reuse each corresponding child once, connecting only newly created branches.
-    ikey_type _reuse_copy_inner(inner_node_type *inner, const inner_node_type *source,
-                                list_node_type *&cursor) noexcept {
+    /// @brief Carry the cursor in the return register, repairing minima at completed leaves.
+    list_node_type *_reuse_copy_inner(inner_node_type *inner, const inner_node_type *source,
+                                      list_node_type *cursor) noexcept {
         const auto old_size = inner->size();
         const auto size = source->size();
         for (slot_usize_type i = static_cast<slot_usize_type>(size) + 1;
              i <= static_cast<slot_usize_type>(old_size); ++i)
-            _destroy_copy_branch(inner->m_sons[i], cursor);
-        ikey_type first_key;
+            cursor = _destroy_copy_branch(inner->m_sons[i], cursor);
         for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
             if (i > static_cast<slot_usize_type>(old_size))
                 inner->m_sons[i] = nullptr;
-            const auto key =
-                _reuse_copy_branch(inner->m_sons[i], source->m_sons[i], cursor, inner, i);
-            if (i == 0)
-                first_key = key;
-            else
-                inner->m_keys[i - 1] = key;
+            cursor = _reuse_copy_branch(inner->m_sons[i], source->m_sons[i], cursor, inner, i);
         }
+        /// Minimum propagation reads parent/position, never the parent's still-old slot count.
         inner->size() = size;
-        return first_key;
+        return cursor;
     }
 
     /// @brief Publish an empty destination until all copied values and graph links are complete.
@@ -2141,7 +2140,7 @@ private:
         if (source == nullptr) {
             const auto old_small_count = root == nullptr ? old_count : 0;
             if (root != nullptr)
-                _destroy_copy_branch(root, cursor);
+                cursor = _destroy_copy_branch(root, cursor);
             _reuse_copy_slots(_get_base(), other._get_base(), old_small_count,
                               static_cast<slot_usize_type>(other.size()));
         } else {
@@ -2149,7 +2148,7 @@ private:
                 for (slot_usize_type i = 0; i < old_count; ++i)
                     _destroy_slot(_get_base()->m_values[i]);
             }
-            static_cast<void>(_reuse_copy_branch(root, source, cursor, nullptr, 0));
+            cursor = _reuse_copy_branch(root, source, cursor, nullptr, 0);
             replace(std::addressof(retired), _get_sentry());
             _get_root() = root;
         }
