@@ -1,0 +1,3198 @@
+{
+  "reference": "035303d5d0e89e3b9416be5510ec9e410d7b6cba",
+  "measured_prototype": "3f241c9dce3336398c19d92ad59b4870c1dcbde2",
+  "research": "40742c2eb66ad8692c66d7fefb0ae71333d4b753",
+  "run": "https://github.com/wjr-z/wjr/actions/runs/41304495942",
+  "selected_domain": "indirect value storage; matched cardinality and complete node shape only",
+  "rejected_domain": "compact/inline values remain on the original path",
+  "units": "nanoseconds per whole copy assignment",
+  "profiles": {
+    "windows-clang18": {
+      "context": {
+        "source": "40742c2eb66ad8692c66d7fefb0ae71333d4b753",
+        "compiler": "Clang-18.1.8",
+        "flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "stl": "MSVC STL 143.202408",
+        "library_build_type": "release"
+      },
+      "comparisons": [
+        {
+          "case": "u64/legacy/matched/4096",
+          "selected": true,
+          "ratio": 0.023011178601692748,
+          "envelope": [
+            0.01753961571620543,
+            0.04193256848280367
+          ],
+          "candidate_cv": 0.08023633511676197,
+          "reference_cv": 0.19209854529880266
+        },
+        {
+          "case": "u64/legacy/shape_mismatch/4096",
+          "selected": true,
+          "ratio": 0.9897247334201966,
+          "envelope": [
+            0.8984410224948087,
+            1.1746123502657222
+          ],
+          "candidate_cv": 0.030696809425546243,
+          "reference_cv": 0.05941341673886728
+        },
+        {
+          "case": "u64/legacy/size_mismatch/4096",
+          "selected": true,
+          "ratio": 1.2560605611229723,
+          "envelope": [
+            0.5592016543200616,
+            1.651653294420076
+          ],
+          "candidate_cv": 0.16106895668377047,
+          "reference_cv": 0.2502846463694203
+        },
+        {
+          "case": "u64/compact/matched/4096",
+          "selected": false,
+          "ratio": 0.17031966757812936,
+          "envelope": [
+            0.14669809167456613,
+            0.20590124430474124
+          ],
+          "candidate_cv": 0.05358907714743015,
+          "reference_cv": 0.05641601789581708
+        },
+        {
+          "case": "u64/compact/shape_mismatch/4096",
+          "selected": false,
+          "ratio": 1.0542375925739953,
+          "envelope": [
+            0.9770359628986567,
+            1.2187691754566838
+          ],
+          "candidate_cv": 0.03841089922495854,
+          "reference_cv": 0.03053085842460782
+        },
+        {
+          "case": "u64/compact/size_mismatch/4096",
+          "selected": false,
+          "ratio": 1.463729439612103,
+          "envelope": [
+            1.1839022422906544,
+            1.8003273642106268
+          ],
+          "candidate_cv": 0.06940948806305015,
+          "reference_cv": 0.06085765380026529
+        },
+        {
+          "case": "large/legacy/matched/4096",
+          "selected": true,
+          "ratio": 0.05642199892229511,
+          "envelope": [
+            0.0498846403383294,
+            0.07879245521538367
+          ],
+          "candidate_cv": 0.054339758682677666,
+          "reference_cv": 0.10482020063294216
+        },
+        {
+          "case": "large/legacy/shape_mismatch/4096",
+          "selected": true,
+          "ratio": 1.0370590788394352,
+          "envelope": [
+            0.9171123539093925,
+            1.1789392816306339
+          ],
+          "candidate_cv": 0.04590385166569876,
+          "reference_cv": 0.03121435444875107
+        },
+        {
+          "case": "large/legacy/size_mismatch/4096",
+          "selected": true,
+          "ratio": 1.0596086010389898,
+          "envelope": [
+            0.9023387697332461,
+            1.334124199959818
+          ],
+          "candidate_cv": 0.05282236643612308,
+          "reference_cv": 0.08245578799615792
+        },
+        {
+          "case": "large/compact/matched/4096",
+          "selected": false,
+          "ratio": 0.1933815358311793,
+          "envelope": [
+            0.11636598549382218,
+            0.25172422786452686
+          ],
+          "candidate_cv": 0.044941084805385355,
+          "reference_cv": 0.25782646406566956
+        },
+        {
+          "case": "large/compact/shape_mismatch/4096",
+          "selected": false,
+          "ratio": 0.9706523766555617,
+          "envelope": [
+            0.6482448836163119,
+            1.6369488450106269
+          ],
+          "candidate_cv": 0.09564266672653102,
+          "reference_cv": 0.25667315907992067
+        },
+        {
+          "case": "large/compact/size_mismatch/4096",
+          "selected": false,
+          "ratio": 1.0917218472653771,
+          "envelope": [
+            0.6547776831213491,
+            1.5289339306264476
+          ],
+          "candidate_cv": 0.11174341118238106,
+          "reference_cv": 0.15321618223579808
+        }
+      ],
+      "mature_controls": [
+        {
+          "value": "u64",
+          "candidate_ns": 5438.960519412998,
+          "candidate_over_std": 0.030461123448480617,
+          "candidate_over_absl": 0.1439354420670999
+        },
+        {
+          "value": "large",
+          "candidate_ns": 11522.456174826686,
+          "candidate_over_std": 0.052139240583038794,
+          "candidate_over_absl": 0.14596509381960385
+        }
+      ],
+      "raw_ns": {
+        "reference": {
+          "u64/legacy/matched/4096": [
+            234943.33339234194,
+            237779.99934585145,
+            232103.33310998976,
+            259993.33302024752,
+            169799.99976077428,
+            294596.42870019056,
+            249553.57158822674,
+            262932.143024435,
+            191014.28603919756,
+            155003.5719576824
+          ],
+          "u64/legacy/shape_mismatch/4096": [
+            167771.7392221498,
+            154271.7389225879,
+            149499.9995212192,
+            150949.99980647117,
+            162395.6524544274,
+            175658.3333190065,
+            167539.58334447816,
+            168008.33327579312,
+            169029.1664999677,
+            177256.2494200732
+          ],
+          "u64/legacy/size_mismatch/4096": [
+            256378.57054659564,
+            241853.5711642887,
+            250964.28518216792,
+            160989.28504756518,
+            298742.8576618965,
+            178658.82289376768,
+            167297.05898529466,
+            163270.58769735123,
+            160197.0588500776,
+            172988.23513556272
+          ],
+          "u64/compact/matched/4096": [
+            22238.721769947308,
+            25214.285798076737,
+            23565.789478081733,
+            22468.79695921688,
+            22486.842099990332,
+            24319.465653366544,
+            26088.93122364063,
+            23767.5572750834,
+            25407.63354689622,
+            23239.312976961315
+          ],
+          "u64/compact/shape_mismatch/4096": [
+            24258.11695715098,
+            23577.59739744005,
+            23725.649338917105,
+            23527.272716890297,
+            23233.11690071767,
+            22528.378345619734,
+            22582.09457756272,
+            22502.364830674,
+            21967.22975035349,
+            22822.297241136028
+          ],
+          "u64/compact/size_mismatch/4096": [
+            22656.67750618454,
+            24488.273608355696,
+            23002.93155997409,
+            23359.934786480248,
+            24452.117265654117,
+            25122.32705792588,
+            25659.119479692068,
+            23340.251561804856,
+            27611.00630829427,
+            23977.672948455143
+          ],
+          "large/legacy/matched/4096": [
+            187177.1428601018,
+            205114.28592726588,
+            166982.85721109383,
+            167848.5714364797,
+            166139.99947107263,
+            209634.4823226461,
+            213803.44746987624,
+            203324.13862041873,
+            216320.6899522579,
+            206268.96554764744
+          ],
+          "large/legacy/shape_mismatch/4096": [
+            165437.20875931688,
+            162490.6977075477,
+            170781.395565935,
+            164179.069796837,
+            163651.16286134825,
+            162817.49994959682,
+            170090.000028722,
+            176297.5000019651,
+            175332.4999299366,
+            172184.99997397885
+          ],
+          "large/legacy/size_mismatch/4096": [
+            167205.1282814489,
+            164428.20495472124,
+            170125.64169887739,
+            176487.1800939242,
+            179694.87145399817,
+            204067.7420389388,
+            192319.35467330678,
+            198809.67691630847,
+            198167.7412385902,
+            201035.48435614473
+          ],
+          "large/compact/matched/4096": [
+            53199.99996572733,
+            55831.19997754693,
+            53183.200070634484,
+            59021.60005643964,
+            54433.600045740604,
+            101466.23380578958,
+            93007.79209581095,
+            72355.8440260202,
+            86470.12986944287,
+            70242.85679852421
+          ],
+          "large/compact/shape_mismatch/4096": [
+            52624.166467770316,
+            46327.50011902923,
+            43884.999953055136,
+            44812.49998207204,
+            44282.500069433205,
+            85569.81135010367,
+            66212.26422348112,
+            73028.3019673255,
+            69948.1131719812,
+            74175.47172770115
+          ],
+          "large/compact/size_mismatch/4096": [
+            46411.57007306691,
+            47263.63642310554,
+            46526.44625926498,
+            43676.85943172305,
+            45906.61163934437,
+            69903.15803130598,
+            57890.5262763759,
+            54583.15809894549,
+            53675.789508576454,
+            56804.21048677281
+          ]
+        },
+        "candidate": {
+          "u64/legacy/matched/4096": [
+            5210.301683080808,
+            5709.492274908852,
+            5167.108150767855,
+            5478.072106958839,
+            5234.805009594411,
+            5365.936550715505,
+            5399.848931867156,
+            6499.697896194703,
+            5853.172217381786,
+            6198.413900255853
+          ],
+          "u64/legacy/shape_mismatch/4096": [
+            171302.85684418466,
+            164468.5714771705,
+            159254.2859725654,
+            161145.71397858005,
+            168671.428192673,
+            166693.1817784313,
+            165172.72756159815,
+            161788.63601949575,
+            170374.99955304983,
+            175604.54580234364
+          ],
+          "u64/legacy/size_mismatch/4096": [
+            264590.0000061374,
+            216865.00040232204,
+            224825.00062324107,
+            167057.5002208352,
+            233092.50027523376,
+            239387.878647187,
+            170760.60634501505,
+            254921.21207979368,
+            191078.78765542852,
+            185484.84888125325
+          ],
+          "u64/compact/matched/4096": [
+            3837.548967901144,
+            4103.189709773011,
+            3974.2025755195727,
+            4156.4633512413975,
+            3827.196424337084,
+            4196.853362711919,
+            4080.616748294529,
+            3981.1831360648853,
+            4578.980484179088,
+            3951.667712607507
+          ],
+          "u64/compact/shape_mismatch/4096": [
+            26772.98248990586,
+            23701.052659338242,
+            24160.350828121107,
+            23971.929770420516,
+            24241.403566281264,
+            24311.945363624916,
+            25168.259420715043,
+            24341.29692429721,
+            23891.46762410554,
+            25505.11947140072
+          ],
+          "u64/compact/size_mismatch/4096": [
+            36622.1051846974,
+            34053.68418163179,
+            33627.36851589656,
+            36576.84214168081,
+            36714.736703097034,
+            40789.43649647941,
+            32688.732280290988,
+            33526.760681768435,
+            37667.605514362665,
+            34311.26754894905
+          ],
+          "large/legacy/matched/4096": [
+            11150.704234756868,
+            10791.079816007652,
+            12045.22690591468,
+            11302.973426140974,
+            11433.176812898011,
+            11611.735536755363,
+            11430.41323708786,
+            13090.578467808356,
+            11849.917340561871,
+            12040.66115146703
+          ],
+          "large/legacy/shape_mismatch/4096": [
+            161684.61521514333,
+            174715.3844170941,
+            170505.12803670688,
+            175105.12798952943,
+            173246.15365419633,
+            175382.0516825773,
+            170797.43571603336,
+            191566.66642699676,
+            180505.12806393014,
+            167256.4107232178
+          ],
+          "large/legacy/size_mismatch/4096": [
+            196855.2632637224,
+            197334.21044963363,
+            198500.00037542102,
+            190436.84235504386,
+            186713.158128489,
+            195123.53002723746,
+            184138.23529365746,
+            219367.64738604645,
+            208629.41164523363,
+            203323.5299784471
+          ],
+          "large/compact/matched/4096": [
+            12411.091568499383,
+            11927.112699223972,
+            12923.239410156384,
+            11830.633808694727,
+            11807.21829115728,
+            12771.830985053692,
+            12586.26762649674,
+            13387.499973145117,
+            13128.521126239153,
+            12139.78873533
+          ],
+          "large/compact/shape_mismatch/4096": [
+            63591.34623870397,
+            56137.49985618947,
+            55662.499877283924,
+            55470.19239971772,
+            63824.03835931864,
+            71837.49998644502,
+            58006.8183560136,
+            57342.04552771354,
+            67894.31823893789,
+            56606.81794820861
+          ],
+          "large/compact/size_mismatch/4096": [
+            54930.841058457845,
+            52498.13075011996,
+            52068.22419852436,
+            45942.05611028543,
+            45771.02785860406,
+            56987.096726398675,
+            57791.12900434543,
+            56909.67748617573,
+            55266.93548158472,
+            66779.03236836316
+          ]
+        },
+        "controls": {
+          "u64/std/matched/4096": [
+            257275.00057352395,
+            153395.83357369216,
+            178554.1668747707,
+            151558.33413397582,
+            180899.99988054237
+          ],
+          "u64/std/shape_mismatch/4096": [
+            159790.6974534136,
+            162002.32595681798,
+            164690.69753860144,
+            158741.86037974647,
+            158216.2790433612
+          ],
+          "u64/std/size_mismatch/4096": [
+            169420.9302429023,
+            162386.0464247247,
+            169897.67399811468,
+            178781.3948900547,
+            164065.1161176001
+          ],
+          "u64/absl/matched/4096": [
+            37787.50001599648,
+            39331.52180726883,
+            38669.56514842889,
+            35130.9782949418,
+            37328.80435089338
+          ],
+          "u64/absl/shape_mismatch/4096": [
+            37783.33329440405,
+            36516.666683989264,
+            36255.999972733356,
+            36146.00010526677,
+            36992.66662200292
+          ],
+          "u64/absl/size_mismatch/4096": [
+            36819.27076589394,
+            36400.5207605563,
+            38926.04172506253,
+            37811.979079075776,
+            40866.145809559384
+          ],
+          "large/std/matched/4096": [
+            220993.93942026477,
+            243178.78750011776,
+            200693.94006647848,
+            195175.75768104783,
+            224051.51464750594
+          ],
+          "large/std/shape_mismatch/4096": [
+            196399.99983355223,
+            191556.09742284002,
+            198209.75551449854,
+            180021.95127603665,
+            218278.04909950893
+          ],
+          "large/std/size_mismatch/4096": [
+            216974.99947289802,
+            217164.28662849855,
+            231192.85781701494,
+            240182.14233884853,
+            241832.14346911493
+          ],
+          "large/absl/matched/4096": [
+            80478.6407049673,
+            73966.01920368747,
+            78244.66006550034,
+            78939.8059036438,
+            81435.92220098143
+          ],
+          "large/absl/shape_mismatch/4096": [
+            79086.73492516867,
+            77904.08176797614,
+            76973.46926742823,
+            79636.7346584721,
+            79760.20409545043
+          ],
+          "large/absl/size_mismatch/4096": [
+            77403.00003206357,
+            74644.99998604879,
+            72531.99990373105,
+            73164.99977605417,
+            77227.99986368045
+          ]
+        }
+      },
+      "prototype_memory": {
+        "candidate": [
+          {
+            "case": "u64/legacy/matched/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/shape_mismatch/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/size_mismatch/4096",
+            "before_requested": "463376",
+            "after_requested": "463360",
+            "peak_requested": "463376",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/matched/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/shape_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/size_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/matched/4096",
+            "before_requested": "589968",
+            "after_requested": "589968",
+            "peak_requested": "589968",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/shape_mismatch/4096",
+            "before_requested": "589968",
+            "after_requested": "589968",
+            "peak_requested": "589968",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/size_mismatch/4096",
+            "before_requested": "589920",
+            "after_requested": "589872",
+            "peak_requested": "589920",
+            "allocations": "4095",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/matched/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/shape_mismatch/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/size_mismatch/4096",
+            "before_requested": "219008",
+            "after_requested": "217600",
+            "peak_requested": "219008",
+            "allocations": "277",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/matched/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/shape_mismatch/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/size_mismatch/4096",
+            "before_requested": "1151448",
+            "after_requested": "1151376",
+            "peak_requested": "1151448",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/matched/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/shape_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/size_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/matched/4096",
+            "before_requested": "1278264",
+            "after_requested": "1278264",
+            "peak_requested": "1278264",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/shape_mismatch/4096",
+            "before_requested": "1278264",
+            "after_requested": "1278264",
+            "peak_requested": "1278264",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/size_mismatch/4096",
+            "before_requested": "1278160",
+            "after_requested": "1278056",
+            "peak_requested": "1278160",
+            "allocations": "4095",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/matched/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/shape_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/size_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          }
+        ],
+        "reference": [
+          {
+            "case": "u64/legacy/matched/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/shape_mismatch/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/size_mismatch/4096",
+            "before_requested": "463376",
+            "after_requested": "463360",
+            "peak_requested": "463376",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/matched/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/shape_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/size_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/matched/4096",
+            "before_requested": "589968",
+            "after_requested": "589968",
+            "peak_requested": "589968",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/shape_mismatch/4096",
+            "before_requested": "589968",
+            "after_requested": "589968",
+            "peak_requested": "589968",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/size_mismatch/4096",
+            "before_requested": "589920",
+            "after_requested": "589872",
+            "peak_requested": "589920",
+            "allocations": "4095",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/matched/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/shape_mismatch/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/size_mismatch/4096",
+            "before_requested": "219008",
+            "after_requested": "217600",
+            "peak_requested": "219008",
+            "allocations": "277",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/matched/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/shape_mismatch/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/size_mismatch/4096",
+            "before_requested": "1151448",
+            "after_requested": "1151376",
+            "peak_requested": "1151448",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/matched/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/shape_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/size_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/matched/4096",
+            "before_requested": "1278264",
+            "after_requested": "1278264",
+            "peak_requested": "1278264",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/shape_mismatch/4096",
+            "before_requested": "1278264",
+            "after_requested": "1278264",
+            "peak_requested": "1278264",
+            "allocations": "4096",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/size_mismatch/4096",
+            "before_requested": "1278160",
+            "after_requested": "1278056",
+            "peak_requested": "1278160",
+            "allocations": "4095",
+            "deallocations": "4096",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/matched/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/shape_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/size_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          }
+        ]
+      }
+    },
+    "linux-gcc13": {
+      "context": {
+        "source": "40742c2eb66ad8692c66d7fefb0ae71333d4b753",
+        "compiler": "GNU-13.3.0",
+        "flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "stl": "libstdc++ 20240904",
+        "library_build_type": "release"
+      },
+      "comparisons": [
+        {
+          "case": "u64/legacy/matched/4096",
+          "selected": true,
+          "ratio": 0.10306063841243096,
+          "envelope": [
+            0.08100446304359649,
+            0.1183700990888067
+          ],
+          "candidate_cv": 0.12469540535635622,
+          "reference_cv": 0.026732883687600375
+        },
+        {
+          "case": "u64/legacy/shape_mismatch/4096",
+          "selected": true,
+          "ratio": 0.9806197712458987,
+          "envelope": [
+            0.8718912054541328,
+            1.083412935586968
+          ],
+          "candidate_cv": 0.0268586787403468,
+          "reference_cv": 0.05422026188314482
+        },
+        {
+          "case": "u64/legacy/size_mismatch/4096",
+          "selected": true,
+          "ratio": 0.9894488165664822,
+          "envelope": [
+            0.8691906509285358,
+            1.1315944402515847
+          ],
+          "candidate_cv": 0.04770853217423387,
+          "reference_cv": 0.04734137405318887
+        },
+        {
+          "case": "u64/compact/matched/4096",
+          "selected": false,
+          "ratio": 0.2889811001359676,
+          "envelope": [
+            0.276132108396327,
+            0.30902171865020994
+          ],
+          "candidate_cv": 0.021550645503358154,
+          "reference_cv": 0.014572172848402964
+        },
+        {
+          "case": "u64/compact/shape_mismatch/4096",
+          "selected": false,
+          "ratio": 1.062747212769542,
+          "envelope": [
+            1.0252173585595972,
+            1.0963856232484173
+          ],
+          "candidate_cv": 0.009685716839813884,
+          "reference_cv": 0.016484886774188252
+        },
+        {
+          "case": "u64/compact/size_mismatch/4096",
+          "selected": false,
+          "ratio": 1.0071263039403298,
+          "envelope": [
+            0.9813853118870242,
+            1.0333655480589856
+          ],
+          "candidate_cv": 0.004155968080609743,
+          "reference_cv": 0.01635662554483434
+        },
+        {
+          "case": "large/legacy/matched/4096",
+          "selected": true,
+          "ratio": 0.17119803476060613,
+          "envelope": [
+            0.1465371541986051,
+            0.22992144642210718
+          ],
+          "candidate_cv": 0.11350106580729122,
+          "reference_cv": 0.046743684635851164
+        },
+        {
+          "case": "large/legacy/shape_mismatch/4096",
+          "selected": true,
+          "ratio": 1.001127952323334,
+          "envelope": [
+            0.8728820849742174,
+            1.1582769908090844
+          ],
+          "candidate_cv": 0.04189686099629916,
+          "reference_cv": 0.05651492209761263
+        },
+        {
+          "case": "large/legacy/size_mismatch/4096",
+          "selected": true,
+          "ratio": 1.00465789706612,
+          "envelope": [
+            0.8998126614318909,
+            1.1189087152177353
+          ],
+          "candidate_cv": 0.04606959464455523,
+          "reference_cv": 0.04183070408522629
+        },
+        {
+          "case": "large/compact/matched/4096",
+          "selected": false,
+          "ratio": 0.11664817226201363,
+          "envelope": [
+            0.10841155063959837,
+            0.12408411075812804
+          ],
+          "candidate_cv": 0.02795823093297089,
+          "reference_cv": 0.012811854584226358
+        },
+        {
+          "case": "large/compact/shape_mismatch/4096",
+          "selected": false,
+          "ratio": 0.983370199388594,
+          "envelope": [
+            0.9431415631739708,
+            1.0345388225282541
+          ],
+          "candidate_cv": 0.02995215061787544,
+          "reference_cv": 0.00559372122857081
+        },
+        {
+          "case": "large/compact/size_mismatch/4096",
+          "selected": false,
+          "ratio": 0.9787161266609089,
+          "envelope": [
+            0.9411905708555536,
+            1.012299326308533
+          ],
+          "candidate_cv": 0.025987677425414794,
+          "reference_cv": 0.005700568330780017
+        }
+      ],
+      "mature_controls": [
+        {
+          "value": "u64",
+          "candidate_ns": 9110.96588974249,
+          "candidate_over_std": 0.23354833629215999,
+          "candidate_over_absl": 0.2186669299294714
+        },
+        {
+          "value": "large",
+          "candidate_ns": 18417.7560749951,
+          "candidate_over_std": 0.3357387713417628,
+          "candidate_over_absl": 0.20805613729059214
+        }
+      ],
+      "raw_ns": {
+        "reference": {
+          "u64/legacy/matched/4096": [
+            88017.1975308592,
+            91019.97530852955,
+            85033.8518518954,
+            85185.48148152677,
+            90416.24691360399,
+            88790.67073174505,
+            90949.70731711821,
+            86288.80487813508,
+            86270.23170729638,
+            89849.84146339718
+          ],
+          "u64/legacy/shape_mismatch/4096": [
+            93989.19736837212,
+            100079.5131578364,
+            86814.7368421627,
+            90949.96052638748,
+            92393.57894735553,
+            92852.57333336478,
+            98957.7066665485,
+            85708.29333317911,
+            85897.02666654375,
+            92963.70666675102
+          ],
+          "u64/legacy/size_mismatch/4096": [
+            93977.12328779705,
+            96545.06849317043,
+            87774.02739719042,
+            87013.9726028555,
+            99426.63013705504,
+            92315.62337656404,
+            92714.54545450359,
+            86869.85714290019,
+            87520.94805187981,
+            93022.25974011718
+          ],
+          "u64/compact/matched/4096": [
+            20317.247838625466,
+            20151.55043228472,
+            20124.783861676344,
+            19866.953890508834,
+            19746.41210374334,
+            20588.209912574403,
+            20644.23032068075,
+            20336.221574330768,
+            20508.233236159802,
+            20363.358600577885
+          ],
+          "u64/compact/shape_mismatch/4096": [
+            20058.258620689678,
+            20093.29885055422,
+            20009.31609194727,
+            19906.885057462754,
+            19972.956896548236,
+            20672.08797654818,
+            20573.750733167657,
+            20692.360703800063,
+            20726.941348947057,
+            20417.712609956714
+          ],
+          "u64/compact/size_mismatch/4096": [
+            19876.059829090584,
+            20008.245014251028,
+            19988.806267833508,
+            19868.467236466957,
+            19896.09686609517,
+            20442.561046524846,
+            20622.430232571645,
+            20631.98255813785,
+            20368.174418608047,
+            20591.500000015585
+          ],
+          "large/legacy/matched/4096": [
+            107280.78461546339,
+            109532.07692304764,
+            101973.95384614958,
+            101183.53846166884,
+            112756.0923077471,
+            111426.45161296257,
+            114904.22580649347,
+            101844.82258068783,
+            102769.4516128375,
+            107882.3870967525
+          ],
+          "large/legacy/shape_mismatch/4096": [
+            112236.9508196385,
+            115375.11475419474,
+            100083.09836065877,
+            102464.09836063358,
+            111125.85245901292,
+            105969.73437504431,
+            117695.71874986618,
+            103414.6406251324,
+            101760.62500000249,
+            109174.00000010068
+          ],
+          "large/legacy/size_mismatch/4096": [
+            107743.91935476322,
+            113025.09677427275,
+            103484.51612888112,
+            103452.69354829614,
+            111054.14516108677,
+            109366.00000004694,
+            113426.68852456822,
+            103325.86885245283,
+            103048.80327876312,
+            113570.73770487533
+          ],
+          "large/compact/matched/4096": [
+            161023.0714284117,
+            159494.9523808152,
+            161906.38095213758,
+            163264.14285707695,
+            161653.04761915965,
+            158843.55813933472,
+            166116.93023259417,
+            161405.09302332238,
+            162305.60465088315,
+            163565.65116283027
+          ],
+          "large/compact/shape_mismatch/4096": [
+            159321.9069768777,
+            160437.72093015313,
+            161010.88372084993,
+            161233.1860465654,
+            160863.8604649339,
+            161717.1818182328,
+            158949.49999987902,
+            159802.93181818502,
+            161146.34090898375,
+            160900.65909066002
+          ],
+          "large/compact/size_mismatch/4096": [
+            160759.49999977916,
+            160710.34090908204,
+            161731.09090900084,
+            160472.1590908944,
+            159678.63636360975,
+            158951.79545469515,
+            158964.31818163136,
+            160474.86363649197,
+            159752.36363630075,
+            159177.65909085286
+          ]
+        },
+        "candidate": {
+          "u64/legacy/matched/4096": [
+            9956.263795419249,
+            9963.410497984418,
+            7373.024226108847,
+            7692.86944819872,
+            9147.862718710127,
+            9890.31767955528,
+            10065.465469611767,
+            7702.127071829586,
+            7841.959944742011,
+            9074.069060774855
+          ],
+          "u64/legacy/shape_mismatch/4096": [
+            91256.98684205698,
+            92857.47368424854,
+            87573.90789482817,
+            87282.5789474294,
+            91977.81578937212,
+            90399.05263164589,
+            92694.52631580808,
+            87410.17105263818,
+            87258.44736844872,
+            92040.40789481234
+          ],
+          "u64/legacy/size_mismatch/4096": [
+            92205.72368412741,
+            97490.1973684065,
+            87130.19736835518,
+            86501.92105251695,
+            91589.31578948238,
+            91556.21052639012,
+            98301.44736835528,
+            87055.17105262198,
+            86420.69736845764,
+            91521.67105260614
+          ],
+          "u64/compact/matched/4096": [
+            5700.534844668958,
+            5736.336691859349,
+            5840.80520571238,
+            5837.727120071915,
+            5816.57094877588,
+            6102.070205474074,
+            6045.354452053129,
+            5953.856164385144,
+            5927.608732869226,
+            5907.279109587622
+          ],
+          "u64/compact/shape_mismatch/4096": [
+            21249.620060787198,
+            21252.969604899718,
+            21279.46200610462,
+            21577.95440731078,
+            21320.206686968573,
+            21561.032258065803,
+            21825.622580660907,
+            21491.932258067165,
+            21590.861290305034,
+            21749.222580619822
+          ],
+          "u64/compact/size_mismatch/4096": [
+            20362.342028983738,
+            20302.315942034435,
+            20318.608695656687,
+            20270.11014491478,
+            20247.924637665757,
+            20452.840116275256,
+            20333.604651156304,
+            20356.64244187017,
+            20531.389534903676,
+            20330.54941860356
+          ],
+          "large/legacy/matched/4096": [
+            23264.265517213815,
+            21255.893103416227,
+            17032.241379313054,
+            17062.920689660397,
+            18295.327586231295,
+            20455.10402684581,
+            20195.184563759758,
+            17502.402684547116,
+            16837.738255077475,
+            18540.184563758907
+          ],
+          "large/legacy/shape_mismatch/4096": [
+            106392.09375007397,
+            108994.31250011027,
+            103458.48437487426,
+            102734.48437492228,
+            109060.99999985486,
+            112418.88333349457,
+            115923.95000003345,
+            103200.49999990033,
+            103073.76666673917,
+            109582.94999999415
+          ],
+          "large/legacy/size_mismatch/4096": [
+            115302.20408136598,
+            108903.30612216196,
+            102192.38775500706,
+            102992.87755103427,
+            113878.3265304255,
+            109217.88888903652,
+            113519.11111125178,
+            102888.28571420918,
+            106514.2698414836,
+            113073.03174586224
+          ],
+          "large/compact/matched/4096": [
+            18393.801801784724,
+            18008.993994005512,
+            18694.210210212048,
+            19333.636636638224,
+            18264.969969951442,
+            19709.96166137636,
+            19110.856230029935,
+            19107.811501604567,
+            18585.686900930847,
+            19048.40575077132
+          ],
+          "large/compact/shape_mismatch/4096": [
+            153016.58695645788,
+            152522.19565213734,
+            155084.78260868415,
+            154313.78260868572,
+            154221.43478268114,
+            164439.42857132957,
+            162603.14285736805,
+            161328.85714287547,
+            162345.73809522804,
+            162334.76190477415
+          ],
+          "large/compact/size_mismatch/4096": [
+            153156.1777776839,
+            153223.20000008304,
+            152481.59999998735,
+            153109.88888883358,
+            152219.77777773392,
+            160802.06818197048,
+            160185.7045453156,
+            160554.5681816781,
+            160906.79545431962,
+            160205.47727277095
+          ]
+        },
+        "controls": {
+          "u64/std/matched/4096": [
+            39011.050279309304,
+            39565.55307259759,
+            37857.385474931536,
+            38602.02234632553,
+            42204.27932958684
+          ],
+          "u64/std/shape_mismatch/4096": [
+            41717.89534888214,
+            41708.86627909057,
+            40035.97093018666,
+            40827.2790697793,
+            41780.866279016525
+          ],
+          "u64/std/size_mismatch/4096": [
+            43613.21656049921,
+            46750.802547700485,
+            40669.43312106015,
+            41391.16560511309,
+            45303.445859912055
+          ],
+          "u64/absl/matched/4096": [
+            41295.01785710672,
+            41926.02380952743,
+            42005.21428575685,
+            41430.92857140863,
+            41665.95238100764
+          ],
+          "u64/absl/shape_mismatch/4096": [
+            42607.678787906916,
+            42547.630302999205,
+            41488.98181821289,
+            42207.054545428946,
+            42482.35151516672
+          ],
+          "u64/absl/size_mismatch/4096": [
+            42058.82738092658,
+            41363.303571375,
+            42216.9821429328,
+            42059.249999988024,
+            41225.363095233006
+          ],
+          "large/std/matched/4096": [
+            54857.39999997463,
+            58051.769999991615,
+            51510.950000022145,
+            51671.450000014825,
+            56688.93000006392
+          ],
+          "large/std/shape_mismatch/4096": [
+            54539.70999994339,
+            57324.12000000409,
+            54119.81999998261,
+            50271.83999999352,
+            56629.6200000238
+          ],
+          "large/std/size_mismatch/4096": [
+            55320.270000009936,
+            58722.92999995921,
+            53778.79000008079,
+            51783.95999990926,
+            58096.76000012587
+          ],
+          "large/absl/matched/4096": [
+            89223.43037981239,
+            89386.51898741003,
+            87100.73417717012,
+            88523.01265821834,
+            87372.2531645819
+          ],
+          "large/absl/shape_mismatch/4096": [
+            87374.025000031,
+            88055.53749997585,
+            86595.6874999796,
+            88492.85000014362,
+            86960.75000003134
+          ],
+          "large/absl/size_mismatch/4096": [
+            87199.68749986151,
+            86971.76249992111,
+            86580.28749994884,
+            87300.75000009662,
+            87279.83750009826
+          ]
+        }
+      },
+      "prototype_memory": {
+        "candidate": [
+          {
+            "case": "u64/legacy/matched/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/shape_mismatch/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/size_mismatch/4096",
+            "before_requested": "463376",
+            "after_requested": "463360",
+            "peak_requested": "463376",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/matched/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/shape_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/size_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/matched/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/shape_mismatch/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/size_mismatch/4096",
+            "before_requested": "589776",
+            "after_requested": "589728",
+            "peak_requested": "589776",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/matched/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/shape_mismatch/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/size_mismatch/4096",
+            "before_requested": "219008",
+            "after_requested": "217600",
+            "peak_requested": "219008",
+            "allocations": "277",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/matched/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/shape_mismatch/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/size_mismatch/4096",
+            "before_requested": "1151448",
+            "after_requested": "1151376",
+            "peak_requested": "1151448",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/matched/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/shape_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/size_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/matched/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/shape_mismatch/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/size_mismatch/4096",
+            "before_requested": "1277848",
+            "after_requested": "1277744",
+            "peak_requested": "1277848",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/matched/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/shape_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/size_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          }
+        ],
+        "reference": [
+          {
+            "case": "u64/legacy/matched/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/shape_mismatch/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/size_mismatch/4096",
+            "before_requested": "463376",
+            "after_requested": "463360",
+            "peak_requested": "463376",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/matched/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/shape_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/size_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/matched/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/shape_mismatch/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/size_mismatch/4096",
+            "before_requested": "589776",
+            "after_requested": "589728",
+            "peak_requested": "589776",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/matched/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/shape_mismatch/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/size_mismatch/4096",
+            "before_requested": "219008",
+            "after_requested": "217600",
+            "peak_requested": "219008",
+            "allocations": "277",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/matched/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/shape_mismatch/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/size_mismatch/4096",
+            "before_requested": "1151448",
+            "after_requested": "1151376",
+            "peak_requested": "1151448",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/matched/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/shape_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/size_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/matched/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/shape_mismatch/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/size_mismatch/4096",
+            "before_requested": "1277848",
+            "after_requested": "1277744",
+            "peak_requested": "1277848",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/matched/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/shape_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/size_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          }
+        ]
+      }
+    },
+    "linux-clang18": {
+      "context": {
+        "source": "40742c2eb66ad8692c66d7fefb0ae71333d4b753",
+        "compiler": "Clang-18.1.3",
+        "flags": " -O3 -DNDEBUG  -march=x86-64 C++20",
+        "stl": "libstdc++ 20240908",
+        "library_build_type": "release"
+      },
+      "comparisons": [
+        {
+          "case": "u64/legacy/matched/4096",
+          "selected": true,
+          "ratio": 0.11043542753014814,
+          "envelope": [
+            0.08913192345720476,
+            0.13143336865089433
+          ],
+          "candidate_cv": 0.11446858489761623,
+          "reference_cv": 0.030893821426610724
+        },
+        {
+          "case": "u64/legacy/shape_mismatch/4096",
+          "selected": true,
+          "ratio": 1.025069077867057,
+          "envelope": [
+            0.9779263885401588,
+            1.1335064470344434
+          ],
+          "candidate_cv": 0.02199748041270306,
+          "reference_cv": 0.03222632408660503
+        },
+        {
+          "case": "u64/legacy/size_mismatch/4096",
+          "selected": true,
+          "ratio": 1.0157727067147457,
+          "envelope": [
+            0.9429831881931837,
+            1.1504382528857053
+          ],
+          "candidate_cv": 0.035302907732747066,
+          "reference_cv": 0.028432959580806594
+        },
+        {
+          "case": "u64/compact/matched/4096",
+          "selected": false,
+          "ratio": 0.2769979726646166,
+          "envelope": [
+            0.2710905031807984,
+            0.289100703372632
+          ],
+          "candidate_cv": 0.012435265805418304,
+          "reference_cv": 0.007347932670169852
+        },
+        {
+          "case": "u64/compact/shape_mismatch/4096",
+          "selected": false,
+          "ratio": 1.0700587291371138,
+          "envelope": [
+            1.0430347183719677,
+            1.1018094532108744
+          ],
+          "candidate_cv": 0.014025308549829196,
+          "reference_cv": 0.007101173637777785
+        },
+        {
+          "case": "u64/compact/size_mismatch/4096",
+          "selected": false,
+          "ratio": 0.994153530260834,
+          "envelope": [
+            0.9734577143006268,
+            1.033766026220256
+          ],
+          "candidate_cv": 0.01617159434358844,
+          "reference_cv": 0.0069451428199829275
+        },
+        {
+          "case": "large/legacy/matched/4096",
+          "selected": true,
+          "ratio": 0.18160145471730252,
+          "envelope": [
+            0.1589077435201978,
+            0.23485861464864433
+          ],
+          "candidate_cv": 0.10997545679538492,
+          "reference_cv": 0.046715919666335426
+        },
+        {
+          "case": "large/legacy/shape_mismatch/4096",
+          "selected": true,
+          "ratio": 1.0258955058411485,
+          "envelope": [
+            0.8872004495652174,
+            1.1943361332271643
+          ],
+          "candidate_cv": 0.055423096740844245,
+          "reference_cv": 0.054468207242327565
+        },
+        {
+          "case": "large/legacy/size_mismatch/4096",
+          "selected": true,
+          "ratio": 1.010474287179401,
+          "envelope": [
+            0.8858391637703733,
+            1.1432564557684428
+          ],
+          "candidate_cv": 0.04990300494710406,
+          "reference_cv": 0.04705080318727594
+        },
+        {
+          "case": "large/compact/matched/4096",
+          "selected": false,
+          "ratio": 0.12226609652183756,
+          "envelope": [
+            0.11691398135905919,
+            0.13059263076760594
+          ],
+          "candidate_cv": 0.01509618224053387,
+          "reference_cv": 0.02308755716038061
+        },
+        {
+          "case": "large/compact/shape_mismatch/4096",
+          "selected": false,
+          "ratio": 1.00840766903758,
+          "envelope": [
+            0.9693647858854723,
+            1.0718093988938997
+          ],
+          "candidate_cv": 0.024640600649089642,
+          "reference_cv": 0.013811154699942735
+        },
+        {
+          "case": "large/compact/size_mismatch/4096",
+          "selected": false,
+          "ratio": 0.998712036998829,
+          "envelope": [
+            0.9555309507706863,
+            1.0585923630750076
+          ],
+          "candidate_cv": 0.015527617537337163,
+          "reference_cv": 0.02314521791790894
+        }
+      ],
+      "mature_controls": [
+        {
+          "value": "u64",
+          "candidate_ns": 9464.037323966015,
+          "candidate_over_std": 0.19706126129600995,
+          "candidate_over_absl": 0.28313882956016445
+        },
+        {
+          "value": "large",
+          "candidate_ns": 19128.160850611737,
+          "candidate_over_std": 0.29140121358424886,
+          "candidate_over_absl": 0.21542554628685448
+        }
+      ],
+      "raw_ns": {
+        "reference": {
+          "u64/legacy/matched/4096": [
+            86069.34567907316,
+            85325.60493824382,
+            81784.43209877278,
+            84197.95061746456,
+            87597.62962960322,
+            88571.12499995879,
+            89660.92499989031,
+            83670.22499982113,
+            82488.76250007698,
+            87500.12499980642
+          ],
+          "u64/legacy/shape_mismatch/4096": [
+            88631.96825404523,
+            88703.20634886165,
+            82330.98412711837,
+            82428.47619044369,
+            86736.52380971072,
+            87405.35443040024,
+            88303.60759489688,
+            83096.67088603499,
+            84378.03797471157,
+            89182.59493672354
+          ],
+          "u64/legacy/size_mismatch/4096": [
+            87277.96153843532,
+            88012.29487194936,
+            82780.58974352776,
+            82563.38461529676,
+            87874.84615369615,
+            87890.8101266104,
+            89338.96202518242,
+            84880.37974673923,
+            85412.39240477946,
+            89057.05063270195
+          ],
+          "u64/compact/matched/4096": [
+            19523.52924791856,
+            19445.501392761584,
+            19726.89136490313,
+            19713.437325920884,
+            19784.796657383613,
+            19841.022727249616,
+            19948.752840887548,
+            19774.707386313847,
+            19737.735795434153,
+            19746.73011369403
+          ],
+          "u64/compact/shape_mismatch/4096": [
+            20123.39255008782,
+            20300.716332396933,
+            20024.123209196478,
+            20324.395415414765,
+            19932.750716322404,
+            20079.034985394264,
+            20354.4518950577,
+            20076.233236088105,
+            20023.743440259837,
+            20157.492711401235
+          ],
+          "u64/compact/size_mismatch/4096": [
+            20196.939828124454,
+            20191.111747799838,
+            19977.014326635286,
+            19809.997134632635,
+            19855.899713440343,
+            20107.546242732264,
+            20071.3208092688,
+            20045.754335239108,
+            20106.156069401928,
+            20211.670520250984
+          ],
+          "large/legacy/matched/4096": [
+            107583.65573757206,
+            112435.83606545546,
+            99445.1639341799,
+            99447.96721304212,
+            109140.81967218377,
+            104863.03076898085,
+            109288.8307692437,
+            99772.4461539152,
+            99616.61538463536,
+            105797.84615393131
+          ],
+          "large/legacy/shape_mismatch/4096": [
+            108537.2539684779,
+            112707.92063510632,
+            98769.80952380369,
+            98472.26984162723,
+            109480.61904785044,
+            104769.7846156727,
+            110345.27692310383,
+            98384.15384618971,
+            98340.9999999087,
+            106860.30769219401
+          ],
+          "large/legacy/size_mismatch/4096": [
+            108047.21874979605,
+            113668.03125012481,
+            100283.32812517248,
+            101077.95312475077,
+            107291.57812505719,
+            103055.11111141641,
+            108065.42857135499,
+            100145.71428597726,
+            100461.85714316828,
+            111115.57142839956
+          ],
+          "large/compact/matched/4096": [
+            157085.75555524678,
+            155184.4222218632,
+            154671.46666626126,
+            155694.04444464555,
+            159246.68888879346,
+            161639.90476194437,
+            165491.38095253316,
+            161506.54761913433,
+            161080.28571403836,
+            163062.0714291267
+          ],
+          "large/compact/shape_mismatch/4096": [
+            155363.44444437115,
+            155533.08888911488,
+            155481.2222221042,
+            157459.33333353908,
+            160403.5111111241,
+            158957.5116275513,
+            159072.11627894297,
+            160026.69767486665,
+            160327.72092980955,
+            160659.046511767
+          ],
+          "large/compact/size_mismatch/4096": [
+            154050.91304365254,
+            153862.52173900927,
+            156642.69565224025,
+            158957.47826092425,
+            154841.30434774965,
+            160971.48837222322,
+            163149.30232595562,
+            160851.02325622184,
+            160942.13953473372,
+            163473.16279060324
+          ]
+        },
+        "candidate": {
+          "u64/legacy/matched/4096": [
+            10622.310099557104,
+            10749.20341394204,
+            8440.978662869122,
+            8509.628734017979,
+            10077.679943105524,
+            9849.123943669685,
+            10399.828169032473,
+            8129.246478861333,
+            7991.650704192401,
+            9078.950704262343
+          ],
+          "u64/legacy/shape_mismatch/4096": [
+            88645.64935053053,
+            90096.80519474765,
+            88615.45454574416,
+            87214.0129871099,
+            93322.7012987791,
+            89677.70129889426,
+            90614.90909081025,
+            87290.25974052883,
+            88829.75324673361,
+            92124.3506493372
+          ],
+          "u64/legacy/size_mismatch/4096": [
+            86900.62025306637,
+            89968.49367107805,
+            84245.13924037629,
+            94984.07594915252,
+            90658.13924028681,
+            88501.4805191986,
+            90023.54545483971,
+            86159.31168806837,
+            85326.45454523219,
+            89413.96103892515
+          ],
+          "u64/compact/matched/4096": [
+            5530.822764214234,
+            5498.152032515922,
+            5516.5520325132775,
+            5621.708130080869,
+            5487.041463409444,
+            5424.435358246317,
+            5450.07554516423,
+            5411.147196243243,
+            5407.917445465587,
+            5420.440031161569
+          ],
+          "u64/compact/shape_mismatch/4096": [
+            21230.399999977275,
+            21358.669696934212,
+            21246.2181817693,
+            21260.27272724555,
+            21253.38181816584,
+            21809.481366393222,
+            21856.431677019402,
+            21660.288819910656,
+            21962.093167739855,
+            21825.40993795917
+          ],
+          "u64/compact/size_mismatch/4096": [
+            19784.724550943596,
+            19675.206586840883,
+            19745.338323299,
+            19679.467065926845,
+            19788.263473030445,
+            20190.783861710872,
+            20154.317002873093,
+            20261.00288185786,
+            20476.708933661514,
+            20478.902017303837
+          ],
+          "large/legacy/matched/4096": [
+            23159.242857165704,
+            21751.824999987384,
+            18224.660714289646,
+            17866.9249999684,
+            19130.928571391745,
+            21469.01145044661,
+            23355.55343508882,
+            18111.209923611616,
+            17918.17557250918,
+            19125.39312983173
+          ],
+          "large/legacy/shape_mismatch/4096": [
+            111019.38709650253,
+            117452.20967758351,
+            102482.46774190485,
+            102598.66129004995,
+            108347.46774205982,
+            111255.03571410685,
+            114740.64285721397,
+            101458.87499999974,
+            99994.51785702717,
+            108762.89285732809
+          ],
+          "large/legacy/size_mismatch/4096": [
+            109207.03125005815,
+            114492.23437498546,
+            100930.64062477453,
+            100691.59375003523,
+            107641.45312469608,
+            104908.46774207658,
+            112682.66129008915,
+            101416.12903218571,
+            101287.8225805575,
+            111294.25806418127
+          ],
+          "large/compact/matched/4096": [
+            19348.256227769423,
+            19645.320284697267,
+            20198.953736631127,
+            19402.34163692033,
+            19382.05693950311,
+            19711.65602833319,
+            19874.94326241863,
+            20007.386524815283,
+            19519.808510640778,
+            19390.737588684122
+          ],
+          "large/compact/shape_mismatch/4096": [
+            164894.16279077253,
+            166520.00000000722,
+            162288.60465088114,
+            163088.00000025934,
+            164386.46511574008,
+            157605.62222213697,
+            155737.22222244315,
+            158414.9111111957,
+            156120.40000026656,
+            157971.86666696286
+          ],
+          "large/compact/size_mismatch/4096": [
+            161503.2142851868,
+            161027.33333344164,
+            161778.97619026486,
+            161371.54761896085,
+            162877.69047637755,
+            156931.71111100432,
+            158369.26666629047,
+            157850.97777754546,
+            156203.66666679629,
+            156801.4444444543
+          ]
+        },
+        "controls": {
+          "u64/std/matched/4096": [
+            48349.877551006604,
+            48025.863945678706,
+            44371.7619047913,
+            46252.006802776625,
+            48255.612244890915
+          ],
+          "u64/std/shape_mismatch/4096": [
+            49428.11347527597,
+            51227.78723413528,
+            46496.957446848646,
+            46150.28368799835,
+            50888.7092198636
+          ],
+          "u64/std/size_mismatch/4096": [
+            53052.73999994142,
+            54473.19000012385,
+            46690.45000014194,
+            49519.6299999634,
+            49432.36999991995
+          ],
+          "u64/absl/matched/4096": [
+            33465.85148522486,
+            33458.55940588846,
+            33425.43069301977,
+            33253.72277221378,
+            33380.69306933714
+          ],
+          "u64/absl/shape_mismatch/4096": [
+            33581.69856467842,
+            33389.52153117852,
+            33501.88516752391,
+            33351.555023936875,
+            33550.11004786816
+          ],
+          "u64/absl/size_mismatch/4096": [
+            33131.29047626262,
+            33181.0047618947,
+            33385.7190475956,
+            33249.70476187771,
+            33349.080952337405
+          ],
+          "large/std/matched/4096": [
+            65642.00819665246,
+            69326.51639345511,
+            62436.59016396592,
+            62727.29508211461,
+            69562.44262276929
+          ],
+          "large/std/shape_mismatch/4096": [
+            66591.72972964731,
+            70487.57657656523,
+            61967.23423422022,
+            62495.70270275759,
+            69895.19819827111
+          ],
+          "large/std/size_mismatch/4096": [
+            66303.72881344194,
+            70074.24576280278,
+            64310.84745760842,
+            64587.72881356801,
+            69702.44915270103
+          ],
+          "large/absl/matched/4096": [
+            88792.4444445471,
+            88788.40277799011,
+            88855.333333113,
+            88720.37500001145,
+            89683.13888857438
+          ],
+          "large/absl/shape_mismatch/4096": [
+            88479.4358972986,
+            89095.07692304686,
+            88400.05128190453,
+            87992.7564100696,
+            88582.96153846367
+          ],
+          "large/absl/size_mismatch/4096": [
+            88706.13924067342,
+            88234.87341784083,
+            88601.00000001233,
+            89036.63291124746,
+            88457.56961995558
+          ]
+        }
+      },
+      "prototype_memory": {
+        "candidate": [
+          {
+            "case": "u64/legacy/matched/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/shape_mismatch/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/size_mismatch/4096",
+            "before_requested": "463376",
+            "after_requested": "463360",
+            "peak_requested": "463376",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/matched/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/shape_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/size_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/matched/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/shape_mismatch/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/size_mismatch/4096",
+            "before_requested": "589776",
+            "after_requested": "589728",
+            "peak_requested": "589776",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/matched/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/shape_mismatch/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/size_mismatch/4096",
+            "before_requested": "219008",
+            "after_requested": "217600",
+            "peak_requested": "219008",
+            "allocations": "277",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/matched/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/shape_mismatch/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/size_mismatch/4096",
+            "before_requested": "1151448",
+            "after_requested": "1151376",
+            "peak_requested": "1151448",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/matched/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/shape_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/size_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/matched/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/shape_mismatch/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/size_mismatch/4096",
+            "before_requested": "1277848",
+            "after_requested": "1277744",
+            "peak_requested": "1277848",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/matched/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/shape_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/size_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          }
+        ],
+        "reference": [
+          {
+            "case": "u64/legacy/matched/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/shape_mismatch/4096",
+            "before_requested": "463392",
+            "after_requested": "463392",
+            "peak_requested": "463392",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/legacy/size_mismatch/4096",
+            "before_requested": "463376",
+            "after_requested": "463360",
+            "peak_requested": "463376",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/matched/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/shape_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/compact/size_mismatch/4096",
+            "before_requested": "441504",
+            "after_requested": "441504",
+            "peak_requested": "441504",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/matched/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/shape_mismatch/4096",
+            "before_requested": "589824",
+            "after_requested": "589824",
+            "peak_requested": "589824",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/std/size_mismatch/4096",
+            "before_requested": "589776",
+            "after_requested": "589728",
+            "peak_requested": "589776",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/matched/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/shape_mismatch/4096",
+            "before_requested": "220416",
+            "after_requested": "220416",
+            "peak_requested": "220416",
+            "allocations": "281",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "u64/absl/size_mismatch/4096",
+            "before_requested": "219008",
+            "after_requested": "217600",
+            "peak_requested": "219008",
+            "allocations": "277",
+            "deallocations": "281",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/matched/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/shape_mismatch/4096",
+            "before_requested": "1151520",
+            "after_requested": "1151520",
+            "peak_requested": "1151520",
+            "allocations": "4607",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/legacy/size_mismatch/4096",
+            "before_requested": "1151448",
+            "after_requested": "1151376",
+            "peak_requested": "1151448",
+            "allocations": "4606",
+            "deallocations": "4607",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/matched/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/shape_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/compact/size_mismatch/4096",
+            "before_requested": "1664544",
+            "after_requested": "1664544",
+            "peak_requested": "1664544",
+            "allocations": "511",
+            "deallocations": "511",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/matched/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/shape_mismatch/4096",
+            "before_requested": "1277952",
+            "after_requested": "1277952",
+            "peak_requested": "1277952",
+            "allocations": "0",
+            "deallocations": "0",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/std/size_mismatch/4096",
+            "before_requested": "1277848",
+            "after_requested": "1277744",
+            "peak_requested": "1277848",
+            "allocations": "0",
+            "deallocations": "1",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/matched/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/shape_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          },
+          {
+            "case": "large/absl/size_mismatch/4096",
+            "before_requested": "961464",
+            "after_requested": "961464",
+            "peak_requested": "961464",
+            "allocations": "1029",
+            "deallocations": "1029",
+            "after_destroy": "0"
+          }
+        ]
+      }
+    }
+  },
+  "scope_codegen": {
+    "normalization": "comments and blank lines only",
+    "profiles": {
+      "indirect-baseline": {
+        "reference": "3f241c9dce3336398c19d92ad59b4870c1dcbde2",
+        "identical": true,
+        "normalized_sha256": [
+          "f69713cc56aed5634e3301d4c531dca17d60c2c62179b9f3363612abc8f3fbef",
+          "f69713cc56aed5634e3301d4c531dca17d60c2c62179b9f3363612abc8f3fbef"
+        ]
+      },
+      "indirect-native": {
+        "reference": "3f241c9dce3336398c19d92ad59b4870c1dcbde2",
+        "identical": true,
+        "normalized_sha256": [
+          "ddb5cb7150fd909087d0cd4d3404e47b69ab50705a24a0a4ed55d9060fbb85b9",
+          "ddb5cb7150fd909087d0cd4d3404e47b69ab50705a24a0a4ed55d9060fbb85b9"
+        ]
+      },
+      "unchanged-baseline": {
+        "reference": "035303d5d0e89e3b9416be5510ec9e410d7b6cba",
+        "identical": true,
+        "normalized_sha256": [
+          "ba80f515d2c4d92fce231aa943d36b0274e16a011b51f8b331e953dbc6d37f36",
+          "ba80f515d2c4d92fce231aa943d36b0274e16a011b51f8b331e953dbc6d37f36"
+        ]
+      },
+      "unchanged-native": {
+        "reference": "035303d5d0e89e3b9416be5510ec9e410d7b6cba",
+        "identical": true,
+        "normalized_sha256": [
+          "2a7883b5e2e7599eb2acffa7ea0317af1ee337d3c86cd944c28ce24159e51a16",
+          "2a7883b5e2e7599eb2acffa7ea0317af1ee337d3c86cd944c28ce24159e51a16"
+        ]
+      }
+    },
+    "note": "Windows Clang baseline/native: final indirect specializations equal measured prototype; final compact/inline-set copy assignment and legacy copy construction equal original. Only comments/blank lines removed."
+  },
+  "final_memory_windows": [
+    {
+      "case": "u64/legacy/matched/4096",
+      "before_requested": "463392",
+      "after_requested": "463392",
+      "peak_requested": "463392",
+      "allocations": "0",
+      "deallocations": "0",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/legacy/shape_mismatch/4096",
+      "before_requested": "463392",
+      "after_requested": "463392",
+      "peak_requested": "463392",
+      "allocations": "4607",
+      "deallocations": "4607",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/legacy/size_mismatch/4096",
+      "before_requested": "463376",
+      "after_requested": "463360",
+      "peak_requested": "463376",
+      "allocations": "4606",
+      "deallocations": "4607",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/compact/matched/4096",
+      "before_requested": "441504",
+      "after_requested": "441504",
+      "peak_requested": "441504",
+      "allocations": "511",
+      "deallocations": "511",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/compact/shape_mismatch/4096",
+      "before_requested": "441504",
+      "after_requested": "441504",
+      "peak_requested": "441504",
+      "allocations": "511",
+      "deallocations": "511",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/compact/size_mismatch/4096",
+      "before_requested": "441504",
+      "after_requested": "441504",
+      "peak_requested": "441504",
+      "allocations": "511",
+      "deallocations": "511",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/std/matched/4096",
+      "before_requested": "589968",
+      "after_requested": "589968",
+      "peak_requested": "589968",
+      "allocations": "4096",
+      "deallocations": "4096",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/std/shape_mismatch/4096",
+      "before_requested": "589968",
+      "after_requested": "589968",
+      "peak_requested": "589968",
+      "allocations": "4096",
+      "deallocations": "4096",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/std/size_mismatch/4096",
+      "before_requested": "589920",
+      "after_requested": "589872",
+      "peak_requested": "589920",
+      "allocations": "4095",
+      "deallocations": "4096",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/absl/matched/4096",
+      "before_requested": "220416",
+      "after_requested": "220416",
+      "peak_requested": "220416",
+      "allocations": "281",
+      "deallocations": "281",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/absl/shape_mismatch/4096",
+      "before_requested": "220416",
+      "after_requested": "220416",
+      "peak_requested": "220416",
+      "allocations": "281",
+      "deallocations": "281",
+      "after_destroy": "0"
+    },
+    {
+      "case": "u64/absl/size_mismatch/4096",
+      "before_requested": "219008",
+      "after_requested": "217600",
+      "peak_requested": "219008",
+      "allocations": "277",
+      "deallocations": "281",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/legacy/matched/4096",
+      "before_requested": "1151520",
+      "after_requested": "1151520",
+      "peak_requested": "1151520",
+      "allocations": "0",
+      "deallocations": "0",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/legacy/shape_mismatch/4096",
+      "before_requested": "1151520",
+      "after_requested": "1151520",
+      "peak_requested": "1151520",
+      "allocations": "4607",
+      "deallocations": "4607",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/legacy/size_mismatch/4096",
+      "before_requested": "1151448",
+      "after_requested": "1151376",
+      "peak_requested": "1151448",
+      "allocations": "4606",
+      "deallocations": "4607",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/compact/matched/4096",
+      "before_requested": "1664544",
+      "after_requested": "1664544",
+      "peak_requested": "1664544",
+      "allocations": "511",
+      "deallocations": "511",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/compact/shape_mismatch/4096",
+      "before_requested": "1664544",
+      "after_requested": "1664544",
+      "peak_requested": "1664544",
+      "allocations": "511",
+      "deallocations": "511",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/compact/size_mismatch/4096",
+      "before_requested": "1664544",
+      "after_requested": "1664544",
+      "peak_requested": "1664544",
+      "allocations": "511",
+      "deallocations": "511",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/std/matched/4096",
+      "before_requested": "1278264",
+      "after_requested": "1278264",
+      "peak_requested": "1278264",
+      "allocations": "4096",
+      "deallocations": "4096",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/std/shape_mismatch/4096",
+      "before_requested": "1278264",
+      "after_requested": "1278264",
+      "peak_requested": "1278264",
+      "allocations": "4096",
+      "deallocations": "4096",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/std/size_mismatch/4096",
+      "before_requested": "1278160",
+      "after_requested": "1278056",
+      "peak_requested": "1278160",
+      "allocations": "4095",
+      "deallocations": "4096",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/absl/matched/4096",
+      "before_requested": "961464",
+      "after_requested": "961464",
+      "peak_requested": "961464",
+      "allocations": "1029",
+      "deallocations": "1029",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/absl/shape_mismatch/4096",
+      "before_requested": "961464",
+      "after_requested": "961464",
+      "peak_requested": "961464",
+      "allocations": "1029",
+      "deallocations": "1029",
+      "after_destroy": "0"
+    },
+    {
+      "case": "large/absl/size_mismatch/4096",
+      "before_requested": "961464",
+      "after_requested": "961464",
+      "peak_requested": "961464",
+      "allocations": "1029",
+      "deallocations": "1029",
+      "after_destroy": "0"
+    }
+  ],
+  "final_scope_source": "a2b5e7ffbef2021598009f54aeec0e6dff867b46",
+  "final_sha256": {
+    "include\\wjr\\container\\btree.hpp": "4b3f824f3c0ff67f15ad666b66368462f87cafc8702989c600c64e51e4f5c1cb",
+    "benchmarks\\src\\btree_copy.cpp": "bdb0c391a8c4874aaa6822638c83b0d37ba53829be4d152e71b1732549ff5949",
+    "test\\container\\btree_copy_reuse.cpp": "14b5eeb76127fd4679a3a591be6a438c3b65b006f5616038e2abc4032dd55cae"
+  }
+}
