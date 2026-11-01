@@ -699,6 +699,13 @@ private:
     // Use grow_storage_type if available, otherwise fallback to storage_type
     using _grow_storage_type = detail::get_grow_storage_t<Storage>;
 
+    static constexpr bool _is_nothrow_relocation =
+        is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+        is_trivially_allocator_destroy_v<_Alty, value_type> &&
+        std::is_nothrow_destructible_v<value_type> &&
+        (get_relocate_mode_v<value_type> == relocate_t::trivial ||
+         std::is_nothrow_move_constructible_v<value_type>);
+
     static_assert(
         std::is_same_v<_grow_storage_type, storage_type> ||
             (_is_nothrow_take_storage_impl<_grow_storage_type> == _is_nothrow_take_storage &&
@@ -1027,16 +1034,25 @@ public:
                 storage_type new_storage;
                 _take_storage(new_storage);
             } else if (_size < capacity()) {
-                auto &al = _get_allocator();
+                if constexpr (_is_nothrow_relocation && _is_nothrow_take_storage) {
+                    auto &al = _get_allocator();
+                    storage_type new_storage;
+                    uninitialized_construct(new_storage, _size, _size);
 
-                storage_type new_storage;
-                uninitialized_construct(new_storage, _size, _size);
-
-                WJR_ASSUME(_size != 0);
-                uninitialized_relocate_n_restrict_using_allocator(data(), _size, new_storage.data(),
-                                                                  al);
-                _deallocate_nonnull();
-                _take_storage(new_storage);
+                    WJR_ASSUME(_size != 0);
+                    uninitialized_relocate_n_restrict_using_allocator(data(), _size,
+                                                                      new_storage.data(), al);
+                    _deallocate_nonnull();
+                    _take_storage(new_storage);
+                } else {
+                    if constexpr (!std::is_same_v<_grow_storage_type, storage_type>) {
+                        /** @note A nonbinding shrink must not risk a throwing transfer into SSO. */
+                        const storage_type empty_storage;
+                        if (_size <= empty_storage.capacity())
+                            return;
+                    }
+                    _reallocate_guarded(_size);
+                }
             }
         }
     }
@@ -1067,14 +1083,19 @@ private:
             const size_type old_size = size();
             const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
-            _grow_storage_type new_storage;
-            uninitialized_construct(new_storage, old_size, new_capacity);
+            if constexpr (_is_nothrow_relocation &&
+                          _is_nothrow_take_storage_impl<_grow_storage_type>) {
+                _grow_storage_type new_storage;
+                uninitialized_construct(new_storage, old_size, new_capacity);
 
-            uninitialized_relocate_n_restrict_using_allocator(data(), old_size, new_storage.data(),
-                                                              al);
+                uninitialized_relocate_n_restrict_using_allocator(data(), old_size,
+                                                                  new_storage.data(), al);
 
-            _deallocate();
-            _take_storage(new_storage);
+                _deallocate();
+                _take_storage(new_storage);
+            } else {
+                _reallocate_guarded(new_capacity);
+            }
         }
     }
 
@@ -1952,6 +1973,11 @@ private:
         incoming.release();
         prefix.release();
         allocation.release();
+    }
+
+    /** @brief Reuse the guarded growth transaction without adding incoming elements. */
+    WJR_CONSTEXPR20 void _reallocate_guarded(size_type new_capacity) {
+        _grow_insert<true>(0, new_capacity, [](pointer, size_type, _Alty &) noexcept {});
     }
 
     template <typename Iter>
