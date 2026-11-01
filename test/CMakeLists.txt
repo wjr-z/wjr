@@ -80,6 +80,10 @@ add_executable(
 
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+if(WJR_ENABLE_MIMALLOC)
+   add_subdirectory(consumer/mimalloc)
+endif()
+
 if(WJR_ENABLE_XSIMD)
    target_link_libraries(tests PRIVATE wjr::simd_xsimd)
    target_compile_definitions(tests PRIVATE WJR_TEST_XSIMD=1)

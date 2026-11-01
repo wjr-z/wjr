@@ -43,6 +43,7 @@ option(WJR_ENABLE_ASAN "Enable AddressSanitizer." OFF)
 option(WJR_ENABLE_NP "Enable the experimental tensor data model." OFF)
 option(WJR_ENABLE_NP_CBLAS "Enable the optional OpenBLAS LP64 tensor adapter." OFF)
 option(WJR_ENABLE_TBB "Enable the optional prebuilt oneTBB chunk adapter." OFF)
+option(WJR_ENABLE_MIMALLOC "Enable explicit allocators using an installed mimalloc package." OFF)
 if(WJR_ENABLE_NP_CBLAS AND NOT WJR_ENABLE_NP)
    message(FATAL_ERROR "WJR_ENABLE_NP_CBLAS requires WJR_ENABLE_NP=ON.")
 endif()
@@ -126,6 +127,10 @@ set_property(GLOBAL PROPERTY WJR_ALL_TARGETS "")
 # library : config
 #
 add_subdirectory(src/config)
+
+if(WJR_ENABLE_MIMALLOC)
+   add_subdirectory(src/allocators/mimalloc)
+endif()
 
 if(WJR_ENABLE_NP)
    add_subdirectory(src/np)
