@@ -192,6 +192,7 @@ wjr_cc_library(
    DEPS
    wjr::json
    wjr::ring_buffer
+   wjr::lru_cache
 
    FINAL
 )

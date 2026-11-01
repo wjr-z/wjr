@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(wjr_lru_example LANGUAGES CXX)
+find_package(wjr CONFIG REQUIRED)
+add_executable(lru_memoize memoize.cpp)
+target_compile_features(lru_memoize PRIVATE cxx_std_20)
+target_link_libraries(lru_memoize PRIVATE wjr::lru_cache)

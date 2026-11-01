@@ -195,6 +195,10 @@ OpenBLAS LP64 后提供 `<wjr/np/cblas.hpp>` 的 `dot`、预分配 `gemm_to` 和
 
 `wjr/container/list.hpp` 支持不分配内存的常数时间节点、区间和整环转移，见[侵入式链表示例与合同](intrusive-list.md)。
 
+`<wjr/container/lru_cache.hpp>` 和 baseline target `wjr::lru_cache` 提供拥有键值的
+单线程固定容量 LRU；包含透明查询、事务式淘汰及 allocator/PMR 传播，见
+[API 与生命周期](lru-cache.md)及[完整 memoization 示例](../../examples/lru/README.md)。
+
 `wjr/container/bitset.hpp` 的逻辑位支持 C++20 随机访问 ranges，包括可写代理和
 copy、fill、reverse、rotate、sort 等算法；迭代顺序和存储边界见
 [bitset ranges](../design/bitset-ranges.md)。

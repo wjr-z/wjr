@@ -3,9 +3,8 @@
 
 # LRU cache 后续实施与验收
 
-状态：实施计划，2026-10-30；用户当前只要求设计，暂不实施。
-所有阶段都是未来任务，不因合入本文自动授权新增代码、依赖或构建目标。
-行为与异常合同以 [LRU 设计](lru-cache.md) 为准。
+状态：L01 的标准 node 后端现已实现，见 [API 与生命周期](../modules/lru-cache.md)；
+dense 后端比较及并发/分片仍待实施。行为与异常依据见 [LRU 设计](lru-cache.md)。
 
 ## L01：可用的单线程固定容量 cache
 
@@ -14,10 +13,10 @@
 完整失败语义、针对性测试和使用文档。只适配需要的功能，
 不提供通用后端框架、不顺带实现 hash table，也不预留未使用的策略层。
 
-拟议头文件位于 `include/wjr/container/lru_cache.hpp`，测试放在
-`test/container/`，遵循已有容器的构建注册方式；正式路径由实现 MR 确认。
+头文件位于 `include/wjr/container/lru_cache.hpp`，测试放在
+`test/container/lru_cache.cpp`，遵循已有容器的构建注册方式。
 通用 C++20/baseline 头文件不得获得 ISA target 依赖。
-本设计不提前声明新的 CMake alias、安装组件或可用 API。
+现有 baseline core alias 为 `wjr::lru_cache`，无需额外安装组件。
 
 首期必须把不可抛 Hash 域、容量 0、借用指针失效、固定容量和暂时 C+1
 写入公共注释。检查普通 Key/T、不可复制但可原地构造的 T、

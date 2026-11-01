@@ -78,6 +78,10 @@ target_link_libraries(wjr_consumer PRIVATE wjr::wjr)
 add_executable(wjr_module_consumer main.cpp)
 target_link_libraries(wjr_module_consumer PRIVATE wjr::json wjr::ring_buffer)
 
+add_executable(wjr_lru_consumer lru.cpp)
+target_link_libraries(wjr_lru_consumer PRIVATE wjr::lru_cache)
+add_test(NAME wjr_lru_consumer COMMAND wjr_lru_consumer)
+
 add_executable(wjr_portable_consumer portable.cpp)
 target_link_libraries(wjr_portable_consumer PRIVATE wjr::ring_buffer)
 

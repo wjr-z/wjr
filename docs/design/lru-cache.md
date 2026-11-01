@@ -3,8 +3,9 @@
 
 # LRU cache：容量、生命周期与成本设计
 
-状态：设计，2026-10-30；本次只交付文档，尚无 LRU 实现或性能结果。
-后续任务与验收见 [实施计划](lru-cache-implementation.md)。
+状态：标准 node 后端的单线程 LRU 已实现，见 [API 与生命周期](../modules/lru-cache.md)。
+本文保留后端取舍和事务依据；dense、冷热策略及并发分片仍属后续工作，
+没有通用性能胜出结论。后续任务与验收见 [实施计划](lru-cache-implementation.md)。
 
 ## 首期用途与边界
 
@@ -163,7 +164,7 @@ cache 自身含 sentinel，默认 move 也会留下指向旧 sentinel 的链接�
 
 ## 拟议接口与可观察语义
 
-名称暂定 `lru_cache<Key, T, Hash, Eq, Alloc>`，不是当前可用 API。
+标准后端现提供 `lru_cache<Key, T, Hash, Eq, Alloc>`；其他后端尚未实现。
 不公开底层 hash 表、load factor 修改或可改 Key 的迭代器。
 
 | 操作 | 结果与顺序 |
