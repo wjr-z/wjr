@@ -7,6 +7,37 @@
 本文不提供已实现 API，不新增线程、队列、依赖或 benchmark，不授权后续代码。
 目标是让“淘汰后交给压缩/异步二级缓存”具有完整所有权，而不是在 demo 中捕获一个将被释放的 T&。
 
+## 推荐 provider 与交付边界
+
+采用 **进程内 exclusive L2、显式字节预算及 best-effort demotion**。先交付同步内存
+provider 验证版本协议，之后用已审核 executor 接有界异步队列，不为 L2 重造线程池。
+inclusive、持久化重启复用、无损 write-back 和自动 single-flight 不进入首期。
+
+L2 存不可变 owning byte blob，按实际 charge 限制字节并采用访问排名；decode ticket
+保活 blob，正在读取的对象不可物理回收。L1/L2 的本地引擎共享 coordinator shard 锁，
+不把两个公开 MT cache 嵌套加锁。编码、解码和用户回调在锁外。迁移中的 pending
+返回明确状态/受预算 ticket，不伪装成确定 miss；等待只发生在锁外。primary-only API
+不隐式增加这些状态或等待行为。
+
+首个压缩 provider 选 [LZ4 1.10.0][lz4]，固定 commit
+`ebb370ca83af193212df4dcbadcc5d87bc0de2f0`，库代码 BSD-2-Clause。
+用 LZ4_compressBound 预留输出预算、LZ4_compress_default 编码、
+LZ4_decompress_safe 在校验尺寸后的 buffer 内解码；不使用 deprecated fast 解码。
+blob header 存 schema/codec 版本、raw/compressed 标记、两个长度及 publication 身份。
+超出输入域/预算则拒绝或 drop，不通过截断为 int 放宽输入。压缩后总 charge 不优于
+raw 时保存 raw；header 和双 buffer 峰值仍计费。LZ4 block 不自带本层全部元数据。
+
+LZ4 只处理 bytes。调用者提供带 schema 版本的 serializer 和 allocator-aware decoder；
+不能 memcpy std::string、含指针对象或任意 object representation。首个实际示例采用
+owning byte/string 值。选 LZ4 是限制依赖和算法范围，不是已测出它优于 Zstd；后者暂不
+接入，避免同时维护多个 codec。codec 默认关闭，优先发现已安装的明确版本，关闭时
+无查找/链接；是否提供显式源码获取另作依赖准入。
+
+[RocksDB SecondaryCache][rocks-secondary] 参考 pending/ready 和所有权，不继承其
+虚接口、异常域或 shared_ptr 结构；Folly 参考 owning prune。初次实现无需引入整个
+RocksDB/Folly/Boost。预算不足默认 drop，primary 仍成功；可靠移交需要另一种经过
+审核的事务合同，不能由普通回调偷偷改变。
+
 ## 无回调时必须完全裁掉
 
 建议使用编译期 policy，默认 `no_eviction_callback` 的实现特化中**没有** callback
@@ -226,3 +257,4 @@ generation 小位宽耗尽、资源跨线程释放、终态 exactly-once cleanup
 
 [rocks-secondary]: https://github.com/facebook/rocksdb/blob/v9.7.3/include/rocksdb/secondary_cache.h
 [folly]: https://github.com/facebook/folly/blob/v2024.08.19.00/folly/container/EvictingCacheMap.h
+[lz4]: https://github.com/lz4/lz4/blob/ebb370ca83af193212df4dcbadcc5d87bc0de2f0/lib/lz4.h

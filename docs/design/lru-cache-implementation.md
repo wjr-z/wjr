@@ -12,7 +12,9 @@
 
 ## D0：先完成集中审核
 
-先明确以下选择，再由用户批准第一阶段实现：
+推荐已收敛为 indexed min-heap、稳定 Node、显式 map backend、轻量 const handle、
+MT shard mutex/两阶段构造及 exclusive/LZ4 二级路线，由用户审核后批准实施。
+以下清单检查所选合同是否完整，不要求首期实现全部备选：
 
 - acquire / touch 作为访问事件；handle copy、持有和最后 release 不更新 last_use。
 - 双 ring、indexed min-heap 或成熟 intrusive tree 的复杂度、Node/数组成本、回绕

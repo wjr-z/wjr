@@ -9,6 +9,44 @@
 本文是新的评审入口，优先于旧 [借用型基线](lru-cache.md) 中不支持持有追踪的设想。
 [二级缓存协议](lru-secondary-cache.md) 与本文一起审核；实施另需明确批准。
 
+## 本轮推荐方案
+
+推荐以下一套实现路线，供用户整体审核。下文 A/B2 是取舍依据，不是首版同时实现的开关。
+验证推翻推荐时先修改设计，不静默更换合同，也不把推荐当成已经测出的性能优势。
+
+| 决策 | 推荐方案及原因 |
+| --- | --- |
+| 访问含义 | acquire 与显式 touch 更新序号；持有、clone 和 release 不更新 |
+| 排名恢复 | **B1 indexed min-heap**，按原 last_use 插回；不使用 release-MRU |
+| 存储 | 稳定 Node、Key 一份；handle 只保存 Node*，不搬移 pinned payload |
+| map 选择 | `pinned_lru_cache<Key,T,Backend,...>` 必须显式指定 Backend；提供 std/dense 便利别名 |
+| 首个性能后端 | ankerl unordered_dense 4.5.0 平坦指针索引；标准 node 表为无新增第三方依赖的可选后端与对照 |
+| ST 引用 | Node 内普通计数；最后释放不分配、保留排名；无独立 control block |
+| MT 引用 | 独立 sharded 类型；shard mutex 串行化计数、索引和排名；首期不实现 atomic clone/无锁链表 |
+| MT 排名 | 显式配置 S 个 shard，容量之和为 C；S>1 为 shard 内 exact LRU，S=1 为全局精确基线 |
+| 生命周期 | cache 活过 handle；pinned erase 返回 busy；clear 全成功或完全不变 |
+| 回调 | 默认 no-hook 编译期特化；启用时交接 typed unique owner、锁外执行，失败不回滚 primary |
+| L2 | 进程内 exclusive、先同步再有界异步；预算不足默认 drop；首个压缩 provider 为 LZ4 |
+
+选 heap 是因为 WJR 已有 vector/allocator，可预留 C 个 Node*，不引入树依赖，
+每次恢复资格不分配包装节点。hash 命中另计后，首次 pin 与最后 release 最坏 O(log U)，
+已有 handle 的 ST clone/move 为 O(1)，pinned touch 为 O(1)。取 root 为 O(1)，删除该
+候选仍为 O(log U)。若同合同验证不达标，再复议 B2；首期不维护三套排名实现。
+
+dense adapter 使用 `set<Node*>`，Node 自有 Key；透明查询按 Key 比较，提交删除按
+Node identity，避免在无抛提交段调用可能抛出的用户 Equal。reserve(C+1) 仅用于已证明
+的固定入场域。未知 map 需显式适配地址、稳定删除 token、失败保证及 allocator；
+回调另需 owning extract，不能从同名方法或 noexcept move 推断这些能力。
+ankerl 是拟议性能 provider，不是预设赢家；获批后完整 LRU 比较必须包含标准表、
+共同强 hasher/各表惯用 hasher及回归负载，不以裸 map headline 决定默认。
+
+复用边界固定：WJR vector 提供 heap 存储，带 heap_pos 的 sift 是少量本地算法；
+ankerl 提供 hash index，不重写 hash table；LevelDB/RocksDB 参考持有资格与锁域，
+Folly 参考脱离后的独占交接。handle 参考 [Boost intrusive_ptr 1.86][boost-ptr]
+的嵌入计数和值语义，但 cache 的最后 release 恢复资格，不是默认 delete-on-zero。
+首期使用专用 handle，不为一个调用引入整套 Boost 或先发布通用智能指针壳。
+Boost.Intrusive 树、LLVM DenseMap、Abseil 是备选/对照，首期不强制安装。
+
 ## 要解决的调用问题
 
 调用者查找昂贵结果后，可能跨越后续 cache 操作继续使用它。仅返回 `T*` 无法判断
@@ -37,9 +75,8 @@
 
 ## 使用事件与持有事件必须分开
 
-建议将成功 `acquire(key)` 和成功新入场定义为访问事件；`touch(handle)` 显式报告
-长时间持有期间的再次使用。`pin(key)` 可提供“不更新访问顺序的持有”，待实际调用确认后
-再决定是否首期公开。不要为对称性增加重复接口。
+将成功 `acquire(key)` 和成功新入场定义为访问事件；`touch(handle)` 显式报告
+长时间持有期间的再次使用。首期不另加不触摸的 pin，避免重复接口及模糊排名。
 
 | 事件 | 引用数 | 访问排名 |
 | --- | --- | --- |
@@ -111,7 +148,7 @@ domain 持有，再由 Node 计数服务 handle clone；这仍有额外分配/�
 `make_shared` 可以合并对象与 control block 为一次分配，不能声称 shared_ptr 必然多一次分配；
 应比较实际布局、计数和 atomics，而不是仅凭名字判定成本。
 
-## 排名恢复：三种精确候选，不用 release-MRU 近似替代
+## 排名恢复：采用 B1，其余作为取舍依据
 
 令 `C` 为容量，`N<=C` 为当前 resident 数，`U` 为 unpinned 数，`P=N-U` 为 pinned 数。
 以下均另有期望 O(1)、
@@ -131,8 +168,9 @@ hook。最后释放时沿 access ring 找最近 eligible 邻居，再插入 elig
 单链表若不保留额外搜索信息，按旧排名插回中间一般需要扫描；这不是对所有 word-RAM
 数据结构声称普遍的 O(1) 不可能性。
 
-B1 用数组 `heap[0..U)` 存 eligible Node*，Node 的 `heap_pos` 指向自身槽；pinned 用
-invalid position。删除槽 i：以尾指针补洞，更新该节点 pos，然后按比较结果向上或向下
+B1 用数组 `heap[0..U)` 存 eligible Node*，Node 的 `heap_pos` 指向自身槽。
+pinned 期间不读取这个字段，也不要求反复写 invalid marker。
+删除槽 i：以尾指针补洞，更新该节点 pos，然后按比较结果向上或向下
 sift，每交换一次都更新两个 Node 的 pos。插回在尾部 append 并 sift-up。
 操作比较 `(last_use, unique_tie)`，其中 tie 仅在设计允许相同序号时需要；串行独立递增
 序号可消除此字段。每次恢复资格使用 Node 保留的 last_use；不创建新的访问事件。
@@ -295,9 +333,33 @@ heap 数组、cache/shard mutex、allocator/resource、candidate/retired/job own
 
 ## 审核决策与后续验收
 
-审核需明确：访问事件定义；A/B1/B2 排名方案；ST 与 MT 构造拒绝保证；handle constness；
-erase/clear/close；引用是否可超出 cache；回调和二级协议；后端与 allocator 可接受域。
-这些未批准前不发布 runtime MR。批准后按 [实施门槛](lru-cache-implementation.md) 分阶段。
+### 头文件、共享实现与代码体积
+
+不把整个 cache/排名/二级协议都按 Key/T/Hash 展开成 header-only 实现。排名节点基类
+仅含与类型无关的 last_use/heap_pos 等字段，无 virtual/vtable；typed Node 保存 Key/T。
+推荐文件边界如下，属于获批后的实现约束，不在本 MR 新增代码：
+
+| 位置 | 内容 |
+| --- | --- |
+| include 中的公共模板 | Key/T/allocator/backend 适配、typed Node、轻量 handle、小型 acquire/touch 入口 |
+| detail 排名声明 | 与 Key/T 解耦的 rank node 和非模板 heap API；必要的小操作可 inline |
+| src 排名实现 | 共享 sift/重建等循环，避免每种 Key/T 复制完整排名算法 |
+| src 协议实现 | 与 Key/T 无关的版本提交、预算、close/drain 和错误路径 |
+| 可选 codec src | LZ4 bytes 编解码；只有显式启用的 codec target 才编译/链接 |
+
+类型相关的构造/析构和 allocator 钩子保留薄模板桥接；不得为了下沉源码给每个 Node
+增加 deleter 函数指针、虚函数或共有 shared_ptr。callback-disabled 仍没有相关状态。
+调用者链接 wjr:: 模块 alias；安装消费者和动态库符号边界需一起验证。
+
+这是共享非模板循环的初始划分，不是统一禁止内联。若短 heap 操作的外部调用代价显著，
+可把必要的小热段保留 inline，冷重建/诊断仍在 src；不重复计算条件来制造 slow helper。
+根据代表性 Key/T 实例化的 text 体积、调用者汇编和完整操作耗时决定边界，不能只看源码
+行数或默认依赖 LTO。ST 无线程对象，未启用 L2 无 codec/协议对象；不为减少实例化强加
+运行时类型分派。源码位置、代码大小和常规路径性能三者一起验收。
+
+本轮请求审核上述整体推荐：B1、const handle、cache 活过 handle、MT 两阶段构造、
+显式后端、shard 内精确排名及二级协议。未批准前不发布 runtime MR；文档合入也不是
+实现授权。批准后按 [实施门槛](lru-cache-implementation.md) 分阶段。
 
 第一阶段 oracle 应直接保存每个 key 的最后访问序号、外部 refs 和内容版本，独立求
 `argmin(last_use | refs==0)`，不复制实现的数据结构。重点测试长持有旧 A、更新 B 后释放 A，
@@ -320,6 +382,7 @@ MT 需确定性交错测试 acquire/last-release/erase、并行 admission 二次
 [rocks-cc]: https://github.com/facebook/rocksdb/blob/v9.7.3/cache/lru_cache.cc
 [folly]: https://github.com/facebook/folly/blob/v2024.08.19.00/folly/container/EvictingCacheMap.h
 [boost-tree]: https://www.boost.org/doc/libs/1_86_0/doc/html/intrusive/set_multiset.html
+[boost-ptr]: https://www.boost.org/doc/libs/1_86_0/libs/smart_ptr/doc/html/smart_ptr.html#intrusive_ptr
 [dense]: https://github.com/martinus/unordered_dense/blob/v4.5.0/include/ankerl/unordered_dense.h
 [absl]: https://github.com/abseil/abseil-cpp/blob/20240722.0/absl/container/flat_hash_map.h
 [llvm]: https://github.com/llvm/llvm-project/blob/llvmorg-21.1.0/llvm/include/llvm/ADT/DenseMap.h
