@@ -35,7 +35,7 @@ int main(int, char** argv) {
     std::fprintf(stderr,"arena=%zu owner=%zu\n",sizeof(wjr::stack_allocator_object),sizeof(wjr::unique_stack_allocator));
 }
 ''')
-report={'platform':platform.platform(),'base':base,'candidate':'12ed5a53d2dcaace1d13854ae4d23996221ede86','cpu':Path('/proc/cpuinfo').read_text().split('model name')[1].split('\n')[0],'compilers':{},'checks':[],'timings':[]}
+report={'platform':platform.platform(),'base':base,'candidate':'e7c32ece99f375e8e2d558cc66c7e7b956d8f640','cpu':Path('/proc/cpuinfo').read_text().split('model name')[1].split('\n')[0],'compilers':{},'checks':[],'timings':[]}
 def run(cmd,name,expect=0,env=None):
     result=sp.run([str(x) for x in cmd],cwd=root,stdout=sp.PIPE,stderr=sp.STDOUT,env=env)
     (out/(name+'.log')).write_bytes(result.stdout)

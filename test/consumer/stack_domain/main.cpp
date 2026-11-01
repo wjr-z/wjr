@@ -11,8 +11,9 @@ int check_pool_ownership() {
     wjr_foreign_clear_pool();
     /// @note Reusing the retained second slab must not touch memory freed by the foreign pool.
     for (size_t i = 0; i < 64; ++i) {
-        auto *bytes = static_cast<unsigned char *>(arena.allocate(1024, owner));
-        std::memset(bytes, 0x6b, 1024);
+        auto *bytes = static_cast<volatile unsigned char *>(arena.allocate(1024, owner));
+        bytes[0] = 0x6b;
+        bytes[1023] = 0x6b;
         if (bytes[0] != 0x6b || bytes[1023] != 0x6b)
             return 1;
     }
