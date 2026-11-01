@@ -710,7 +710,8 @@ struct simd_value {
     size_t size() const { return value.get_array().value().size(); }
     template <typename F>
     void each(F &&function) const {
-        for (auto child : value.get_array().value())
+        const auto array = value.get_array().value();
+        for (auto child : array)
             function(simd_value{child});
     }
 };
