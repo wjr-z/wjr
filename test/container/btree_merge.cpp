@@ -218,13 +218,14 @@ TEST(BtreeMerge, InlineValuesRetainAllocatorConstructionAndDestructionHooks) {
         using tree = wjr::btree_set<int, std::less<>, merge_allocator<char>, 4>;
         tree target(std::less<>{}, merge_allocator<char>(&owner));
         tree source(std::less<>{}, merge_allocator<char>(&owner));
+        target.insert(-1);
         for (int i = 0; i != 80; ++i)
             source.insert(i);
         const auto constructions = owner.scalar_constructions;
         const auto destructions = owner.scalar_destructions;
         target.merge(source);
         EXPECT_TRUE(source.empty());
-        EXPECT_EQ(target.size(), 80u);
+        EXPECT_EQ(target.size(), 81u);
         EXPECT_EQ(owner.scalar_constructions - constructions, 80u);
         EXPECT_EQ(owner.scalar_destructions - destructions, 80u);
     }
@@ -270,6 +271,117 @@ TEST(BtreeMerge, CompactMoveOnlyValuesAndSharedPmrResource) {
         for (const auto &[key, value] : destination) {
             EXPECT_EQ(value.value, key);
             EXPECT_EQ(value.self, &value);
+        }
+    }
+    EXPECT_EQ(payload::live, 0);
+}
+
+template <typename Tree>
+void check_standard_merge_patterns() {
+    for (int count : {0, 1, 2, 3, 16, 17, 80, 512}) {
+        for (int pattern = 0; pattern != 5; ++pattern) {
+            Tree target, source;
+            std::map<int, int, typename Tree::key_compare> reference, incoming;
+            for (int i = 0; i != count; ++i) {
+                const int source_key = pattern == 4 ? i * 100 : i * 2;
+                source.try_emplace(source_key, i);
+                incoming.try_emplace(source_key, i);
+                if (pattern != 0) {
+                    const int target_key = pattern == 1   ? i * 2 + 1
+                                           : pattern == 2 ? i * 2
+                                           : pattern == 3 ? -i - 1
+                                                          : i;
+                    target.try_emplace(target_key, -i);
+                    reference.try_emplace(target_key, -i);
+                }
+            }
+            target.merge(source);
+            reference.merge(incoming);
+            EXPECT_TRUE(
+                std::equal(target.begin(), target.end(), reference.begin(), reference.end()));
+            EXPECT_TRUE(std::equal(source.begin(), source.end(), incoming.begin(), incoming.end()));
+            source.try_emplace(-100001, 42);
+            target.try_emplace(-100002, 43);
+            target.erase(target.begin(), target.end());
+            EXPECT_TRUE(target.empty());
+        }
+    }
+}
+
+TEST(BtreeMerge, StandardOrderHandlesEmptyInterleavedConflictingAndSparseBatches) {
+    check_standard_merge_patterns<wjr::btree_map<int, int>>();
+    check_standard_merge_patterns<wjr::btree_map<int, int, std::greater<>>>();
+    check_standard_merge_patterns<wjr::experimental::compact_btree_map<int, int>>();
+    check_standard_merge_patterns<wjr::experimental::compact_btree_map<int, int, std::greater<>>>();
+    wjr::btree_multiset<int> target, source;
+    std::multiset<int> reference, incoming;
+    for (int i = 0; i != 500; ++i) {
+        target.insert(i % 17);
+        reference.insert(i % 17);
+        source.insert(i % 11);
+        incoming.insert(i % 11);
+    }
+    target.merge(source);
+    reference.merge(incoming);
+    EXPECT_TRUE(source.empty());
+    EXPECT_TRUE(std::equal(target.begin(), target.end(), reference.begin(), reference.end()));
+    wjr::btree_map<int, int, std::less<int>, std::allocator<char>, 16> mixed_target;
+    wjr::btree_map<int, int, std::less<>, std::allocator<char>, 5> mixed_source;
+    for (int i = 0; i != 100; ++i) {
+        mixed_target.try_emplace(i * 2 + 1, -i);
+        mixed_source.try_emplace(i * 2, i);
+    }
+    mixed_target.merge(mixed_source);
+    EXPECT_TRUE(mixed_source.empty());
+    EXPECT_EQ(mixed_target.size(), 200u);
+    for (int i = 0; i != 100; ++i) {
+        EXPECT_EQ(mixed_target.at(i * 2), i);
+        EXPECT_EQ(mixed_target.at(i * 2 + 1), -i);
+    }
+}
+
+TEST(BtreeMerge, EmptyCompatibleOwnerAdoptsHeapGraphWithoutValueHooks) {
+    for (int count : {3, 16, 80, 512}) {
+        merge_owner owner;
+        {
+            using tree = wjr::btree_set<int, std::less<>, merge_allocator<char>, 4>;
+            tree target(std::less<>{}, merge_allocator<char>(&owner));
+            tree source(std::less<>{}, merge_allocator<char>(&owner));
+            for (int i = 0; i != count; ++i)
+                source.insert(i);
+            const auto allocations = owner.blocks;
+            const auto constructions = owner.scalar_constructions;
+            const auto destructions = owner.scalar_destructions;
+            target.merge(source);
+            EXPECT_TRUE(source.empty());
+            EXPECT_EQ(target.size(), static_cast<size_t>(count));
+            EXPECT_EQ(owner.blocks, allocations);
+            EXPECT_EQ(owner.scalar_constructions, constructions);
+            EXPECT_EQ(owner.scalar_destructions, destructions);
+            source.insert(count + 1);
+            EXPECT_EQ(source.size(), 1u);
+        }
+        EXPECT_TRUE(owner.blocks.empty());
+        EXPECT_EQ(owner.scalar_constructions, owner.scalar_destructions);
+    }
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    std::pmr::unsynchronized_pool_resource resource;
+    using tree = wjr::experimental::compact_btree_map<int, payload, std::less<>, allocator>;
+    {
+        tree source(std::less<>{}, allocator(&resource));
+        tree target(std::less<>{}, allocator(&resource));
+        for (int i = 0; i != 80; ++i)
+            source.try_emplace(i, i);
+        const auto *address = &source.begin()->second;
+        const auto moves = payload::moves;
+        target.merge(source);
+        EXPECT_EQ(&target.begin()->second, address);
+        EXPECT_EQ(payload::moves, moves);
+        EXPECT_TRUE(source.empty());
+        EXPECT_EQ(target.get_allocator().resource(), &resource);
+        for (const auto &[key, value] : target) {
+            EXPECT_EQ(value.self, &value);
+            EXPECT_EQ(value.value, key);
         }
     }
     EXPECT_EQ(payload::live, 0);
