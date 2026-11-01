@@ -2,6 +2,8 @@ WJR 的模块通过 CMake alias 提供。使用某个模块时，在自己的 CM
 target 上链接对应的 `wjr::<module>`；CMake 会自动传递头文件路径、C++
 标准和模块依赖。
 
+fmt 的已安装包复用与 bundled fallback 见[依赖说明](dependencies.md)。
+
 ```cmake
 target_link_libraries(my_app PRIVATE wjr::json)
 ```

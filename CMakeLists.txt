@@ -84,7 +84,11 @@ if(WJR_ENABLE_INSTALL)
    set(ENABLE_INSTALL ON)
 endif()
 
-if(NOT TARGET fmt)
+if(NOT TARGET fmt::fmt)
+   find_package(fmt 11.2.1 EXACT QUIET CONFIG)
+endif()
+
+if(NOT TARGET fmt::fmt)
    set(FMT_TEST OFF CACHE BOOL "Disable fmt tests")
    add_subdirectory(third-party/fmt)
 endif()
