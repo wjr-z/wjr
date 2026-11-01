@@ -43,6 +43,8 @@
 namespace wjr {
 namespace btree_detail {
 
+struct ordered_builder_access;
+
 /// @brief Admit transparent lookup types comparable with keys in both directions.
 /// @note Callability does not imply noexcept; B-tree query comparisons must not throw.
 template <typename Compare, typename Key, typename Lookup>
@@ -919,6 +921,7 @@ class basic_btree {
     using storage_fn_type = container_fn<_Alty>;
 
     friend class container_fn<_Alty>;
+    friend struct btree_detail::ordered_builder_access;
     template <typename Other>
     friend class basic_btree;
 
