@@ -48,6 +48,8 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 ## `wjr::memory`
 
+[Generic container operations](container-operations.md) document customization and C++20 capability concepts.
+
 内存管理和分配器相关组件，包含库内数据结构使用的内存工具。
 
 跨动态库使用临时分配时，见 [stack allocator 的作用域与池所有权](stack-allocator.md)。
