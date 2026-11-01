@@ -1,4 +1,4 @@
-#include "detail.hpp"
+#include <gtest/gtest.h>
 
 #include <wjr/utility/bitmask_enum.hpp>
 

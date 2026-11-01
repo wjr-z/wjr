@@ -1,5 +1,6 @@
-#include "../detail.hpp"
+#include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstring>
 #include <forward_list>
 #include <list>

@@ -1,4 +1,4 @@
-#include "detail.hpp"
+#include <gtest/gtest.h>
 
 #include <array>
 #include <wjr/crtp/trivially_allocator_base.hpp>

@@ -1,6 +1,7 @@
-#include "../detail.hpp"
+#include <gtest/gtest.h>
 
 #include <array>
+#include <random>
 
 #include <wjr/math/compare.hpp>
 

@@ -1,11 +1,16 @@
-#include "detail.hpp"
+#include <gtest/gtest.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
+#include <wjr/config/platform.hpp>
+
 #ifdef _WIN32
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
     #define NOMINMAX
     #include <windows.h>
 #endif
