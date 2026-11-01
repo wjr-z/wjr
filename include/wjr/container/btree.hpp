@@ -2025,7 +2025,7 @@ private:
 
     /// @brief Clone a branch immediately before the next unconsumed retired leaf.
     std::pair<ikey_type, node_type *> _clone_copy_branch(const node_type *source,
-                                                         list_node_type *&cursor) noexcept {
+                                                         list_node_type *cursor) noexcept {
         const auto size = source->size();
         if (size < 0) {
             auto *const leaf = _create_leaf_node();
@@ -2093,15 +2093,14 @@ private:
                 return _reuse_copy_inner(owned->as_inner(), source->as_inner(), cursor);
             cursor = _destroy_copy_branch(owned, cursor);
         }
-        auto *clone_cursor = cursor;
-        auto [key, copied] = _clone_copy_branch(source, clone_cursor);
+        auto [key, copied] = _clone_copy_branch(source, cursor);
         owned = copied;
         copied->m_parent = parent;
         if (parent != nullptr)
             copied->pos() = position;
         /// Fresh root links must exist before propagating a child-zero minimum.
         _replace_subtree_minimum(copied, key);
-        return clone_cursor;
+        return cursor;
     }
 
     /// @brief Carry the cursor in the return register, repairing minima at completed leaves.
