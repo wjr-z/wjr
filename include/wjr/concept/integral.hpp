@@ -17,6 +17,10 @@ concept nonbool_unsigned_integral = nonbool_integral<T> && std::unsigned_integra
 template <typename T>
 concept nonbool_signed_integral = nonbool_integral<T> && std::signed_integral<T>;
 
+/// @brief Match the single-byte integral domain used by character conversions.
+template <typename T>
+concept byte_integral = nonbool_integral<T> && sizeof(T) == 1;
+
 } // namespace wjr
 
 #endif // WJR_CONCEPT_INTEGRAL_HPP__

@@ -33,44 +33,47 @@
 
 namespace wjr {
 
-/// Traits class to determine whether an enum has a
-/// WJR_BITMASK_LARGEST_ENUMERATOR enumerator.
+/// @brief Opt a type into the bitmask operators with a true specialization.
 template <typename E, typename Enable = void>
 struct is_bitmask_enum : std::false_type {};
 
+/// @brief Preserve the boolean opt-in contract of is_bitmask_enum specializations.
+template <typename E>
+concept bitmask_enum = std::bool_constant<is_bitmask_enum<E>::value>::value;
+
 namespace bitmask_enum_detail {
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr bool operator!(E Val) {
     return Val == static_cast<E>(0);
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr bool any(E Val) {
     return Val != static_cast<E>(0);
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr E operator|(E LHS, E RHS) {
     return static_cast<E>(to_underlying(LHS) | to_underlying(RHS));
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr E operator&(E LHS, E RHS) {
     return static_cast<E>(to_underlying(LHS) & to_underlying(RHS));
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr E operator^(E LHS, E RHS) {
     return static_cast<E>(to_underlying(LHS) ^ to_underlying(RHS));
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr E operator<<(E LHS, E RHS) {
     return static_cast<E>(to_underlying(LHS) << to_underlying(RHS));
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
+template <bitmask_enum E>
 constexpr E operator>>(E LHS, E RHS) {
     return static_cast<E>(to_underlying(LHS) >> to_underlying(RHS));
 }
@@ -78,32 +81,32 @@ constexpr E operator>>(E LHS, E RHS) {
 // |=, &=, and ^= return a reference to LHS, to match the behavior of the
 // operators on builtin types.
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
-E &operator|=(E &LHS, E RHS) {
+template <bitmask_enum E>
+constexpr E &operator|=(E &LHS, E RHS) {
     LHS = LHS | RHS;
     return LHS;
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
-E &operator&=(E &LHS, E RHS) {
+template <bitmask_enum E>
+constexpr E &operator&=(E &LHS, E RHS) {
     LHS = LHS & RHS;
     return LHS;
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
-E &operator^=(E &LHS, E RHS) {
+template <bitmask_enum E>
+constexpr E &operator^=(E &LHS, E RHS) {
     LHS = LHS ^ RHS;
     return LHS;
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
-E &operator<<=(E &lhs, E rhs) {
+template <bitmask_enum E>
+constexpr E &operator<<=(E &lhs, E rhs) {
     lhs = lhs << rhs;
     return lhs;
 }
 
-template <typename E, typename = std::enable_if_t<is_bitmask_enum<E>::value>>
-E &operator>>=(E &lhs, E rhs) {
+template <bitmask_enum E>
+constexpr E &operator>>=(E &lhs, E rhs) {
     lhs = lhs >> rhs;
     return lhs;
 }
