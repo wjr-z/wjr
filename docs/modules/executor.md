@@ -89,7 +89,7 @@ hook stays in its scope until join. Neither path allocates task nodes.
 | Path | Required work and contention |
 | --- | --- |
 | Scope/handle creation | Shared state allocation per scope; shared ownership increment per cached handle. Standard thread/domain resources are setup costs. |
-| Successful submit | One mutex critical section; admission checks, two intrusive appends, two counters and result/owner stores. No shared-pointer copy, task allocation or callback copy. All producers contend on this one mutex. |
+| Successful submit | One mutex critical section; admission checks, two intrusive appends, two counters and an owner store. No shared-pointer copy, task allocation or callback copy. All producers contend on this one mutex. |
 | Local `again` | Two relaxed stop loads before invocation, one indirect call, conditional stop polling after it, one local intrusive append; no mutex or reference-count update. |
 | Inbox ingestion | One mutex critical section, whole-ring splice in constant pointer work; every 64 steps or when ready empties. |
 | Terminal publication | One mutex critical section, outcome store and pending decrement; notification if last. Completion contends with producers. |

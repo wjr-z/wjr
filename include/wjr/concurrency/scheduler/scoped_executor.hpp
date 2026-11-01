@@ -13,7 +13,7 @@
 namespace wjr::sched {
 
 enum class task_step { again, finished };
-enum class task_outcome { not_submitted, pending, completed, cancelled };
+enum class task_outcome { not_submitted, completed, cancelled };
 enum class executor_status {
     success,
     closed,

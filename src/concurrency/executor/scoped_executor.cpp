@@ -185,7 +185,6 @@ executor_status submitter::submit(detail::task_base &task) const {
         return executor_status::capacity_limit;
     }
     task.m_scope = &scope;
-    task.m_outcome = task_outcome::pending;
     scope.tasks.push_back(static_cast<detail::executor_domain::scope_hook *>(&task));
     domain.inbox.push_back(static_cast<detail::executor_domain::queue_hook *>(&task));
     ++scope.accepted;
