@@ -44,6 +44,12 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 实现自定义容器或需要复用 WJR 迭代器工具时使用；只使用上层模块时通常会通过依赖传递得到它。
 
+## `wjr::scheduler`
+
+Baseline C++20 的 owner-driven EEVDF ready queue，见[调度队列合同](scheduler.md)。
+显式计量已完成 service units，借用稳定地址的 entity；不创建线程、不接受协程 frame，
+不提供外部等待或 OS 抢占。256 是当前每个队列的 entity 上限，与后续 worker 数量无关。
+
 ## `wjr::memory`
 
 内存管理和分配器相关组件，包含库内数据结构使用的内存工具。

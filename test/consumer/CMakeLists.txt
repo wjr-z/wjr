@@ -81,6 +81,17 @@ target_link_libraries(wjr_module_consumer PRIVATE wjr::json wjr::ring_buffer)
 add_executable(wjr_portable_consumer portable.cpp)
 target_link_libraries(wjr_portable_consumer PRIVATE wjr::ring_buffer)
 
+add_executable(wjr_scheduler_consumer scheduler.cpp)
+target_link_libraries(wjr_scheduler_consumer PRIVATE wjr::scheduler)
+
+file(GENERATE
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/scheduler-options-$<CONFIG>-$<COMPILE_LANGUAGE>.cmake"
+    CONTENT "set(WJR_OPTIONS [==[$<TARGET_PROPERTY:wjr_scheduler_consumer,COMPILE_OPTIONS>]==])
+include([==[${CMAKE_CURRENT_SOURCE_DIR}/check_portable.cmake]==])
+"
+    TARGET wjr_scheduler_consumer
+)
+
 file(GENERATE
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/portable-options-$<CONFIG>-$<COMPILE_LANGUAGE>.cmake"
     CONTENT "set(WJR_OPTIONS [==[$<TARGET_PROPERTY:wjr_portable_consumer,COMPILE_OPTIONS>]==])
@@ -93,6 +104,11 @@ enable_testing()
 add_test(NAME wjr_consumer COMMAND wjr_consumer)
 add_test(NAME wjr_module_consumer COMMAND wjr_module_consumer)
 add_test(NAME wjr_portable_consumer COMMAND wjr_portable_consumer)
+add_test(NAME wjr_scheduler_consumer COMMAND wjr_scheduler_consumer)
+add_test(NAME wjr_scheduler_options
+    COMMAND ${CMAKE_COMMAND}
+    -P "${CMAKE_CURRENT_BINARY_DIR}/scheduler-options-$<CONFIG>-CXX.cmake"
+)
 add_test(NAME wjr_portable_options
     COMMAND ${CMAKE_COMMAND}
     -P "${CMAKE_CURRENT_BINARY_DIR}/portable-options-$<CONFIG>-CXX.cmake"

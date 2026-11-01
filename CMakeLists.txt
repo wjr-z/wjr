@@ -182,6 +182,9 @@ add_subdirectory(src/json)
 #
 add_subdirectory(src/container)
 
+# Baseline, owner-driven scheduling policy; no thread or I/O provider dependency.
+add_subdirectory(src/concurrency/scheduler)
+
 #
 # library : wjr
 #
