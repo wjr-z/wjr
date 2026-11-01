@@ -11,13 +11,16 @@ from .exporters.cprofile_json import export_profile
 from .report import write_report
 from .curl_report import write_summary as write_curl_summary
 from .perf_report import write_summary as write_perf_summary
+from .adapters import tracemalloc_json
+from .tracemalloc_report import write_summary as write_memory_summary
 
 PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
              "google-benchmark-memory": google_benchmark_memory.import_artifact,
              "cprofile-json": cprofile_json.import_artifact,
              "llvm-mca": llvm_mca.import_artifact,
              "curl-json": curl_json.import_artifact,
-             "perf-stat": perf_stat.import_artifact}
+             "perf-stat": perf_stat.import_artifact,
+             "tracemalloc-json": tracemalloc_json.import_artifact}
 
 
 def main(argv=None):
@@ -57,12 +60,18 @@ def main(argv=None):
     counters = commands.add_parser("perf-summary", help="describe one offline whole-process perf stat run")
     counters.add_argument("bundle")
     counters.add_argument("--out", required=True)
+    memory = commands.add_parser("tracemalloc-summary", help="diagnose one snapshot pair; keep retained changes and global peak separate")
+    memory.add_argument("bundle")
+    memory.add_argument("--out", required=True)
+    memory.add_argument("--limit", type=int, default=20, help="maximum positive/negative sites in Markdown; JSON keeps all")
     args = parser.parse_args(argv)
     try:
         if args.command == "import":
             decoders = {"curl-json": curl_json.decode_raw, "perf-stat": perf_stat.decode_raw}
             import_bundle(args.provider, PROVIDERS[args.provider], args.raw, args.manifest, args.out,
                           decoder=decoders.get(args.provider), stderr_path=args.stderr)
+        elif args.command == "tracemalloc-summary":
+            write_memory_summary(load_bundle(args.bundle), args.out, args.limit)
         elif args.command == "perf-summary":
             write_perf_summary(load_bundle(args.bundle), args.out)
         elif args.command == "curl-summary":

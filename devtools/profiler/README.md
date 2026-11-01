@@ -15,6 +15,7 @@ and remaining acceptance work is in the [implementation status](../../docs/desig
 | Google Benchmark MemoryManager | v1.9.2, schema 1 | Import allocation/byte metrics from separate measured passes | Explicit hook coverage, pass length and harness policy required; older repeated byte results can be corrupted |
 | LLVM-MCA | 18.1.8 JSON | Import and compare model estimates | Fixture is a Windows-produced simulation with an explicit Linux target; other versions are exploratory, not Linux runtime evidence |
 | cProfile | `wjr.cprofile-json/1`; exporter verified on CPython 3.12.7 | Import JSON, explicitly export a local `.prof` on its matching producer, summarize one profile | `.prof` is version-specific; exporter support outside the verified producer is untested |
+| tracemalloc | `wjr.tracemalloc-json/1`; Snapshot API verified on CPython 3.12.7 | Diagnose live blocks, signed retained changes, tracebacks and an optional global checkpoint | One snapshot pair is n=1; no per-frame peak, allocation-volume or RSS claim; no native pickle input |
 | Linux perf stat | JSON source-checked against Linux v6.8.12 | Import and summarize whole-process counters or unavailable diagnostics | The fixture worker denied both hardware and tool-event collection; no positive PMU capture is claimed. Other perf versions are exploratory |
 | curl | 8.11.1 native `%{json}` JSONL | Import and summarize independent HTTP/1.1 request processes | Verified with an owned localhost server; unknown curl versions are exploratory |
 
@@ -22,6 +23,8 @@ Provider guides document exact contracts, fixtures, and reproduction steps:
 [Google Benchmark](#supported-input-and-provenance), [LLVM-MCA](LLVM_MCA.md),
 [cProfile](CPROFILE.md), [perf stat](PERF_STAT.md), and [curl](CURL.md).
 [MemoryManager](MEMORY_MANAGER.md) documents native memory fields and their separate scope.
+[tracemalloc](TRACEMALLOC.md) documents the owned Snapshot exporter and offline
+Python live-block diagnosis.
 Collection services, py-spy/Scalene/Tracy, iperf3/OTel, ETW/WPA and performance
 regression gates are not implemented.
 

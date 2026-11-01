@@ -1,0 +1,114 @@
+{
+  "base_revision": "9f39c7429d6d58b64d00d0fea4361e1fdad5baf3",
+  "build": [
+    "tags/v3.12.7:0b05ead",
+    "Oct  1 2024 03:06:41"
+  ],
+  "captures": [
+    {
+      "argv": [
+        "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+        "--frames",
+        "5",
+        "--output",
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\full\\raw.json",
+        "--manifest",
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\full\\raw.manifest.json"
+      ],
+      "baseline_live_bytes": 131233,
+      "checkpoint": {
+        "current_bytes": 164762,
+        "domain_scope": "all_traced_domains",
+        "peak_bytes": 951375,
+        "peak_window": "since reset_peak immediately after baseline snapshot",
+        "sampling_point": "immediately before ending take_snapshot",
+        "tracer_overhead_bytes": 2096
+      },
+      "cwd": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler",
+      "domains": [
+        0
+      ],
+      "ending_live_bytes": 165294,
+      "exit_status": 0,
+      "manifest": "full.manifest.json",
+      "manifest_sha256": "142573116729f266618b975532e1050e20029195988d7d4407e87bb86a14c651",
+      "name": "full",
+      "net_retained_bytes": 34061,
+      "raw": "full.json",
+      "raw_sha256": "a375206bec6d7fe146dbc7f8a3b50f991c15708cab1f447613b7205e3544c2bc",
+      "stderr": "full.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "full.stdout.txt",
+      "stdout_sha256": "862eff651751d28f042d55b4eaa5b1292ee64853e47d5790e43b570ff478ed03",
+      "traceback_limit": 5
+    },
+    {
+      "argv": [
+        "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+        "--frames",
+        "1",
+        "--output",
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\truncated\\raw.json",
+        "--manifest",
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\truncated\\raw.manifest.json"
+      ],
+      "baseline_live_bytes": 131233,
+      "checkpoint": {
+        "current_bytes": 164810,
+        "domain_scope": "all_traced_domains",
+        "peak_bytes": 951423,
+        "peak_window": "since reset_peak immediately after baseline snapshot",
+        "sampling_point": "immediately before ending take_snapshot",
+        "tracer_overhead_bytes": 2064
+      },
+      "cwd": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler",
+      "domains": [
+        0
+      ],
+      "ending_live_bytes": 165342,
+      "exit_status": 0,
+      "manifest": "truncated.manifest.json",
+      "manifest_sha256": "462e94a4e98b16ee73b6b2365e28aa3625446e2d5fd5632f79c99b4945f8188a",
+      "name": "truncated",
+      "net_retained_bytes": 34109,
+      "raw": "truncated.json",
+      "raw_sha256": "05abbf8d116f22e41162c4fcb035d734b769dbb1083577c681fc5d00876c96e8",
+      "stderr": "truncated.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "truncated.stdout.txt",
+      "stdout_sha256": "862eff651751d28f042d55b4eaa5b1292ee64853e47d5790e43b570ff478ed03",
+      "traceback_limit": 1
+    }
+  ],
+  "created_at": "2026-11-01T15:01:28.432077+00:00",
+  "implementation": "CPython",
+  "interpreter": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
+  "notes": [
+    "Payloads exclude Python objects and declared collection overhead.",
+    "Complete unfiltered Snapshot export; no RSS/volume/copy/per-frame peak claim.",
+    "One pair per capture is n=1; captures are separate examples at different traceback limits, not pooled repetitions."
+  ],
+  "payload_bytes": {
+    "released": 131072,
+    "retained_left": 65536,
+    "retained_right": 98304,
+    "temporary": 786432
+  },
+  "platform": "Windows-11-10.0.22631-SP0",
+  "python": "3.12.7",
+  "real": true,
+  "source_sha256": {
+    "devtools/profiler/tests/fixtures/tracemalloc/program.py": "a133d9c555520c136d31c105551bfe7fb764fd515bf0c20b95989e24ccd666ac",
+    "devtools/profiler/wjr_profiler/adapters/tracemalloc_json.py": "c744dbc994a6610f145ad3d8e7fec272833944bf4f2d28da853f7ffeefb29231",
+    "devtools/profiler/wjr_profiler/exporters/cprofile_json.py": "ccc3f5654dfbb6d7b271e345b23e12a225231d0bc915531875b0b9474a614aba",
+    "devtools/profiler/wjr_profiler/exporters/tracemalloc_json.py": "feda61acaea78b114b665883006c6070f7f2af7b9f6f56f915ec67c346bec7e4",
+    "devtools/profiler/wjr_profiler/model.py": "1869b813925e17ba24fca9e0999622aad46ad6bcab184a87fda0ecfeb69af772"
+  },
+  "stdlib_tracemalloc_sha256": "488c28ad5fd084dd715986ea235928894f1b140ac880a5872655a99c97054dc2",
+  "upstream_sources": [
+    "https://github.com/python/cpython/blob/v3.12.7/Lib/tracemalloc.py",
+    "https://github.com/python/cpython/blob/v3.12.7/Python/tracemalloc.c"
+  ]
+}
