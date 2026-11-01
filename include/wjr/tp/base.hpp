@@ -150,54 +150,49 @@ struct tp_push_back<C<Args1...>, Args2...> {
 template <typename T, typename... Args>
 using tp_push_back_t = typename tp_push_back<T, Args...>::type;
 
+#if WJR_HAS_BUILTIN(__type_pack_element)
+
 /// @private
-template <typename _Enable, size_t I, size_t N, typename... Args>
+template <size_t Index, typename... Args>
+using _tp_pack_element_t = __type_pack_element<Index, Args...>;
+
+#else
+
+/// @private
+template <size_t Index, typename T>
+struct _tp_indexed_type {
+    using type = T;
+};
+
+/// @private Associate each element with its position without recursive instantiation.
+template <typename Indices, typename... Args>
+struct _tp_indexed_types;
+
+/// @private
+template <size_t... Indices, typename... Args>
+struct _tp_indexed_types<std::index_sequence<Indices...>, Args...>
+    : _tp_indexed_type<Indices, Args>... {};
+
+/// @private Deduce the matching indexed base in an unevaluated expression.
+template <size_t Index, typename T>
+_tp_indexed_type<Index, T> _tp_select_type(const _tp_indexed_type<Index, T> *);
+
+/// @private
+template <size_t Index, typename... Args>
+using _tp_pack_element_t = typename decltype(_tp_select_type<Index>(
+    static_cast<const _tp_indexed_types<std::index_sequence_for<Args...>, Args...> *>(
+        nullptr)))::type;
+
+#endif
+
+/// @private
+template <size_t I, typename C, typename Indices>
 struct _tp_cut_helper;
 
 /// @private
-template <size_t I, size_t N, typename T, typename... Args>
-struct _tp_cut_helper<std::enable_if_t<N != 0, void>, I, N, T, Args...> {
-    using type = typename _tp_cut_helper<void, I - 1, N, Args...>::type;
-};
-
-/// @private
-template <size_t I, size_t N, typename T, typename... Args>
-struct _tp_cut_helper<std::enable_if_t<N == 0, void>, I, N, T, Args...> {
-    using type = tp_list<>;
-};
-
-/// @private
-template <size_t N, typename... Args2>
-struct _tp_cut_helper2;
-
-/// @private
-template <size_t N, typename T, typename... Args>
-struct _tp_cut_helper2<N, T, Args...> {
-    using type = tp_push_front_t<typename _tp_cut_helper2<N - 1, Args...>::type, T>;
-};
-
-/// @private
-template <typename... Args>
-struct _tp_cut_helper2<0, Args...> {
-    using type = tp_list<>;
-};
-
-/// @private
-template <typename T, typename... Args>
-struct _tp_cut_helper2<0, T, Args...> {
-    using type = tp_list<>;
-};
-
-/// @private
-template <size_t N, typename... Args>
-struct _tp_cut_helper<std::enable_if_t<N != 0>, 0, N, Args...> {
-    using type = typename _tp_cut_helper2<N, Args...>::type;
-};
-
-/// @private
-template <size_t N, typename T, typename... Args>
-struct _tp_cut_helper<std::enable_if_t<N != 0>, 0, N, T, Args...> {
-    using type = typename _tp_cut_helper2<N, T, Args...>::type;
+template <size_t I, template <typename...> typename C, typename... Args, size_t... Indices>
+struct _tp_cut_helper<I, C<Args...>, std::index_sequence<Indices...>> {
+    using type = C<_tp_pack_element_t<I + Indices, Args...>...>;
 };
 
 template <typename T, template <typename...> typename U>
@@ -218,7 +213,7 @@ struct tp_cut;
 template <template <typename...> typename C, typename... Args, size_t I, size_t N>
 struct tp_cut<C<Args...>, I, N> {
     static_assert(N <= sizeof...(Args) && I <= (sizeof...(Args) - N), "tp_cut: invalid index");
-    using type = tp_rename_t<typename _tp_cut_helper<void, I, N, Args...>::type, C>;
+    using type = typename _tp_cut_helper<I, C<Args...>, std::make_index_sequence<N>>::type;
 };
 
 /// @brief f(L<Args...>, I, N) -> L<Args[I ~ I + N - 1]>
@@ -239,22 +234,6 @@ struct tp_pop_back : tp_cut<T, 0, tp_size_v<T> - 1> {};
 template <typename T>
 using tp_pop_back_t = typename tp_pop_back<T>::type;
 
-/// @private
-template <size_t index, typename... Args>
-struct _tp_at_helper;
-
-/// @private
-template <size_t index, typename T, typename... Args>
-struct _tp_at_helper<index, T, Args...> {
-    using type = typename _tp_at_helper<index - 1, Args...>::type;
-};
-
-/// @private
-template <typename T, typename... Args>
-struct _tp_at_helper<0, T, Args...> {
-    using type = T;
-};
-
 //
 template <typename T, size_t index>
 struct tp_at;
@@ -262,7 +241,7 @@ struct tp_at;
 template <template <typename... Args> typename C, typename... Args, size_t index>
 struct tp_at<C<Args...>, index> {
     static_assert(index < sizeof...(Args), "tp_at: invalid index");
-    using type = typename _tp_at_helper<index, Args...>::type;
+    using type = _tp_pack_element_t<index, Args...>;
 };
 
 /// @brief f(L<Args...>, index) - > Args(index)
