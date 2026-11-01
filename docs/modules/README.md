@@ -91,6 +91,9 @@ compact representation and its consumer are not implemented.
 对象容器的精确类型 copy/move、PMR 资源归属及标准 map/unordered_map 互操作见
 [JSON object 转换](json-object-conversion.md)。
 
+显式包含 `<wjr/json/optional.hpp>` 后，可用 `value_to<T>` 完整投影含 nullable 字段的
+注册结构与容器；null、借用和 allocator 合同见 [nullable 转换](json-nullable-conversion.md)。
+
 ## `wjr::ring_buffer`
 
 环形缓冲区容器，适合先进先出、固定容量或连续生产消费场景。
