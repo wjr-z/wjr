@@ -98,8 +98,17 @@ struct append_allocator {
     friend bool operator==(const append_allocator &, const append_allocator &) = default;
 };
 
-enum class operation { range, fill, resize_fill, resize_default, append_default };
-enum class failure { allocation, copy, move, default_constructor, hook };
+enum class operation {
+    range,
+    fill,
+    resize_fill,
+    resize_default,
+    append_default,
+    fill_insert,
+    fill_replace,
+    range_replace
+};
+enum class failure { allocation, copy, move, default_constructor, hook, assignment };
 
 template <typename Vector>
 void verify_failure(operation op, failure mode, int budget, std::size_t initial = 3) {
@@ -139,6 +148,24 @@ void verify_failure(operation op, failure mode, int budget, std::size_t initial 
                 case operation::append_default:
                     target.append(8, wjr::default_construct);
                     break;
+                case operation::fill_insert:
+                case operation::fill_replace:
+                case operation::range_replace:
+                    if constexpr (std::is_copy_assignable_v<value_type> &&
+                                  std::is_move_assignable_v<value_type>) {
+                        if (op == operation::fill_insert) {
+                            target.insert(target.cbegin() + 1, 8, fill_source);
+                        } else if (op == operation::fill_replace) {
+                            target.replace(target.cbegin() + 1, target.cbegin() + 2, 8,
+                                           fill_source);
+                        } else {
+                            target.replace(target.cbegin() + 1, target.cbegin() + 2, source.begin(),
+                                           source.end());
+                        }
+                    } else {
+                        ADD_FAILURE() << "Bulk insertion/replacement needs assignable fixtures";
+                    }
+                    break;
                 }
             };
             if (mode == failure::allocation) {
@@ -159,9 +186,16 @@ void verify_failure(operation op, failure mode, int budget, std::size_t initial 
                 }
             }
             append();
-            ASSERT_EQ(target.size(), initial + 8);
-            const int expected = op == operation::fill || op == operation::resize_fill ? 99 : 17;
-            for (std::size_t i = initial; i != target.size(); ++i) {
+            const bool replacing = op == operation::fill_replace || op == operation::range_replace;
+            const bool middle = replacing || op == operation::fill_insert;
+            ASSERT_EQ(target.size(), initial + 8 - (replacing ? 1 : 0));
+            const int expected = op == operation::fill || op == operation::resize_fill ||
+                                         op == operation::fill_insert ||
+                                         op == operation::fill_replace
+                                     ? 99
+                                     : 17;
+            const auto start = middle ? 1 : initial;
+            for (std::size_t i = start; i != start + 8; ++i) {
                 EXPECT_EQ(target[i].value, expected);
             }
         }
@@ -244,6 +278,276 @@ struct emplace_value : append_value<ThrowingMove> {
         return *this;
     }
 };
+
+/** @brief Enable copy assignment only for the bulk modifiers that require it. */
+template <bool ThrowingMove>
+struct bulk_value : emplace_value<ThrowingMove> {
+    using base = emplace_value<ThrowingMove>;
+    using base::base;
+    bulk_value() = default;
+    bulk_value(const bulk_value &) = default;
+    bulk_value(bulk_value &&) noexcept(!ThrowingMove) = default;
+    bulk_value &operator=(const bulk_value &other) {
+        consume(this->state->assignment_budget);
+        this->value = other.value;
+        return *this;
+    }
+    bulk_value &operator=(bulk_value &&other) {
+        base::operator=(std::move(other));
+        return *this;
+    }
+};
+
+TEST(vector_bulk_rollback, growth_allocation_and_incoming_failures_keep_ownership) {
+    using value = bulk_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 4, append_allocator<value>>;
+    for (const auto op :
+         {operation::fill_insert, operation::fill_replace, operation::range_replace}) {
+        verify_failure<vector>(op, failure::allocation, 0);
+        verify_failure<small>(op, failure::allocation, 0);
+        for (int budget = 0; budget != 8; ++budget) {
+            verify_failure<vector>(op, failure::copy, budget);
+            verify_failure<small>(op, failure::copy, budget);
+        }
+    }
+}
+
+TEST(vector_bulk_rollback, every_surviving_element_move_cleans_completed_regions) {
+    using value = bulk_value<true>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    for (const auto op :
+         {operation::fill_insert, operation::fill_replace, operation::range_replace}) {
+        const auto moves = op == operation::fill_insert ? 3 : 2;
+        for (int budget = 0; budget != moves; ++budget) {
+            verify_failure<vector>(op, failure::move, budget);
+        }
+    }
+}
+
+TEST(vector_bulk_rollback, every_allocator_hook_cleans_completed_regions) {
+    using value = bulk_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 4, append_allocator<value>>;
+    for (const auto op :
+         {operation::fill_insert, operation::fill_replace, operation::range_replace}) {
+        const bool inserting = op == operation::fill_insert;
+        for (int budget = 0; budget != (inserting ? 11 : 10); ++budget) {
+            verify_failure<vector>(op, failure::hook, budget);
+        }
+        for (int budget = 0; budget != (inserting ? 11 : 10); ++budget) {
+            verify_failure<small>(op, failure::hook, budget);
+        }
+    }
+}
+
+template <typename Vector>
+void verify_spare_bulk_failure(operation op, failure mode, int budget, bool large) {
+    append_state state;
+    active_scope scope(state);
+    {
+        using value = typename Vector::value_type;
+        std::array<value, 8> source;
+        value fill_source(state, 99);
+        const auto allocator = [&] {
+            using type = typename Vector::allocator_type;
+            if constexpr (std::is_constructible_v<type, append_state &>)
+                return type(state);
+            else
+                return type();
+        }();
+        Vector target(typename Vector::size_type(16), wjr::in_place_reserve, allocator);
+        for (int i = 0; i != 6; ++i)
+            target.emplace_back(state, i);
+        auto *const data = target.data();
+        const auto capacity = target.capacity();
+        const auto blocks = state.allocations - state.deallocations;
+        const int count = large ? 8 : (op == operation::fill_insert ? 2 : 3);
+        const auto modify = [&] {
+            if (op == operation::fill_insert)
+                target.insert(target.cbegin() + 1, count, fill_source);
+            else if (op == operation::fill_replace)
+                target.replace(target.cbegin() + 1, target.cbegin() + 2, count, fill_source);
+            else
+                target.replace(target.cbegin() + 1, target.cbegin() + 2, source.begin(),
+                               source.begin() + count);
+        };
+        state.copy_budget = mode == failure::copy ? budget : -1;
+        state.move_budget = mode == failure::move ? budget : -1;
+        state.hook_budget = mode == failure::hook ? budget : -1;
+        state.assignment_budget = mode == failure::assignment ? budget : -1;
+        EXPECT_THROW(modify(), std::runtime_error);
+        state.copy_budget = state.move_budget = state.hook_budget = state.assignment_budget = -1;
+        EXPECT_EQ(target.size(), 6);
+        EXPECT_EQ(target.data(), data);
+        EXPECT_EQ(target.capacity(), capacity);
+        EXPECT_EQ(state.allocations - state.deallocations, blocks);
+        EXPECT_EQ(state.live, 15);
+        modify();
+        ASSERT_EQ(target.size(), 6 + count - (op == operation::fill_insert ? 0 : 1));
+        for (int i = 1; i != count + 1; ++i)
+            EXPECT_EQ(target[i].value, op == operation::range_replace ? 17 : 99);
+    }
+    EXPECT_EQ(state.live, 0);
+    EXPECT_EQ(state.allocations, state.deallocations);
+    EXPECT_EQ(state.created, state.destroyed);
+}
+
+TEST(vector_bulk_rollback, spare_capacity_assignment_owns_the_entire_uncommitted_tail) {
+    using value = bulk_value<false>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small = wjr::small_vector<value, 16, append_allocator<value>>;
+    using inplace = wjr::inplace_vector<value, 16>;
+    for (const auto op :
+         {operation::fill_insert, operation::fill_replace, operation::range_replace})
+        for (const bool large : {false, true})
+            for (int budget = 0; budget != 5; ++budget) {
+                verify_spare_bulk_failure<vector>(op, failure::assignment, budget, large);
+                verify_spare_bulk_failure<small>(op, failure::assignment, budget, large);
+                verify_spare_bulk_failure<inplace>(op, failure::assignment, budget, large);
+            }
+}
+
+TEST(vector_bulk_rollback, spare_capacity_construction_and_hook_failures_clean_both_regions) {
+    using value = bulk_value<true>;
+    using vector = wjr::vector<value, append_allocator<value>>;
+    using small_value = bulk_value<false>;
+    using small = wjr::small_vector<small_value, 16, append_allocator<small_value>>;
+    for (const auto op :
+         {operation::fill_insert, operation::fill_replace, operation::range_replace}) {
+        for (const bool large : {false, true}) {
+            const bool fill = op != operation::range_replace;
+            const auto copies = (fill ? 1 : 0) + (large ? 3 : 0);
+            const auto moves = large ? (op == operation::fill_insert ? 5 : 4) : 2;
+            for (const auto mode : {failure::copy, failure::move, failure::hook}) {
+                const auto count = mode == failure::copy   ? copies
+                                   : mode == failure::move ? moves
+                                                           : copies + moves;
+                for (int budget = 0; budget != count; ++budget) {
+                    verify_spare_bulk_failure<vector>(op, mode, budget, large);
+                    if (mode != failure::move)
+                        verify_spare_bulk_failure<small>(op, mode, budget, large);
+                }
+            }
+        }
+    }
+}
+
+struct throwing_bulk_iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = bulk_value<false>;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+    pointer current;
+    int *budget;
+    reference operator*() const noexcept { return *current; }
+    throwing_bulk_iterator &operator++() {
+        consume(*budget);
+        ++current;
+        return *this;
+    }
+    throwing_bulk_iterator operator++(int) {
+        auto old = *this;
+        ++*this;
+        return old;
+    }
+    friend bool operator==(const throwing_bulk_iterator &,
+                           const throwing_bulk_iterator &) = default;
+};
+
+TEST(vector_bulk_rollback, forward_source_increment_failure_destroys_its_completed_copy) {
+    for (int budget = 0; budget != 8; ++budget) {
+        append_state state;
+        active_scope scope(state);
+        {
+            std::array<bulk_value<false>, 8> source;
+            wjr::vector<bulk_value<false>, append_allocator<bulk_value<false>>> target{
+                append_allocator<bulk_value<false>>(state)};
+            for (int i = 0; i != 3; ++i)
+                target.emplace_back(state, i);
+            /** @note The first eight increments measure the forward range. */
+            int remaining = 8 + budget;
+            EXPECT_THROW(
+                target.replace(target.cbegin() + 1, target.cbegin() + 2,
+                               throwing_bulk_iterator{source.data(), &remaining},
+                               throwing_bulk_iterator{source.data() + source.size(), &remaining}),
+                std::runtime_error);
+            EXPECT_EQ(target.size(), 3);
+            EXPECT_EQ(state.live, 11);
+            for (int i = 0; i != 3; ++i)
+                EXPECT_EQ(target[i].value, i);
+        }
+        EXPECT_EQ(state.live, 0);
+        EXPECT_EQ(state.allocations, state.deallocations);
+        EXPECT_EQ(state.created, state.destroyed);
+    }
+}
+
+TEST(vector_bulk_rollback, move_only_replacement_keeps_old_objects_and_destroys_removed_owners) {
+    using owner = std::unique_ptr<token>;
+    for (int budget = 0; budget != 10; ++budget) {
+        append_state state;
+        {
+            std::array<owner, 8> source;
+            for (auto &element : source)
+                element = std::make_unique<token>(state);
+            wjr::vector<owner, append_allocator<owner>> target(3, wjr::in_place_reserve,
+                                                               append_allocator<owner>(state));
+            for (int i = 0; i != 3; ++i)
+                target.push_back(std::make_unique<token>(state));
+            state.hook_budget = budget;
+            EXPECT_THROW(target.replace(target.cbegin() + 1, target.cbegin() + 2,
+                                        std::make_move_iterator(source.begin()),
+                                        std::make_move_iterator(source.end())),
+                         std::runtime_error);
+            state.hook_budget = -1;
+            EXPECT_EQ(target.size(), 3);
+            EXPECT_EQ(state.created - state.destroyed, 3);
+            EXPECT_EQ(state.tokens, budget < 8 ? 11 - budget : budget == 8 ? 3 : 2);
+        }
+        EXPECT_EQ(state.tokens, 0);
+        EXPECT_EQ(state.allocations, state.deallocations);
+        EXPECT_EQ(state.created, state.destroyed);
+    }
+    append_state state;
+    {
+        std::array<owner, 3> source;
+        for (auto &element : source)
+            element = std::make_unique<token>(state);
+        wjr::vector<owner> target(3, wjr::in_place_reserve);
+        for (int i = 0; i != 3; ++i)
+            target.push_back(std::make_unique<token>(state));
+        target.replace(target.cbegin() + 1, target.cbegin() + 2,
+                       std::make_move_iterator(source.begin()),
+                       std::make_move_iterator(source.end()));
+        EXPECT_EQ(target.size(), 5);
+        EXPECT_EQ(state.tokens, 5);
+        for (const auto &element : target)
+            EXPECT_NE(element, nullptr);
+    }
+    EXPECT_EQ(state.tokens, 0);
+}
+
+TEST(vector_bulk_rollback, aliased_fill_value_is_copied_before_old_values_are_moved) {
+    for (const bool spare : {false, true}) {
+        wjr::vector<std::string> inserted(3, wjr::in_place_reserve);
+        inserted.append({"first long value beyond SSO", "second long value beyond SSO", "tail"});
+        auto replaced = inserted;
+        if (spare) {
+            inserted.reserve(16);
+            replaced.reserve(16);
+        }
+        inserted.insert(inserted.cbegin() + 1, 8, inserted.front());
+        replaced.replace(replaced.cbegin() + 1, replaced.cbegin() + 2, 8, replaced.front());
+        for (int i = 1; i != 9; ++i) {
+            EXPECT_EQ(inserted[i], "first long value beyond SSO");
+            EXPECT_EQ(replaced[i], "first long value beyond SSO");
+        }
+        EXPECT_EQ(inserted.back(), "tail");
+        EXPECT_EQ(replaced.back(), "tail");
+    }
+}
 
 enum class emplace_site { back, middle, end };
 
