@@ -319,4 +319,66 @@ TEST(CompactBtree, RelocatableMoveOnlyValuesAndDuplicateConstruction) {
     EXPECT_EQ(position->second.value, 20);
     EXPECT_EQ(counted::live, live);
 }
+
+template <bool Compact, size_t N>
+void exercise_right_edge() {
+    using allocator = hook_allocator<char>;
+    using tree = std::conditional_t<
+        Compact, wjr::experimental::compact_btree_map<int, counted, std::less<int>, allocator, N>,
+        wjr::btree_map<int, counted, std::less<int>, allocator, N>>;
+    hook_state state;
+    {
+        tree values(std::less<int>{}, allocator(state, 17));
+        std::map<int, int> reference;
+        std::map<int, const counted *> addresses;
+        for (int cycle = 0; cycle < 3; ++cycle) {
+            for (int i = 0; i < 700; ++i) {
+                const int key = cycle * 1000 + i;
+                auto [position, inserted] = values.try_emplace(key, key * 3);
+                EXPECT_TRUE(inserted);
+                EXPECT_EQ(position->first, key);
+                EXPECT_EQ(position->second.value, key * 3);
+                EXPECT_EQ(position->second.self, &position->second);
+                reference.emplace(key, key * 3);
+                addresses.emplace(key, &position->second);
+                if ((i % 31) == 0)
+                    check(values, reference);
+            }
+            check(values, reference);
+            if constexpr (!Compact)
+                for (const auto &[key, value] : values)
+                    EXPECT_EQ(&value, addresses.at(key));
+            auto copied = values;
+            check(copied, reference);
+            tree moved(std::move(copied));
+            EXPECT_TRUE(copied.empty());
+            check(moved, reference);
+            for (int i = 0; i < 700; i += 3) {
+                const int key = cycle * 1000 + i;
+                EXPECT_EQ(values.erase(key), reference.erase(key));
+            }
+            check(values, reference);
+        }
+        while (!reference.empty()) {
+            const auto expected = reference.erase(reference.begin());
+            const auto next = values.erase(values.begin());
+            EXPECT_EQ(next == values.end(), expected == reference.end());
+            if (next != values.end())
+                EXPECT_EQ(next->first, expected->first);
+        }
+        EXPECT_TRUE(values.empty());
+    }
+    EXPECT_TRUE(state.values.empty());
+    EXPECT_TRUE(state.blocks.empty());
+    EXPECT_EQ(state.constructions, state.destructions);
+    EXPECT_EQ(counted::live, 0);
+}
+
+TEST(CompactBtree, SortedRightEdgeReusesSiblingAndSurvivesMutation) {
+    exercise_right_edge<true, 4>();
+    exercise_right_edge<true, 5>();
+    exercise_right_edge<true, 16>();
+    exercise_right_edge<true, 64>();
+    exercise_right_edge<false, 16>();
+}
 } // namespace

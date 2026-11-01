@@ -2466,6 +2466,25 @@ basic_btree<Traits>::_insert_iter(const_iterator iter, insert_type xval) noexcep
     iterator result;
     node_type *inst;
 
+    /// Fill the preceding sibling before splitting the global right edge during sorted ingest.
+    if (pos == node_size && leaf->next() == _get_sentry() && leaf->m_parent != nullptr &&
+        leaf->pos() != 0) {
+        auto *const parent = leaf->m_parent->as_inner();
+        auto *const previous = parent->m_sons[leaf->pos() - 1]->as_leaf();
+        const auto previous_size = static_cast<slot_usize_type>(-previous->size());
+        if (previous_size != node_size) {
+            const slot_usize_type moved = node_size - previous_size;
+            leaf->template copy<1, ceil_half>(0, moved, previous_size, previous, al);
+            leaf->template copy<floor_half, node_size - 1>(moved, node_size, 0, leaf, al);
+            const slot_usize_type insertion = node_size - moved;
+            previous->size() = -static_cast<slot_size_type>(node_size);
+            leaf->size() = -static_cast<slot_size_type>(insertion + 1);
+            leaf->assign(insertion, xval, al);
+            parent->m_keys[leaf->pos() - 1] = to_ikey(leaf->get_key(0));
+            return iterator(leaf, insertion);
+        }
+    }
+
     do {
         auto *const inst_leaf = _create_leaf_node();
         leaf->push_front(inst_leaf);
