@@ -2,6 +2,7 @@
 #include <wjr/container/btree_set.hpp>
 #include <wjr/container/experimental/btree_join.hpp>
 #include <wjr/container/experimental/btree_join_range.hpp>
+#include <wjr/container/experimental/btree_repack.hpp>
 #include <wjr/container/experimental/compact_btree_map.hpp>
 
 #include <algorithm>
@@ -93,6 +94,8 @@ struct owner {
     std::map<void *, std::pair<size_t, size_t>> blocks;
     size_t allocations = 0;
     size_t deallocations = 0;
+    size_t live_bytes = 0;
+    size_t peak_bytes = 0;
     size_t value_constructions = 0;
     size_t value_destructions = 0;
     size_t fail_allocation = 0;
@@ -117,6 +120,8 @@ struct owner_allocator {
         auto *ptr = std::allocator<T>{}.allocate(count);
         EXPECT_TRUE(state->blocks.emplace(ptr, std::pair{count, alignof(T)}).second);
         ++state->allocations;
+        state->live_bytes += count * sizeof(T);
+        state->peak_bytes = std::max(state->peak_bytes, state->live_bytes);
         if (state->observe)
             state->observe();
         return ptr;
@@ -131,6 +136,7 @@ struct owner_allocator {
             state->observe();
         state->blocks.erase(found);
         ++state->deallocations;
+        state->live_bytes -= count * sizeof(T);
         std::allocator<T>{}.deallocate(ptr, count);
     }
     template <typename U, typename... Args>
@@ -169,11 +175,14 @@ struct owner_allocator {
 struct alignas(64) payload {
     static inline int live = 0;
     static inline int moves = 0;
+    static inline std::function<void()> moving;
     const payload *self = this;
     int value;
     explicit payload(int value) noexcept : value(value) { ++live; }
     payload(const payload &) = delete;
     payload(payload &&other) noexcept : value(other.value) {
+        if (moving)
+            moving();
         EXPECT_EQ(other.self, &other);
         ++moves;
         ++live;
@@ -594,6 +603,139 @@ TEST(BtreeJoinRange, PreparationFailuresLeaveEverySourceUnchanged) {
         }
         EXPECT_TRUE(state.blocks.empty());
         EXPECT_EQ(payload::live, 0);
+    }
+}
+
+template <size_t N>
+void check_repack(int count) {
+    using allocator = owner_allocator<char>;
+    using tree = wjr::experimental::compact_btree_map<int, payload, std::less<>, allocator, N>;
+    owner state;
+    {
+        tree data(std::less<>{}, allocator(&state, 31));
+        for (int i = 0; i < count; ++i)
+            data.try_emplace(i, i);
+        const auto moves = payload::moves;
+        const auto constructions = state.value_constructions;
+        const auto destructions = state.value_destructions;
+        const auto allocations = state.allocations;
+        const auto before = state.live_bytes;
+        state.peak_bytes = before;
+        state.observe = [&] {
+            EXPECT_TRUE(data.empty() || data.size() == static_cast<size_t>(count));
+            if (!data.empty()) {
+                EXPECT_EQ(data.begin()->first, 0);
+                EXPECT_EQ(data.upper_bound(count - 1), data.end());
+                EXPECT_EQ(data.at(count / 2).value, count / 2);
+            }
+        };
+        payload::moving = [&] { EXPECT_TRUE(data.empty()); };
+        const bool changed = wjr::experimental::repack_compact_btree(data);
+        payload::moving = {};
+        state.observe = {};
+        EXPECT_EQ(data.size(), static_cast<size_t>(count));
+        EXPECT_EQ(data.get_allocator().identity, 31);
+        EXPECT_EQ(payload::moves - moves, changed ? count : 0);
+        EXPECT_EQ(state.value_constructions - constructions, changed ? count : 0);
+        EXPECT_EQ(state.value_destructions - destructions, changed ? count : 0);
+        if (changed) {
+            EXPECT_LT(state.live_bytes, before);
+            EXPECT_LT(state.peak_bytes, before * 2);
+        } else {
+            EXPECT_EQ(state.allocations, allocations);
+        }
+        for (int i = 0; i < count; ++i) {
+            const auto &value = data.at(i);
+            EXPECT_EQ(value.self, &value);
+            EXPECT_EQ(value.value, i);
+            EXPECT_EQ(reinterpret_cast<uintptr_t>(&value) % alignof(payload), 0);
+        }
+        const auto next_allocations = state.allocations;
+        EXPECT_FALSE(wjr::experimental::repack_compact_btree(data));
+        EXPECT_EQ(state.allocations, next_allocations);
+        while (!data.empty())
+            data.erase(data.begin());
+    }
+    EXPECT_TRUE(state.blocks.empty());
+    EXPECT_EQ(state.live_bytes, 0);
+    EXPECT_EQ(payload::live, 0);
+}
+
+TEST(BtreeRepack, TypedLifetimesMinimumLeavesAndPublicEmptyState) {
+    for (int count : {0, 1, 2, 3, 16, 17, 32, 33, 64, 150, 512, 4096})
+        check_repack<16>(count);
+    check_repack<4>(150);
+    check_repack<5>(150);
+    check_repack<64>(1000);
+}
+
+TEST(BtreeRepack, WorkspaceFailurePrecedesMutation) {
+    using allocator = owner_allocator<char>;
+    using traits = wjr::btree_detail::compact_map_traits<int, payload, std::less<>, allocator, 16>;
+    using tree = wjr::experimental::compact_btree_map<int, payload, std::less<>, allocator, 16>;
+    for (int failure = 0; failure < 4; ++failure) {
+        owner state;
+        {
+            tree data(std::less<>{}, allocator(&state, 31));
+            for (int i = 0; i < 512; ++i)
+                data.try_emplace(i, i);
+            const auto blocks = state.blocks;
+            const auto moves = payload::moves;
+            const auto constructions = state.value_constructions;
+            const auto destructions = state.value_destructions;
+            if (failure == 0) {
+                state.fail_allocation = state.allocations + 1;
+                EXPECT_THROW(wjr::experimental::repack_compact_btree(data), std::bad_alloc);
+            } else {
+                state.fail_construct_tag = construction_tag<typename traits::node_type *>();
+                state.fail_matching_construction = failure == 1 ? 1 : failure == 2 ? 16 : 32;
+                EXPECT_THROW(wjr::experimental::repack_compact_btree(data), std::runtime_error);
+            }
+            state.fail_allocation = 0;
+            state.fail_construct_tag = nullptr;
+            EXPECT_EQ(data.size(), 512);
+            EXPECT_EQ(state.blocks, blocks);
+            EXPECT_EQ(payload::moves, moves);
+            EXPECT_EQ(state.value_constructions, constructions);
+            EXPECT_EQ(state.value_destructions, destructions);
+            for (int i = 0; i < 512; ++i)
+                EXPECT_EQ(data.at(i).value, i);
+        }
+        EXPECT_TRUE(state.blocks.empty());
+        EXPECT_EQ(payload::live, 0);
+    }
+}
+
+TEST(BtreeRepack, ComparatorInstanceAndMappedResourceArePreserved) {
+    struct comparison {
+        bool reverse;
+        mutable int calls = 0;
+        bool operator()(int lhs, int rhs) const noexcept {
+            ++calls;
+            return reverse ? lhs > rhs : lhs < rhs;
+        }
+    };
+    std::pmr::unsynchronized_pool_resource resource;
+    using allocator = std::pmr::polymorphic_allocator<char>;
+    using tree = wjr::experimental::compact_btree_map<int, std::pmr::string, comparison, allocator>;
+    tree data(comparison{true}, allocator(&resource));
+    for (int i = 0; i < 512; ++i)
+        data.try_emplace(i, 96, static_cast<char>('a' + i % 20));
+    const auto *instance = &data.key_comp();
+    const auto calls = data.key_comp().calls;
+    EXPECT_TRUE(wjr::experimental::repack_compact_btree(data));
+    EXPECT_EQ(&data.key_comp(), instance);
+    EXPECT_EQ(data.key_comp().calls, calls);
+    EXPECT_TRUE(data.key_comp().reverse);
+    EXPECT_EQ(data.get_allocator().resource(), &resource);
+    for (int i = 0; i < 512; ++i) {
+        EXPECT_EQ(data.at(i).get_allocator().resource(), &resource);
+        EXPECT_EQ(data.at(i), std::pmr::string(96, static_cast<char>('a' + i % 20)));
+    }
+    int previous = 512;
+    for (const auto &value : data) {
+        EXPECT_LT(value.first, previous);
+        previous = value.first;
     }
 }
 } // namespace
