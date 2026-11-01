@@ -12,9 +12,9 @@
         "--frames",
         "5",
         "--output",
-        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-final-v3\\full\\raw.json",
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\full\\raw.json",
         "--manifest",
-        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-final-v3\\full\\raw.manifest.json"
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\full\\raw.manifest.json"
       ],
       "baseline_live_bytes": 131233,
       "checkpoint": {
@@ -32,11 +32,11 @@
       "ending_live_bytes": 165294,
       "exit_status": 0,
       "manifest": "full.manifest.json",
-      "manifest_sha256": "ef7f9508748d3f3396818cc8c765adc070115578e30b3ba50c84209abd6d5b8f",
+      "manifest_sha256": "142573116729f266618b975532e1050e20029195988d7d4407e87bb86a14c651",
       "name": "full",
       "net_retained_bytes": 34061,
       "raw": "full.json",
-      "raw_sha256": "274c9627473d39bac1b2d7989b65fa608e2d73acbf2065b54e0130c537ae57e4",
+      "raw_sha256": "a375206bec6d7fe146dbc7f8a3b50f991c15708cab1f447613b7205e3544c2bc",
       "stderr": "full.stderr.txt",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stdout": "full.stdout.txt",
@@ -50,9 +50,9 @@
         "--frames",
         "1",
         "--output",
-        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-final-v3\\truncated\\raw.json",
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\truncated\\raw.json",
         "--manifest",
-        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-final-v3\\truncated\\raw.manifest.json"
+        "D:\\repos\\.cache\\wjr\\profiler-tracemalloc-evidence-20261101\\capture-quality-final\\truncated\\raw.manifest.json"
       ],
       "baseline_live_bytes": 131233,
       "checkpoint": {
@@ -70,11 +70,11 @@
       "ending_live_bytes": 165342,
       "exit_status": 0,
       "manifest": "truncated.manifest.json",
-      "manifest_sha256": "a8556c8cd056b98cc7582e74f88a9bdac5a9b3da09a42e4b8333ae9ac0ee85d7",
+      "manifest_sha256": "462e94a4e98b16ee73b6b2365e28aa3625446e2d5fd5632f79c99b4945f8188a",
       "name": "truncated",
       "net_retained_bytes": 34109,
       "raw": "truncated.json",
-      "raw_sha256": "b74f4a3ec0ee6e63cad15aef8555b1a7f6b58c22fb49fecb10349229451ea2c3",
+      "raw_sha256": "05abbf8d116f22e41162c4fcb035d734b769dbb1083577c681fc5d00876c96e8",
       "stderr": "truncated.stderr.txt",
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stdout": "truncated.stdout.txt",
@@ -82,7 +82,7 @@
       "traceback_limit": 1
     }
   ],
-  "created_at": "2026-11-01T14:45:53.158499+00:00",
+  "created_at": "2026-11-01T15:01:28.432077+00:00",
   "implementation": "CPython",
   "interpreter": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
   "notes": [
@@ -100,10 +100,10 @@
   "python": "3.12.7",
   "real": true,
   "source_sha256": {
-    "devtools/profiler/tests/fixtures/tracemalloc/program.py": "cbcbe3659706a92edd12a5c9dd4d7475934239fe5383c9d9ea485a279ee78575",
-    "devtools/profiler/wjr_profiler/adapters/tracemalloc_json.py": "067cd3c27e22b4074bc9d7967da9a2e2d30caff69c2ac93264f1a3ba779977c3",
+    "devtools/profiler/tests/fixtures/tracemalloc/program.py": "a133d9c555520c136d31c105551bfe7fb764fd515bf0c20b95989e24ccd666ac",
+    "devtools/profiler/wjr_profiler/adapters/tracemalloc_json.py": "c744dbc994a6610f145ad3d8e7fec272833944bf4f2d28da853f7ffeefb29231",
     "devtools/profiler/wjr_profiler/exporters/cprofile_json.py": "ccc3f5654dfbb6d7b271e345b23e12a225231d0bc915531875b0b9474a614aba",
-    "devtools/profiler/wjr_profiler/exporters/tracemalloc_json.py": "0fa1def38c984184a19c1d870911b56beafbc18035e29743c066e0f93538c7f5",
+    "devtools/profiler/wjr_profiler/exporters/tracemalloc_json.py": "feda61acaea78b114b665883006c6070f7f2af7b9f6f56f915ec67c346bec7e4",
     "devtools/profiler/wjr_profiler/model.py": "1869b813925e17ba24fca9e0999622aad46ad6bcab184a87fda0ecfeb69af772"
   },
   "stdlib_tracemalloc_sha256": "488c28ad5fd084dd715986ea235928894f1b140ac880a5872655a99c97054dc2",

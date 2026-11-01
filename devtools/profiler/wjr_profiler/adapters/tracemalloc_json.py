@@ -139,10 +139,8 @@ def _contract(workload, raw):
             "manifest checkpoint scope does not match the raw checkpoint")
 
 
-def import_artifact(raw, manifest):
-    before, after = validate_document(raw)
-    sites = _site_rows(before, after)
-    quality, reason = _quality(raw, manifest)
+def _metrics(before, after, checkpoint):
+    """Assemble endpoint/difference values separately from optional checkpoint fields."""
     before_bytes = sum(row[1]["size_bytes"] for row in before.values())
     after_bytes = sum(row[1]["size_bytes"] for row in after.values())
     before_blocks = sum(row[1]["blocks"] for row in before.values())
@@ -155,11 +153,19 @@ def import_artifact(raw, manifest):
         ("ending_live_blocks", after_blocks, "blocks/snapshot", "measurement", ["/ending"]),
         ("net_retained_blocks", after_blocks - before_blocks, "blocks/snapshot-pair", "derived", ["/baseline", "/ending"]),
     ]
-    checkpoint = raw.get("checkpoint")
     for name in CHECKPOINT_FIELDS:
         metrics.append(("traced_" + name if name != "tracer_overhead_bytes" else name,
                         checkpoint[name] if checkpoint else None, "bytes/checkpoint", "measurement",
                         ["/checkpoint/" + name] if checkpoint else ["/checkpoint"]))
+    return metrics
+
+
+def import_artifact(raw, manifest):
+    before, after = validate_document(raw)
+    sites = _site_rows(before, after)
+    quality, reason = _quality(raw, manifest)
+    checkpoint = raw.get("checkpoint")
+    metrics = _metrics(before, after, checkpoint)
     observations, diagnostics = [], []
     for region in manifest["regions"]:
         require(region.get("snapshot_pair") == "baseline-to-ending", "region must explicitly select baseline-to-ending")

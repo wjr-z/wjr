@@ -164,31 +164,40 @@ class TracemallocTests(unittest.TestCase):
                 self.assertEqual(peak["quality"], "exploratory")
 
     def test_malformed_values_duplicates_and_limits_are_rejected(self):
-        def change(raw, name):
-            record = raw["baseline"]["records"][0]
-            if name == "schema": raw["schema"] += "x"
-            elif name == "domain": record["domain"] = -1
-            elif name == "domain-bool": record["domain"] = True
-            elif name == "domain-overflow": record["domain"] = 1 << 32
-            elif name == "size": record["size_bytes"] = -1
-            elif name == "size-float": record["size_bytes"] = 1.5
-            elif name == "count": record["blocks"] = 0
-            elif name == "count-bool": record["blocks"] = True
-            elif name == "frame": record["traceback"] = []
-            elif name == "line": record["traceback"][0]["line"] = -1
-            elif name == "depth": record["total_nframe"] = len(record["traceback"]) - 1
-            elif name == "missing-depth": del record["total_nframe"]
-            elif name == "duplicate": raw["baseline"]["records"].append(copy.deepcopy(record))
-            elif name == "limits": raw["ending"]["traceback_limit"] += 1
-            elif name == "small-limit": raw["baseline"]["traceback_limit"] = 0
-            elif name == "peak": raw["checkpoint"]["peak_bytes"] = raw["checkpoint"]["current_bytes"] - 1
-            elif name == "peak-nan": raw["checkpoint"]["peak_bytes"] = float("nan")
-            elif name == "checkpoint-domain": raw["checkpoint"]["domain_scope"] = "only-python"
-        for name in ("schema", "domain", "domain-bool", "domain-overflow", "size", "size-float", "count", "count-bool",
-                     "frame", "line", "depth", "missing-depth", "duplicate", "limits", "small-limit", "peak", "peak-nan", "checkpoint-domain"):
+        template, manifest = fixture()
+        record = template["baseline"]["records"][0]
+        prefix = ("baseline", "records", 0)
+        delete = object()
+        cases = [
+            ("schema", ("schema",), template["schema"] + "x"),
+            ("domain", prefix + ("domain",), -1),
+            ("domain-bool", prefix + ("domain",), True),
+            ("domain-overflow", prefix + ("domain",), 1 << 32),
+            ("size", prefix + ("size_bytes",), -1),
+            ("size-float", prefix + ("size_bytes",), 1.5),
+            ("count", prefix + ("blocks",), 0),
+            ("count-bool", prefix + ("blocks",), True),
+            ("frame", prefix + ("traceback",), []),
+            ("line", prefix + ("traceback", 0, "line"), -1),
+            ("depth", prefix + ("total_nframe",), len(record["traceback"]) - 1),
+            ("missing-depth", prefix + ("total_nframe",), delete),
+            ("duplicate", ("baseline", "records"), template["baseline"]["records"] + [record]),
+            ("limits", ("ending", "traceback_limit"), template["ending"]["traceback_limit"] + 1),
+            ("small-limit", ("baseline", "traceback_limit"), 0),
+            ("peak", ("checkpoint", "peak_bytes"), template["checkpoint"]["current_bytes"] - 1),
+            ("peak-nan", ("checkpoint", "peak_bytes"), float("nan")),
+            ("checkpoint-domain", ("checkpoint", "domain_scope"), "only-python"),
+        ]
+        for name, path, value in cases:
             with self.subTest(name=name):
-                raw, manifest = fixture()
-                change(raw, name)
+                raw = copy.deepcopy(template)
+                target = raw
+                for component in path[:-1]:
+                    target = target[component]
+                if value is delete:
+                    del target[path[-1]]
+                else:
+                    target[path[-1]] = copy.deepcopy(value)
                 with self.assertRaises(ValueError): import_artifact(raw, manifest)
 
     def test_manifest_policy_and_selector_cannot_relabel_raw_evidence(self):

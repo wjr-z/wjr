@@ -125,7 +125,7 @@ The owned [program](tests/fixtures/tracemalloc/program.py) runs twice on CPython
 3.12.7: `--frames 5` retains caller paths, and `--frames 1` records truncation.
 It keeps 64/96 KiB payloads from different callers of the same leaf, releases an
 earlier 128 KiB payload, and creates/frees a 768 KiB temporary. Payload sizes
-exclude object and harness overhead. Assertions verify survivors and a global
+exclude object and harness overhead. Explicit checks verify survivors and a global
 peak at least 700 KiB above checkpoint current storage. The temporary has no
 surviving traceback; its peak is not assigned to any caller by the report.
 

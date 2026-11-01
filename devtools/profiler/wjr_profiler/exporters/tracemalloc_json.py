@@ -68,7 +68,8 @@ def default_manifest(document, digest):
 
 def export_snapshots(baseline, ending, output_path, *, coverage="unknown", harness_policy="unknown",
                      epoch_policy="unknown", checkpoint=None, manifest_output=None):
-    """Export this producer's own same-epoch snapshots; caller declares selection/harness policy.
+    """
+    Export this producer's own same-epoch snapshots; caller declares selection/harness policy.
 
     A separately sampled checkpoint remains global and cannot be attributed to a
     traceback. Snapshot.dump/load are intentionally absent: that format is pickle.

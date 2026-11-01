@@ -99,7 +99,7 @@
         "traceback": [
           {
             "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
-            "line": 37
+            "line": 38
           }
         ]
       },

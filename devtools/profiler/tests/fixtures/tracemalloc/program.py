@@ -25,7 +25,8 @@ def right():
 
 def temporary():
     value = leaf(768 * 1024)
-    assert len(value) == 768 * 1024
+    if len(value) != 768 * 1024:
+        raise RuntimeError("temporary payload has the wrong size")
 
 
 def main(output, manifest, frames):
@@ -42,8 +43,10 @@ def main(output, manifest, frames):
                                    sampling_point="immediately before ending take_snapshot")
     after = tracemalloc.take_snapshot()
     tracemalloc.stop()
-    assert [len(value) for value in retained] == [64 * 1024, 96 * 1024]
-    assert checkpoint["peak_bytes"] - checkpoint["current_bytes"] >= 700 * 1024
+    if [len(value) for value in retained] != [64 * 1024, 96 * 1024]:
+        raise RuntimeError("retained payload sizes differ")
+    if checkpoint["peak_bytes"] - checkpoint["current_bytes"] < 700 * 1024:
+        raise RuntimeError("temporary allocation did not establish the expected global peak")
     export_snapshots(before, after, output,
         coverage="unfiltered owned snapshots; all supplied domains (fixture has domain 0)",
         harness_policy="baseline Snapshot and checkpoint helper allocations included; GC explicit; no subtraction",
