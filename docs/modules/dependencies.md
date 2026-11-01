@@ -66,5 +66,31 @@ owns their version and build compatibility.
 
 Installed binaries must match the compiler, CRT, linkage and instrumentation of
 the consuming build. A prebuilt benchmark library is not silently rebuilt with
-different sanitizer flags. GoogleTest's existing source/instrumentation policy is
-unchanged. No benchmark runtime or performance methodology changes here.
+different sanitizer flags. No benchmark runtime or performance methodology changes
+here.
+
+## GoogleTest
+
+Test builds reuse a parent-supplied `GTest::gtest_main` target first (including the
+upstream `gtest_main` name). The parent owns its version, CRT and instrumentation;
+WJR does not change that target or its source options.
+
+Otherwise, single-configuration Release, RelWithDebInfo and MinSizeRel builds
+without ASan or coverage search for an installed **1.17.0** config package. Point
+`CMAKE_PREFIX_PATH` or `GTest_DIR` at the package. A compile/link check exercises
+GoogleTest's registration, main and string ABI before accepting it. A missing,
+wrong-version or non-linkable package uses the existing pinned source fallback.
+This check cannot establish every ABI property; external packages must still match
+the compiler, architecture, linkage and other build settings of the tests.
+
+ASan, coverage, Debug, unspecified build types and multi-configuration generators
+keep building GoogleTest from source. This preserves the existing instrumentation
+and Windows CRT policy rather than assuming a prebuilt package matches it. An
+explicit `FETCHCONTENT_SOURCE_DIR_GOOGLETEST` or local `test/googletest` source tree
+also takes precedence over discovery. `CMAKE_DISABLE_FIND_PACKAGE_GTest=ON` or
+`FETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER` forces source selection unless the parent
+already supplies the target. These paths work with CMake 3.20.
+
+GoogleTest remains a private test dependency. A reused package is not copied into
+WJR's install prefix and is not required by installed WJR consumers. The source
+fallback retains upstream's existing installation behavior.

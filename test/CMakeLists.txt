@@ -31,36 +31,8 @@ else()
    message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
-if(WJR_ENABLE_ASAN AND WIN32)
-   # ASAN runtime uses static CRT (/MT); gtest must match.
-   set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
-else()
-   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-endif()
-
-set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-set(BUILD_GTEST ON CACHE BOOL "" FORCE)
-
-if(EXISTS googletest)
-   add_subdirectory(googletest)
-else()
-   FetchContent_Declare(
-      googletest
-      GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG v1.17.0
-   )
-
-   FetchContent_MakeAvailable(googletest)
-endif()
-
-if(WJR_ENABLE_ASAN)
-   # gtest must be compiled with -fsanitize=address so annotate_string matches wjr libs.
-   foreach(_gtest_target gtest gtest_main)
-      if(TARGET ${_gtest_target})
-         target_compile_options(${_gtest_target} PRIVATE -fsanitize=address)
-      endif()
-   endforeach()
-endif()
+include(${PROJECT_SOURCE_DIR}/cmake/wjrGTest.cmake)
+wjr_load_gtest()
 
 file(GLOB_RECURSE TEST_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 # Installed-package consumers have their own main and are built independently.
@@ -155,6 +127,17 @@ set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
    PROPERTIES LABELS configuration)
 
 FetchContent_GetProperties(cpu_features)
+foreach(_WJR_GTEST_MODE IN ITEMS installed preexisting alias bare bare-alias disabled
+   incompatible broken source never local asan coverage debug multi)
+   add_test(NAME wjr_gtest_${_WJR_GTEST_MODE}
+      COMMAND ${CMAKE_COMMAND}
+      -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gtest-provider
+      -B ${CMAKE_CURRENT_BINARY_DIR}/gtest-${_WJR_GTEST_MODE}
+      ${WJR_POLICY_CMAKE_ARGS}
+      -DMODE=${_WJR_GTEST_MODE}
+   )
+   set_tests_properties(wjr_gtest_${_WJR_GTEST_MODE} PROPERTIES LABELS configuration)
+endforeach()
 if(WJR_ARCH STREQUAL "x86")
    foreach(_WJR_CPU_PROVIDER_MODE IN ITEMS installed preexisting alias disabled incompatible source never)
       add_test(NAME wjr_cpu_provider_${_WJR_CPU_PROVIDER_MODE}
@@ -266,7 +249,7 @@ target_include_directories(tests PRIVATE ${GMP_INCLUDE_DIRS})
 target_link_libraries(tests
    PRIVATE
    wjr::wjr
-   gtest_main
+   GTest::gtest_main
    ${GMP_LIBRARIES}
 )
 
@@ -303,7 +286,7 @@ if(WJR_ENABLE_NP)
       list(FILTER NP_TEST_SRCS EXCLUDE REGEX "/cblas\\.cpp$")
    endif()
    add_executable(np_tests ${NP_TEST_SRCS})
-   target_link_libraries(np_tests PRIVATE wjr::np gtest_main)
+   target_link_libraries(np_tests PRIVATE wjr::np GTest::gtest_main)
    if(WJR_ENABLE_NP_CBLAS)
       target_link_libraries(np_tests PRIVATE wjr::np_cblas)
    endif()
@@ -316,7 +299,7 @@ endif()
 
 if(WJR_ENABLE_TBB)
    add_executable(tbb_tests parallel/tbb.cpp)
-   target_link_libraries(tbb_tests PRIVATE wjr::tbb gtest_main)
+   target_link_libraries(tbb_tests PRIVATE wjr::tbb GTest::gtest_main)
    add_test(NAME wjr_tbb_tests COMMAND tbb_tests)
    set_tests_properties(wjr_tbb_tests PROPERTIES LABELS unit)
 endif()
