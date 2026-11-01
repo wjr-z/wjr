@@ -25,9 +25,20 @@ uses the same moved-key insertion and default-constructs a mapped value only for
 a missing key. Compact insertion stages its value before relocating leaf slots,
 so a source can refer to an existing mapped value.
 
-The mapped source must construct the mapped type and support its assignment
-expression. No common-reference relation or particular assignment return type is
-required. Mapped assignment exceptions propagate; the mapped object's state
+The mapped source must construct the mapped type, either ordinarily or through
+the tree allocator's supported uses-allocator forms, and support its assignment
+expression. For example, a PMR mapped type may provide only
+`Mapped(std::allocator_arg_t, allocator_type, Source)` for construction and
+`operator=(Source)` for replacement. All key/hint overloads accept that source:
+missing keys construct with the target resource, while existing keys assign
+directly without allocating or constructing a temporary mapped value.
+Allocator-aware pair components are checked recursively, as for range insertion;
+the existence of an unconstrained PMR `construct` declaration alone does not
+admit a source. The compact map's existing nonthrowing relocation domain remains
+unchanged.
+
+No common-reference relation or particular assignment return type is required.
+Mapped assignment exceptions propagate; the mapped object's state
 follows its own assignment guarantee. Construction, allocation and comparisons
 inside the existing insertion engine retain its no-throw/termination contract;
 these additions do not provide std::map's exception guarantees.

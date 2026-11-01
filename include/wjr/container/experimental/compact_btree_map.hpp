@@ -169,7 +169,7 @@ public:
     mapped_type &operator[](key_type &&key) { return try_emplace(std::move(key)).first->second; }
 
     /// @brief Assign an existing mapped value, or insert a new const-key pair.
-    template <btree_detail::upsert_source<mapped_type> Source>
+    template <btree_detail::upsert_source<mapped_type, allocator_type> Source>
     std::pair<iterator, bool> insert_or_assign(const key_type &key, Source &&value) {
         auto result = try_emplace(key, std::forward<Source>(value));
         if (!result.second)
@@ -178,7 +178,7 @@ public:
     }
 
     /// @copydoc insert_or_assign(const key_type &, Source &&)
-    template <btree_detail::upsert_source<mapped_type> Source>
+    template <btree_detail::upsert_source<mapped_type, allocator_type> Source>
     std::pair<iterator, bool> insert_or_assign(key_type &&key, Source &&value) {
         auto result = try_emplace(std::move(key), std::forward<Source>(value));
         if (!result.second)
@@ -221,14 +221,14 @@ public:
     }
 
     /// @brief Assign or insert using a checked adjacent hint without consuming duplicates early.
-    template <btree_detail::upsert_source<mapped_type> Source>
+    template <btree_detail::upsert_source<mapped_type, allocator_type> Source>
     iterator insert_or_assign(const_iterator hint, const key_type &key, Source &&value) {
         auto result = this->_try_emplace_hint_unique(hint, key, std::forward<Source>(value));
         if (!result.second)
             result.first->second = std::forward<Source>(value);
         return result.first;
     }
-    template <btree_detail::upsert_source<mapped_type> Source>
+    template <btree_detail::upsert_source<mapped_type, allocator_type> Source>
     iterator insert_or_assign(const_iterator hint, key_type &&key, Source &&value) {
         auto result =
             this->_try_emplace_hint_unique(hint, std::move(key), std::forward<Source>(value));
