@@ -60,10 +60,20 @@ for cc in ['clang++-18','g++-13']:
             run(flags+[root/'test/consumer/stack_domain/main.cpp',host_mem,assertion,'-L'+str(build),'-lforeign','-Wl,-rpath,$ORIGIN','-o',build/'domain'],tag+'-'+version+'-host-build')
             if version=='new':
                 result=run([build/'domain'],tag+'-domain'); report['checks'].append({'name':tag+'-domain','result':result.returncode})
+                if asan:
+                    result=run([build/'domain','--pool-only'],tag+'-domain-heap-shadow',env=dict(os.environ,ASAN_OPTIONS='allow_user_poisoning=0:detect_leaks=1'))
+                    report['checks'].append({'name':tag+'-domain-heap-shadow','result':result.returncode})
             elif asan:
                 result=run([build/'domain','--pool-only'],tag+'-old-uaf',None,dict(os.environ,ASAN_OPTIONS='allow_user_poisoning=0:detect_leaks=0:halt_on_error=1'))
                 assert result.returncode!=0 and b'heap-use-after-free' in result.stdout
                 report['checks'].append({'name':tag+'-old-uaf','result':result.returncode,'heap_use_after_free':True})
+            if asan:
+                thread_probe=out/'thread_probe.cpp'
+                thread_probe.write_text('#include <wjr/memory/stack_allocator.hpp>\n#include <thread>\nint main() {std::thread([] {wjr::unique_stack_allocator owner; *static_cast<volatile unsigned char*>(owner.allocate(1024))=1;}).join();}\n')
+                run(flags+[thread_probe,host_mem,assertion,'-pthread','-o',build/'thread_probe'],tag+'-'+version+'-thread-build')
+                result=run([build/'thread_probe'],tag+'-'+version+'-thread-leaks',None,dict(os.environ,ASAN_OPTIONS='detect_leaks=1'))
+                assert (result.returncode!=0 and b'LeakSanitizer: detected memory leaks' in result.stdout) if version=='old' else result.returncode==0
+                report['checks'].append({'name':tag+'-'+version+'-thread-leaks','result':result.returncode,'expected':1 if version=='old' else 0})
             if not asan:
                 run(flags+[bench,host_mem,assertion,'-o',build/'bench'],tag+'-'+version+'-bench-build')
                 (build/'flags.json').write_text(json.dumps(flags))
