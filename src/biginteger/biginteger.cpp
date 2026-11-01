@@ -11,15 +11,15 @@ from_chars_result<const char *> _from_chars_impl(const char *first, const char *
     const auto *_first = first;
 
     do {
+        if constexpr (Check) {
+            first = skip_whitespace(first, last);
+        }
         if (WJR_UNLIKELY(first == last)) {
             break;
         }
 
         uint8_t ch = *first;
-
-        if constexpr (Check) {
-            first = skip_whitespace(first, last);
-        } else {
+        if constexpr (!Check) {
             WJR_ASSERT(!charconv_detail::isspace(ch));
         }
 
@@ -38,22 +38,13 @@ from_chars_result<const char *> _from_chars_impl(const char *first, const char *
                 base = 10;
                 if (ch == '0') {
                     base = 8;
-                    if (++first == last) {
-                        break;
-                    }
-
-                    ch = *first;
-                    if (ch == 'x' || ch == 'X') {
-                        base = 16;
-                        if (++first == last) {
-                            break;
-                        }
-
-                        ch = *first;
-                    } else {
-                        if (ch == 'b' || ch == 'B') {
-                            base = 2;
-                            if (++first == last) {
+                    /// Keep a leading octal zero in the digit scan unless a prefix follows it.
+                    if (last - first >= 2) {
+                        const uint8_t next = first[1];
+                        if (next == 'x' || next == 'X' || next == 'b' || next == 'B') {
+                            base = next == 'x' || next == 'X' ? 16 : 2;
+                            first += 2;
+                            if (first == last) {
                                 break;
                             }
 
@@ -115,12 +106,22 @@ from_chars_result<const char *> _from_chars_impl(const char *first, const char *
                         } while (last - first >= 8);
                     }
 
-                    ch = *first;
-                    if (_try_match(ch)) {
-                        do {
-                            ++first;
+                    if constexpr (Check) {
+                        while (first != last) {
                             ch = *first;
-                        } while (_try_match(ch));
+                            if (!_try_match(ch)) {
+                                break;
+                            }
+                            ++first;
+                        }
+                    } else {
+                        ch = *first;
+                        if (_try_match(ch)) {
+                            do {
+                                ++first;
+                                ch = *first;
+                            } while (_try_match(ch));
+                        }
                     }
                 }
             } else {

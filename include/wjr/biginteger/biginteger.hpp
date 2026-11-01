@@ -1158,6 +1158,11 @@ void _powmod_impl(basic_biginteger<S> *dst, const biginteger_view *num, uint64_t
 
 } // namespace biginteger_detail
 
+/**
+ * @brief Parse the bounded range [first, last), without requiring a null terminator.
+ * Leading whitespace and an optional minus sign are recognized.
+ * @return The first unconverted character, never beyond last, and the conversion error.
+ */
 template <typename S>
 from_chars_result<const char *> from_chars(const char *first, const char *last,
                                            basic_biginteger<S> &dst,
