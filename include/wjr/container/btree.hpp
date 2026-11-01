@@ -57,6 +57,15 @@ concept transparent_lookup =
     std::predicate<const Compare &, const Key &, const Lookup &> &&
     std::predicate<const Compare &, const Lookup &, const Key &>;
 
+/// @brief Borrow a comparable insertion key until constructing its owned representation.
+/// @pre The constructed key has the same ordering/equivalence as the query.
+template <typename Query, typename Compare, typename Key, typename Alloc, typename Iterator>
+concept transparent_update = transparent_lookup<Compare, Key, remove_cvref_t<Query>> &&
+                             !std::convertible_to<Query &&, Iterator> && std::destructible<Key> &&
+                             (std::constructible_from<Key, Query &&> ||
+                              (!is_trivially_allocator_construct_v<Alloc, Key, Query &&> &&
+                               range_allocator_arguments<Key, Alloc, Query &&>()));
+
 /// @brief Admit transparent erase queries without taking the iterator erase overload.
 template <typename Lookup, typename Compare, typename Key, typename Iterator>
 concept transparent_erase_lookup =
@@ -1160,7 +1169,8 @@ protected:
         return iterator(iter);
     }
 
-    WJR_INTRINSIC_INLINE const_iterator _get_insert_multi_pos(const key_type &key) const noexcept {
+    template <typename Lookup>
+    WJR_INTRINSIC_INLINE const_iterator _get_insert_multi_pos(const Lookup &key) const noexcept {
         return _search<true, false>(key);
     }
 
@@ -1181,7 +1191,8 @@ protected:
 
     /// @brief Validate the hinted gap and its immediate neighbor before using root search.
     /// @pre hint is a valid iterator belonging to this tree, including end().
-    _hint_position _locate_hint(const_iterator hint, const key_type &key) noexcept {
+    template <typename Lookup>
+    _hint_position _locate_hint(const_iterator hint, const Lookup &key) noexcept {
         if (empty())
             return {hint, false};
         const auto &compare = key_comp();
@@ -1331,13 +1342,41 @@ protected:
         }
     }
 
+    /// @brief Construct at an already searched position, preserving implicit conversion failures.
+    template <typename KeyArg, typename... Args>
+    WJR_INTRINSIC_INLINE std::pair<iterator, bool> _emplace_key_at(const const_iterator &position,
+                                                                   KeyArg &&key, Args &&...args) {
+        if constexpr (!std::same_as<remove_cvref_t<KeyArg>, key_type> &&
+                      std::convertible_to<KeyArg &&, key_type> &&
+                      std::is_move_constructible_v<key_type> &&
+                      !std::is_nothrow_constructible_v<key_type, KeyArg &&>) {
+            /// Old implicit conversions ran before entering the insertion engine's noexcept path.
+            key_type owned(std::forward<KeyArg>(key));
+            return _emplace_key_at(position, std::move(owned), std::forward<Args>(args)...);
+        } else if constexpr (compact_slots) {
+            btree_detail::compact_temporary<value_type, _Alty> value(
+                _get_allocator(), std::piecewise_construct,
+                std::forward_as_tuple(std::forward<KeyArg>(key)),
+                std::forward_as_tuple(std::forward<Args>(args)...));
+            return {_insert_iter(position, value.get()), true};
+        } else {
+            ivalue_type value = _create_node(std::piecewise_construct,
+                                             std::forward_as_tuple(std::forward<KeyArg>(key)),
+                                             std::forward_as_tuple(std::forward<Args>(args)...));
+            return {_insert_iter(position, value), true};
+        }
+    }
+
     template <typename KeyArg, typename... Args>
     std::pair<iterator, bool> _try_emplace_hint_unique(const_iterator hint, KeyArg &&key,
                                                        Args &&...args) {
         const auto location = _locate_hint(hint, key);
         if (location.duplicate)
             return {iterator(location.position), false};
-        if constexpr (compact_slots) {
+        if constexpr (!std::same_as<remove_cvref_t<KeyArg>, key_type>) {
+            return _emplace_key_at(location.position, std::forward<KeyArg>(key),
+                                   std::forward<Args>(args)...);
+        } else if constexpr (compact_slots) {
             btree_detail::compact_temporary<value_type, _Alty> value(
                 _get_allocator(), std::piecewise_construct,
                 std::forward_as_tuple(std::forward<KeyArg>(key)),
@@ -1358,7 +1397,8 @@ protected:
         return _insert_iter(iter, xval);
     }
 
-    WJR_INTRINSIC_INLINE bool _same_insert_key(const_iterator iter, const key_type &key) noexcept {
+    template <typename Lookup>
+    WJR_INTRINSIC_INLINE bool _same_insert_key(const_iterator iter, const Lookup &key) noexcept {
         auto pos = iter.pos();
         return pos != 0 && !key_comp()(iter.get_leaf()->get_key(pos - 1), key);
     }
@@ -1469,6 +1509,16 @@ protected:
                              std::forward_as_tuple(std::forward<Args>(args)...));
             return {_insert_iter(iter, xval), true};
         }
+    }
+
+    /// @brief Search a borrowed key before constructing either key or mapped value.
+    template <typename Lookup, typename... Args>
+    requires btree_detail::transparent_update<Lookup, key_compare, key_type, _Alty, const_iterator>
+    std::pair<iterator, bool> _try_emplace_unique(Lookup &&key, Args &&...args) {
+        const_iterator iter = _get_insert_multi_pos(key);
+        if (WJR_UNLIKELY(_same_insert_key(iter, key)))
+            return {_get_same_iterator(iter), false};
+        return _emplace_key_at(iter, std::forward<Lookup>(key), std::forward<Args>(args)...);
     }
 
 public:

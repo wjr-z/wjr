@@ -55,3 +55,45 @@ const bool available = enabled.count(path) != 0;
 查询值类型仅传播到已有搜索和等价性检查模板；节点形状、Key/value 的 inline/indirect
 表示、线性/混合/二分搜索选择以及插入的 Key 路径保持不变。
 新重载没有类型擦除、运行期类型分派或保存查询状态。
+
+## 借用 key 完成 map 更新
+
+普通 map 和 compact map 的透明比较器还支持借用查询的 `try_emplace`、
+`insert_or_assign`、`operator[]`，以及前两者的 hint 重载。例如从请求路径累计计数：
+
+```cpp
+wjr::btree_map<std::string, unsigned, std::less<>> requests;
+std::string_view path = "/api/v1/warehouses/inventory/availability";
+++requests[path];
+requests.try_emplace(path, 0); // 已存在时不构造 string 或 mapped。
+requests.insert_or_assign(path, 7);
+```
+
+查询先沿已有搜索或 hint 路径定位。仅当键不存在时，才将查询完美转发给 owned Key
+的构造；树不会保存借用视图。已有键的 `insert_or_assign` 直接赋值，`operator[]`
+不构造默认 mapped。`string_view` 保留显式长度（包括内嵌零字符），不会自动转成
+C string；自定义透明比较器收到原查询类型，不进行语义归一化。
+
+这些重载在 C++20 即可使用，接口参考
+[P2363R5 的异构关联容器更新](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2363r5.html)。
+它们要求透明标记、Key/Query 双向比较、可用的普通或受支持 allocator-extended Key
+构造，并排除 iterator 查询以保留 hint 重载解析。所有原有 Key 重载保留；compact
+仍只接受原先允许的 scalar Key 和非抛迁移 mapped 类型，不因此支持 string 存储。
+
+**调用前提：查询转换成 Key 后必须保持相同的排序/等价关系。** 例如转换会截断数值，
+或自定义 Key 构造会改变比较结果的查询，不满足该合同。比较器仍不得抛出；构造、
+分配及插入继续服从已有引擎的终止域，不新增标准 map 的异常保证或稳定引用承诺。
+正确 hint 避免 root search，错误 hint 仍回退，算法本身未改。
+
+原本通过隐式转换调用 Key 重载的查询，其转换异常继续在进入 noexcept 插入引擎前
+传播；缺键时先建立 owned Key，再在已定位的位置插入，不重复搜索。已有键则完全
+不执行该转换。这也意味着隐式 C-string 转 PMR string 的缺键路径仍可先使用
+默认 resource 建立临时 Key，最终存储通过目标 allocator 构造，不能把重复键的
+零分配结论扩大到所有缺键路径。此前不能隐式调用的显式查询（如 string_view）直接
+沿新重载的 allocator 构造路径，构造失败仍服从引擎的既有终止域。
+
+针对一个超过 SSO 长度的 PMR path，已存在键的 300 次 C-string 更新在旧实现产生
+300 次临时 Key 分配，新实现为零；目标 resource 两者均无新增分配。借用
+`string_view` 更新此前不可调用，现在也无需临时 Key。这是特定路径的分配计数，
+不表示所有工作负载更快：C string 比较可能反复计算长度，已知长度时优先传
+`string_view`。未改变同 Key 入口的运行时策略或节点布局。
