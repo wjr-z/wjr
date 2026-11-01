@@ -86,6 +86,9 @@ compact representation and its consumer are not implemented.
 旧字符串、对象或数组的分配按原资源释放。需要非零标量时直接使用既有的数值构造/赋值，
 不必先调用默认 emplace。解析、数值转换及输入所有权合同不受影响。
 
+对象容器的精确类型 copy/move、PMR 资源归属及标准 map/unordered_map 互操作见
+[JSON object 转换](json-object-conversion.md)。
+
 ## `wjr::ring_buffer`
 
 环形缓冲区容器，适合先进先出、固定容量或连续生产消费场景。
