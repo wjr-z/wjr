@@ -11,6 +11,16 @@ wjr_load_benchmark()
 add_executable(benchmarks src/btree_focused.cpp)
 add_executable(btree_memory src/btree_memory.cpp)
 add_executable(btree_hint EXCLUDE_FROM_ALL src/btree_hint.cpp)
+foreach(engine IN ITEMS prior)
+    string(TOUPPER "${engine}" engine_upper)
+    add_executable(btree_copy_${engine} EXCLUDE_FROM_ALL src/btree_copy.cpp)
+    add_executable(btree_copy_${engine}_memory EXCLUDE_FROM_ALL src/btree_copy.cpp)
+    target_compile_definitions(btree_copy_${engine}_memory PRIVATE WJR_COPY_MEMORY=1)
+    foreach(target IN ITEMS btree_copy_${engine} btree_copy_${engine}_memory)
+        target_include_directories(${target} BEFORE PRIVATE "${WJR_COPY_${engine_upper}_INCLUDE}")
+    endforeach()
+    target_link_libraries(btree_copy_${engine} PRIVATE benchmark::benchmark)
+endforeach()
 add_executable(btree_copy EXCLUDE_FROM_ALL src/btree_copy.cpp)
 add_executable(btree_copy_memory EXCLUDE_FROM_ALL src/btree_copy.cpp)
 
@@ -55,7 +65,7 @@ set(btree_flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${btree_build_type}} ${WJR
 string(REPLACE ";" " " btree_flags "${btree_flags}")
 string(REPLACE "\"" "\\\"" btree_flags "${btree_flags}")
 
-foreach(btree_target IN ITEMS benchmarks btree_memory btree_hint btree_copy btree_copy_memory
+foreach(btree_target IN ITEMS benchmarks btree_memory btree_hint btree_copy btree_copy_memory btree_copy_prior btree_copy_prior_memory
         btree_bulk_build btree_bulk_memory btree_merge btree_merge_memory btree_join btree_join_memory
         btree_shard_range btree_shard_range_memory)
     # The general container path needs config/assert, never wjr::isa or GMP.
@@ -99,7 +109,7 @@ if(WJR_BENCHMARK_ABSEIL)
     set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "Disable optional Abseil installation")
     set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Use the selected C++ standard")
     add_subdirectory("${WJR_BENCHMARK_ABSEIL_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/abseil" EXCLUDE_FROM_ALL)
-    foreach(btree_target IN ITEMS benchmarks btree_memory btree_copy btree_copy_memory btree_bulk_build btree_bulk_memory
+    foreach(btree_target IN ITEMS benchmarks btree_memory btree_copy btree_copy_memory btree_copy_prior btree_copy_prior_memory btree_bulk_build btree_bulk_memory
             btree_merge btree_merge_memory btree_join btree_join_memory
             btree_shard_range btree_shard_range_memory)
         target_link_libraries(${btree_target} PRIVATE absl::btree)
