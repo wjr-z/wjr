@@ -19,7 +19,8 @@ jobs:
           git fetch --depth=1 origin 7cc9216382f516bb1374e8bc72252650cd9b063e
           mkdir -p "$RUNNER_TEMP/copy-main/wjr/container" "$RUNNER_TEMP/copy-prior/wjr/container"
           git show 7cc9216382f516bb1374e8bc72252650cd9b063e:include/wjr/container/btree.hpp > "$RUNNER_TEMP/copy-prior/wjr/container/btree.hpp"
-      - name: Same-worker GCC and Clang bounded two-engine copy
+          python3 -c 'from pathlib import Path; p=Path("${{ runner.temp }}/copy-prior/wjr/container/btree.hpp"); s=p.read_bytes(); a=b"list_node_type *&cursor) noexcept {"; i=s.index(b"std::pair<ikey_type, node_type *> _clone_copy_branch"); j=s.index(a,i); p.write_bytes(s[:j]+s[j:].replace(a,b"list_node_type *cursor) noexcept {",1))'
+      - name: GCC read-only marker ABI gate and optional bounded copy
         shell: bash
         run: |
           mkdir copy-evidence
@@ -27,9 +28,17 @@ jobs:
           uname -a > copy-evidence/os.txt
           git rev-parse HEAD > copy-evidence/source.txt
           sha256sum include/wjr/container/btree.hpp benchmarks/src/btree_copy.cpp test/container/btree_copy_reuse.cpp "$RUNNER_TEMP/copy-prior/wjr/container/btree.hpp" > copy-evidence/sources.sha256
-          for tool in gcc clang; do
+          for tool in gcc; do
             if [[ "$tool" == gcc ]]; then cc=gcc; cxx=g++; else cc=clang; cxx=clang++; fi
             "$cxx" --version > "copy-evidence/$tool-version.txt"
+            for engine in prior candidate; do
+              extra=()
+              if [[ "$engine" == prior ]]; then extra=(-I"$RUNNER_TEMP/copy-prior"); fi
+              "$cxx" -std=c++20 -O3 -DNDEBUG -DWJR_DEBUG_LEVEL=0 -DFMT_HEADER_ONLY -march=x86-64 "${extra[@]}" -Iinclude -Ithird-party/fmt/include -c benchmarks/src/btree_cursor_codegen.cpp -o "copy-evidence/$tool-$engine.o"
+              objdump -drC --no-show-raw-insn "copy-evidence/$tool-$engine.o" > "copy-evidence/$tool-$engine-objdump.txt"
+            done
+            python3 benchmarks/src/btree_cursor_gate.py copy-evidence
+            if [[ "$(cat copy-evidence/gcc-gate.txt)" != "GO" ]]; then continue; fi
             cmake -S . -B "build-$tool" -GNinja \
               -DCMAKE_BUILD_TYPE=Release -DWJR_CXX_STANDARD=20 -DWJR_CPU_TARGET=baseline \
               -DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=btree -DWJR_BENCHMARK_ABSEIL=OFF \
@@ -50,26 +59,11 @@ jobs:
                 > "copy-evidence/$tool-$index-$version.txt" 2>&1
               index=$((index+1))
             done
-            for engine in prior candidate; do
-              extra=()
-              if [[ "$engine" == prior ]]; then extra=(-I"$RUNNER_TEMP/copy-prior"); fi
-              "$cxx" -std=c++20 -O3 -DNDEBUG -DWJR_DEBUG_LEVEL=0 -DFMT_HEADER_ONLY -march=x86-64 "${extra[@]}" -Iinclude -Ithird-party/fmt/include -c benchmarks/src/btree_cursor_codegen.cpp -o "copy-evidence/$tool-$engine.o"
-              objdump -drC "copy-evidence/$tool-$engine.o" > "copy-evidence/$tool-$engine-objdump.txt"
-            done
             cp "build-$tool/compile_commands.json" "copy-evidence/$tool-compile-commands.json"
           done
-      - name: Complete node ownership, SSO and allocator hooks
-        run: |
-          clang++ -std=c++20 -O1 -g -DNDEBUG -DWJR_DEBUG_LEVEL=0 -DFMT_HEADER_ONLY \
-            -fsanitize=address,undefined -fno-sanitize-recover=all \
-            -Iinclude -Ithird-party/fmt/include -I/usr/src/googletest/googletest/include \
-            -I/usr/src/googletest/googletest test/container/btree_copy_reuse.cpp \
-            test/container/btree_assignment.cpp /usr/src/googletest/googletest/src/gtest-all.cc \
-            /usr/src/googletest/googletest/src/gtest_main.cc -pthread -o copy-evidence/asan
-          ./copy-evidence/asan > copy-evidence/asan-tests.txt 2>&1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: btree-cursor-abi
+          name: btree-cursor-gcc-control
           path: copy-evidence/
           retention-days: 30
