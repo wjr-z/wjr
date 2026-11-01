@@ -266,6 +266,7 @@ private:
     };
 
     static constexpr bool _use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
+                                        is_trivially_allocator_destroy_v<Alloc, T> &&
                                         std::is_trivially_copyable_v<T> &&
                                         (Capacity * sizeof(T) <= 32);
     static constexpr size_t _memcpy_bytes = Capacity * sizeof(T);
@@ -305,7 +306,8 @@ public:
                 builtin_memcpy(lhs, rhs, _memcpy_bytes);
             }
         } else {
-            wjr::uninitialized_move_n_restrict_using_allocator(rhs, other_storage.m_size, lhs, al);
+            wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, other_storage.m_size, lhs,
+                                                                   al);
         }
 
         other_storage.m_size = 0;
@@ -335,15 +337,15 @@ public:
                     std::swap(lsize, rsize);
                 }
 
-                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, &tmp, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(&tmp, lsize, rhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(lhs, lsize, &tmp, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, rsize, lhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(&tmp, lsize, rhs, al);
             }
         } else if (rsize) {
             if constexpr (_use_memcpy) {
                 builtin_memcpy(lhs, rhs, _memcpy_bytes);
             } else {
-                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, rsize, lhs, al);
             }
             m_storage.m_size = rsize;
             other_storage.m_size = 0;
@@ -351,7 +353,7 @@ public:
             if constexpr (_use_memcpy) {
                 builtin_memcpy(rhs, lhs, _memcpy_bytes);
             } else {
-                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, rhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(lhs, lsize, rhs, al);
             }
 
             other_storage.m_size = lsize;
@@ -389,6 +391,7 @@ class small_vector_storage {
     using _Alty_traits = std::allocator_traits<_Alty>;
 
     static constexpr bool _use_memcpy = is_trivially_allocator_construct_v<Alloc, T, T &&> &&
+                                        is_trivially_allocator_destroy_v<Alloc, T> &&
                                         std::is_trivially_copyable_v<T> &&
                                         (Capacity * sizeof(T) <= 32);
     static constexpr size_t _memcpy_bytes = Capacity * sizeof(T);
@@ -462,7 +465,7 @@ public:
                     builtin_memcpy(lhs, rhs, _memcpy_bytes);
                 }
             } else {
-                wjr::uninitialized_move_n_restrict_using_allocator(rhs, m_size, lhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, m_size, lhs, al);
             }
         } else {
             m_data = other.m_data;
@@ -496,13 +499,13 @@ public:
                     std::swap(lsize, rsize);
                 }
 
-                wjr::uninitialized_move_n_restrict_using_allocator(lhs, lsize, &tmp, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(rhs, rsize, lhs, al);
-                wjr::uninitialized_move_n_restrict_using_allocator(&tmp, lsize, rhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(lhs, lsize, &tmp, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, rsize, lhs, al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(&tmp, lsize, rhs, al);
             } else {
                 const size_type capacity = other.m_capacity;
-                wjr::uninitialized_move_n_restrict_using_allocator(data(), size(),
-                                                                   other._get_storage(), al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(data(), size(),
+                                                                       other._get_storage(), al);
                 m_data = other.m_data;
                 m_capacity = capacity;
                 other._reset_small();
@@ -510,8 +513,8 @@ public:
         } else {
             if (other._is_small()) {
                 const size_type capacity = m_capacity;
-                wjr::uninitialized_move_n_restrict_using_allocator(other.data(), other.size(),
-                                                                   _get_storage(), al);
+                wjr::uninitialized_relocate_n_restrict_using_allocator(other.data(), other.size(),
+                                                                       _get_storage(), al);
                 other.m_data = m_data;
                 other.m_capacity = capacity;
                 _reset_small();
