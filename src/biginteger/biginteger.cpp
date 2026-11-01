@@ -941,7 +941,9 @@ std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept 
 
         const std::ios_base::fmtflags flags = os.flags();
 
-        if ((flags & std::ios::showpos) && !src.is_negate()) {
+        if (src.is_negate()) {
+            buffer.push_back('-');
+        } else if (flags & std::ios::showpos) {
             buffer.push_back('+');
         }
 
@@ -961,7 +963,11 @@ std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept 
             }
         }
 
-        (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
+        if (src.empty()) {
+            buffer.push_back('0');
+        } else {
+            (void)biginteger_to_chars(std::back_inserter(buffer), src.data(), src.size(), base);
+        }
         // seems won't be empty
         WJR_ASSERT(!buffer.empty());
         _ostream_insert_unchecked(os, buffer.data(), buffer.size());
@@ -976,13 +982,17 @@ std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept 
 
 namespace fmt {
 
-void formatter<wjr::biginteger_data>::do_format(
+unsigned formatter<wjr::biginteger_data>::do_format(
     const wjr::biginteger_view &value,
     wjr::vector<char, wjr::weak_stack_allocator<char>> &buffer) const {
     buffer.clear_if_reserved(256);
 
-    if (m_specs.sign() != sign::none && !value.is_negate()) {
+    if (value.is_negate()) {
+        buffer.push_back('-');
+    } else if (m_specs.sign() == sign::plus) {
         buffer.push_back('+');
+    } else if (m_specs.sign() == sign::space) {
+        buffer.push_back(' ');
     }
 
     int base = 10;
@@ -994,7 +1004,7 @@ void formatter<wjr::biginteger_data>::do_format(
         break;
     case presentation_type::oct:
         base = 8;
-        if (m_specs.alt())
+        if (m_specs.alt() && !value.empty())
             buffer.append('0');
         break;
     case presentation_type::hex:
@@ -1010,6 +1020,13 @@ void formatter<wjr::biginteger_data>::do_format(
         WJR_UNREACHABLE();
     }
 
-    (void)to_chars_unchecked(std::back_inserter(buffer), value, base);
+    const auto prefix_size = static_cast<unsigned>(buffer.size());
+    if (value.empty()) {
+        buffer.push_back('0');
+    } else {
+        (void)wjr::biginteger_to_chars(std::back_inserter(buffer), value.data(), value.size(),
+                                       base);
+    }
+    return prefix_size;
 }
 } // namespace fmt
