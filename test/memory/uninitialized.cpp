@@ -1,6 +1,8 @@
-#include "detail.hpp"
 #include "type.hpp"
 
+#include <gtest/gtest.h>
+
+#include <algorithm>
 #include <vector>
 #include <wjr/memory/uninitialized.hpp>
 

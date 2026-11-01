@@ -1,8 +1,6 @@
-#include "detail.hpp"
+#include <gtest/gtest.h>
 
 #include <wjr/preprocessor.hpp>
-
-using namespace wjr;
 
 #define CASSERT(expr) static_assert(expr)
 

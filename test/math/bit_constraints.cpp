@@ -1,5 +1,3 @@
-#include "../detail.hpp"
-
 #include <concepts>
 
 #include <wjr/math/bit.hpp>

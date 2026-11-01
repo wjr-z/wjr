@@ -1,4 +1,4 @@
-#include "detail.hpp"
+#include <gtest/gtest.h>
 
 #include <wjr/memory/stack_allocator.hpp>
 #include <wjr/memory/temporary_value_allocator.hpp>
