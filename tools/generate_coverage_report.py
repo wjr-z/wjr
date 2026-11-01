@@ -59,7 +59,8 @@ def coverage_command(args: argparse.Namespace, action: str, *options: str) -> li
 
 
 def write_html(args: argparse.Namespace) -> None:
-    subprocess.run(
+    # The local caller selects llvm-cov; coverage_command returns argv, never shell text.
+    subprocess.run(  # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
         coverage_command(
             args,
             "show",
