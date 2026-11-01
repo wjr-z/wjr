@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD043 -->
+<!-- This document specifies the LRU API and ownership contract. -->
+
 # Owning fixed-capacity LRU cache
 
 Include `<wjr/container/lru_cache.hpp>` and link the baseline header-only target
@@ -32,11 +35,11 @@ owned by keys/values, buckets, allocator caches or process RSS.
 | `capacity`, `size`, `empty` | Observe without promotion or allocation |
 | `get(key)` | Return `T*` or null; a hit becomes MRU |
 | `peek(key) const` | Return `const T*` or null; no promotion |
-| `try_emplace(key, args...)` | Return `pair<T*, bool>`; duplicate keys construct no stored T and still promote |
-| `insert_or_assign(key, value)` | Same result; assign an existing value, then promote only on success |
-| `erase(key)` | Return whether an entry was removed; other entries keep relative order |
-| `clear` | Destroy entries and reset recency; capacity and backend buckets are retained |
-| `get_allocator` | Return the original allocator type with the backend's stored state |
+| `try_emplace(key, args...)` | Return `pair<T*, bool>`; duplicates promote without constructing T |
+| `insert_or_assign(key, value)` | Assign or insert; promote on success |
+| `erase(key)` | Report removal; keep other entries in order |
+| `clear` | Destroy entries; retain capacity and buckets |
+| `get_allocator` | Return the allocator with its stored state |
 
 There is no default-constructing `operator[]` or separate alias for `get`.
 Capacity zero stores nothing and insertion returns `{nullptr, false}` without
@@ -63,7 +66,8 @@ returning this raw pointer after releasing a lock would not extend its lifetime.
 Hash must be callable without throwing, including conversion of its result to
 `size_t`. Hash/Equal must satisfy the standard container equivalence, stable-key
 and equal-keys/equal-hash requirements. Equal and key/value construction may throw.
-Key/T destruction and allocator destroy/deallocate follow the standard nonthrowing contract.
+Key/T destruction and allocator destroy/deallocate follow the standard
+nonthrowing contract.
 
 For positive capacity C, construction checks C+1 arithmetic and backend limits,
 then reserves C+1 entries. Allocation or length failures propagate and completed

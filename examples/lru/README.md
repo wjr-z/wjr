@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD043 -->
+<!-- Standalone installed-package example. -->
+
 # Fixed-capacity memoization
 
 After installing WJR, build the example as an ordinary package consumer:

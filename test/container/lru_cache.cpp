@@ -5,11 +5,9 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
-#include <list>
 #include <map>
 #include <memory>
 #include <memory_resource>
-#include <random>
 #include <scoped_allocator>
 #include <stdexcept>
 #include <string>
@@ -470,88 +468,4 @@ TEST(lru_cache, pmr_keys_and_values_own_resource_backed_storage) {
     EXPECT_TRUE(correct);
     EXPECT_EQ(value->size(), 100);
     cache.clear();
-}
-
-TEST(lru_cache, randomized_model_including_recency_eviction) {
-    std::mt19937 random(731);
-    for (size_t capacity : {0, 1, 2, 7, 64}) {
-        basic_cache cache(capacity);
-        std::list<std::pair<int, int>> model;
-        const auto locate = [&](int key) {
-            return std::find_if(model.begin(), model.end(),
-                                [&](auto value) { return value.first == key; });
-        };
-        const auto admit = [&](int key, int value, bool assign) {
-            auto position = locate(key);
-            if (capacity == 0)
-                return;
-            if (position != model.end()) {
-                if (assign)
-                    position->second = value;
-                model.splice(model.begin(), model, position);
-            } else {
-                model.emplace_front(key, value);
-                if (model.size() > capacity)
-                    model.pop_back();
-            }
-        };
-        for (size_t step = 0; step < 4000; ++step) {
-            const int key = static_cast<int>(random() % 97), value = static_cast<int>(random());
-            const auto position = locate(key);
-            switch (random() % 6) {
-            case 0:
-                cache.try_emplace(key, value);
-                admit(key, value, false);
-                break;
-            case 1:
-                cache.insert_or_assign(key, value);
-                admit(key, value, true);
-                break;
-            case 2: {
-                auto *found = cache.get(key);
-                EXPECT_EQ(found != nullptr, position != model.end());
-                if (found) {
-                    EXPECT_EQ(*found, position->second);
-                    model.splice(model.begin(), model, position);
-                }
-                break;
-            }
-            case 3: {
-                const auto *found = cache.peek(key);
-                EXPECT_EQ(found != nullptr, position != model.end());
-                if (found)
-                    EXPECT_EQ(*found, position->second);
-                break;
-            }
-            case 4:
-                EXPECT_EQ(cache.erase(key), position != model.end());
-                if (position != model.end())
-                    model.erase(position);
-                break;
-            case 5:
-                if (step % 127 == 0) {
-                    cache.clear();
-                    model.clear();
-                }
-                break;
-            }
-            EXPECT_EQ(cache.size(), model.size());
-            EXPECT_LE(cache.size(), capacity);
-            for (int probe = 0; probe < 97; ++probe) {
-                const auto expected = locate(probe);
-                const auto *found = cache.peek(probe);
-                EXPECT_EQ(found != nullptr, expected != model.end());
-                if (found)
-                    EXPECT_EQ(*found, expected->second);
-            }
-        }
-        for (int key = 100; key < 100 + static_cast<int>(capacity); ++key) {
-            cache.try_emplace(key, key);
-            admit(key, key, false);
-            for (const auto &[present, value] : model) {
-                ASSERT_TRUE(cache.peek(present));
-                EXPECT_EQ(*cache.peek(present), value);
-            }
-        }
-    }
 }

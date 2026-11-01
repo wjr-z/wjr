@@ -81,7 +81,9 @@ class lru_cache {
         std::declval<const storage_allocator &>()))>;
 
     struct entry : hook_type {
+        /// @note key is bound after insertion succeeds and before linking into m_order.
         template <typename... Args>
+        // cppcheck-suppress uninitMemberVar symbolName=entry::key
         explicit entry(std::allocator_arg_t, const storage_allocator &allocator, Args &&...args)
             : hook_type(default_construct),
               value(std::make_from_tuple<T>(std::uses_allocator_construction_args<T>(
@@ -198,6 +200,7 @@ public:
     }
 
 private:
+    /// @note Avoid relinking stores on repeated hits to the current MRU entry.
     void _promote(entry &value) noexcept {
         if (m_order.front() != std::addressof(value)) {
             value.remove();
