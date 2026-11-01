@@ -117,7 +117,7 @@ private:
     const yyjson_val *m_value = nullptr;
 };
 
-/** @brief A borrowed forward range with the native iterator's state and traversal cost. */
+/** @brief A borrowed forward range over the reviewed native tape traversal protocol. */
 class array_view {
 public:
     class iterator {
@@ -128,14 +128,16 @@ public:
         using iterator_category = std::forward_iterator_tag;
         using iterator_concept = std::forward_iterator_tag;
 
-        iterator() noexcept = default;
+        constexpr iterator() noexcept = default;
+        /** @pre The iterator is dereferenceable. */
         value_view operator*() const noexcept {
-            WJR_ASSERT_ASSUME_L2(m_iterator.idx < m_iterator.max);
-            return value_view(m_iterator.cur);
+            WJR_ASSERT_L2(m_current != nullptr);
+            return value_view(m_current);
         }
+        /** @pre The iterator is dereferenceable. */
         iterator &operator++() noexcept {
-            WJR_ASSERT_ASSUME_L2(m_iterator.idx < m_iterator.max);
-            yyjson_arr_iter_next(&m_iterator);
+            WJR_ASSERT_L2(m_current != nullptr);
+            m_current = unsafe_yyjson_get_next(m_current);
             return *this;
         }
         iterator operator++(int) noexcept {
@@ -144,24 +146,23 @@ public:
             return copy;
         }
         friend bool operator==(const iterator &left, const iterator &right) noexcept {
-            return left.m_iterator.cur == right.m_iterator.cur &&
-                   left.m_iterator.idx == right.m_iterator.idx;
-        }
-        friend bool operator==(const iterator &iter, std::default_sentinel_t) noexcept {
-            return iter.m_iterator.idx >= iter.m_iterator.max;
+            return left.m_current == right.m_current;
         }
 
     private:
         friend class array_view;
-        explicit iterator(const yyjson_val *value) noexcept
-            : m_iterator(yyjson_arr_iter_with(value)) {}
-        yyjson_arr_iter m_iterator{};
+        explicit constexpr iterator(yyjson_val *value) noexcept : m_current(value) {}
+        yyjson_val *m_current = nullptr;
     };
 
     constexpr array_view() noexcept = default;
     size_t size() const noexcept { return yyjson_arr_size(m_value); }
-    iterator begin() const noexcept { return iterator(m_value); }
-    std::default_sentinel_t end() const noexcept { return {}; }
+    iterator begin() const noexcept {
+        return iterator(m_value ? unsafe_yyjson_get_first(m_value) : nullptr);
+    }
+    iterator end() const noexcept {
+        return iterator(m_value ? unsafe_yyjson_get_next(m_value) : nullptr);
+    }
     /** @brief Linear indexed access; a missing/out-of-bounds value is an invalid view. */
     value_view at(size_t index) const noexcept {
         return value_view(yyjson_arr_get(m_value, index));
@@ -190,16 +191,17 @@ public:
         using iterator_category = std::forward_iterator_tag;
         using iterator_concept = std::forward_iterator_tag;
 
-        iterator() noexcept = default;
+        constexpr iterator() noexcept = default;
+        /** @pre The iterator is dereferenceable. */
         member_view operator*() const noexcept {
-            WJR_ASSERT_ASSUME_L2(m_iterator.idx < m_iterator.max);
-            auto *key = m_iterator.cur;
-            return {{yyjson_get_str(key), yyjson_get_len(key)},
-                    value_view(yyjson_obj_iter_get_val(key))};
+            WJR_ASSERT_L2(m_current != nullptr);
+            return {{yyjson_get_str(m_current), yyjson_get_len(m_current)},
+                    value_view(yyjson_obj_iter_get_val(m_current))};
         }
+        /** @pre The iterator is dereferenceable. */
         iterator &operator++() noexcept {
-            WJR_ASSERT_ASSUME_L2(m_iterator.idx < m_iterator.max);
-            yyjson_obj_iter_next(&m_iterator);
+            WJR_ASSERT_L2(m_current != nullptr);
+            m_current = unsafe_yyjson_get_next(yyjson_obj_iter_get_val(m_current));
             return *this;
         }
         iterator operator++(int) noexcept {
@@ -208,24 +210,23 @@ public:
             return copy;
         }
         friend bool operator==(const iterator &left, const iterator &right) noexcept {
-            return left.m_iterator.cur == right.m_iterator.cur &&
-                   left.m_iterator.idx == right.m_iterator.idx;
-        }
-        friend bool operator==(const iterator &iter, std::default_sentinel_t) noexcept {
-            return iter.m_iterator.idx >= iter.m_iterator.max;
+            return left.m_current == right.m_current;
         }
 
     private:
         friend class object_view;
-        explicit iterator(const yyjson_val *value) noexcept
-            : m_iterator(yyjson_obj_iter_with(value)) {}
-        yyjson_obj_iter m_iterator{};
+        explicit constexpr iterator(yyjson_val *value) noexcept : m_current(value) {}
+        yyjson_val *m_current = nullptr;
     };
 
     constexpr object_view() noexcept = default;
     size_t size() const noexcept { return yyjson_obj_size(m_value); }
-    iterator begin() const noexcept { return iterator(m_value); }
-    std::default_sentinel_t end() const noexcept { return {}; }
+    iterator begin() const noexcept {
+        return iterator(m_value ? unsafe_yyjson_get_first(m_value) : nullptr);
+    }
+    iterator end() const noexcept {
+        return iterator(m_value ? unsafe_yyjson_get_next(m_value) : nullptr);
+    }
     /** @brief Linear native lookup, choosing the first duplicate; missing returns an invalid view.
      */
     value_view find_first(std::string_view key) const noexcept {

@@ -46,9 +46,10 @@ extern "C" WJR_NOINLINE uint64_t wrapped_unchecked(const yyjson_val *value) noex
 extern "C" WJR_NOINLINE uint64_t raw_array(const yyjson_val *value) noexcept {
     const bool matches = yyjson_is_arr(value);
     WJR_ASSERT_ASSUME_L2(matches);
-    auto iter = yyjson_arr_iter_with(value);
+    auto *child = unsafe_yyjson_get_first(value);
+    const auto *end = unsafe_yyjson_get_next(value);
     uint64_t sum = 0;
-    while (auto *child = yyjson_arr_iter_next(&iter)) {
+    for (; child != end; child = unsafe_yyjson_get_next(child)) {
         const bool numeric = yyjson_is_uint(child);
         WJR_ASSERT_ASSUME_L2(numeric);
         sum += yyjson_get_uint(child);

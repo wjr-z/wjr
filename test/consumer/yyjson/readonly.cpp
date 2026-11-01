@@ -25,14 +25,16 @@ static_assert(sizeof(json::document) == sizeof(void *));
 static_assert(sizeof(json::value_view) == sizeof(void *));
 static_assert(sizeof(json::array_view) == sizeof(void *));
 static_assert(sizeof(json::object_view) == sizeof(void *));
-static_assert(sizeof(json::array_view::iterator) == sizeof(yyjson_arr_iter));
-static_assert(sizeof(json::object_view::iterator) == sizeof(yyjson_obj_iter));
+static_assert(sizeof(json::array_view::iterator) == sizeof(void *));
+static_assert(sizeof(json::object_view::iterator) == sizeof(void *));
 static_assert(std::is_nothrow_move_constructible_v<json::document>);
 static_assert(!std::is_copy_constructible_v<json::document>);
 static_assert(std::is_trivially_copyable_v<json::value_view>);
 static_assert(std::ranges::forward_range<json::array_view>);
+static_assert(std::ranges::common_range<json::array_view>);
 static_assert(std::ranges::borrowed_range<json::array_view>);
 static_assert(std::ranges::forward_range<json::object_view>);
+static_assert(std::ranges::common_range<json::object_view>);
 static_assert(std::ranges::borrowed_range<json::object_view>);
 static_assert(has_root<json::document &> && has_root<const json::document &>);
 static_assert(!has_root<json::document> && !has_root<const json::document>);
@@ -148,6 +150,42 @@ TEST(yyjson_readonly, iterators_are_multipass_and_temporary_ranges_borrow_the_ow
     EXPECT_EQ(std::ranges::distance(array), 3);
     EXPECT_EQ(std::ranges::distance(object), 1);
     EXPECT_EQ(member.key, "a");
+}
+
+TEST(yyjson_readonly, empty_container_tape_ends_and_nested_siblings_match_native_iteration) {
+    for (const std::string_view input : {"[]", "{}", "[[],{},[{}],{\"a\":[]},0]",
+                                         "{\"a\":[],\"b\":{},\"c\":{\"nested\":[1,2]},\"d\":0}"}) {
+        const auto document = json::document::parse(input);
+        ASSERT_TRUE(document);
+        const auto root = document.root();
+        auto *raw = yyjson_doc_get_root(document.native_handle());
+        if (root.is_array()) {
+            const auto range = root.get_array_unchecked();
+            auto iterator = range.begin();
+            auto native = yyjson_arr_iter_with(raw);
+            while (auto *value = yyjson_arr_iter_next(&native)) {
+                ASSERT_NE(iterator, range.end());
+                EXPECT_EQ((*iterator++).native_handle(), value);
+            }
+            EXPECT_EQ(iterator, range.end());
+            EXPECT_EQ(std::ranges::distance(range), range.size());
+        } else {
+            const auto range = root.get_object_unchecked();
+            auto iterator = range.begin();
+            auto native = yyjson_obj_iter_with(raw);
+            while (auto *key = yyjson_obj_iter_next(&native)) {
+                ASSERT_NE(iterator, range.end());
+                const auto member = *iterator++;
+                EXPECT_EQ(member.key, std::string_view(yyjson_get_str(key), yyjson_get_len(key)));
+                EXPECT_EQ(member.value.native_handle(), yyjson_obj_iter_get_val(key));
+            }
+            EXPECT_EQ(iterator, range.end());
+            EXPECT_EQ(std::ranges::distance(range), range.size());
+        }
+        if (yyjson_get_len(raw) == 0) {
+            EXPECT_EQ(unsafe_yyjson_get_first(raw), unsafe_yyjson_get_next(raw));
+        }
+    }
 }
 
 TEST(yyjson_readonly, failed_container_extraction_preserves_an_existing_view) {

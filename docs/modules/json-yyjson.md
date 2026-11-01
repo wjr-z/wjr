@@ -64,8 +64,12 @@ or mutation through native interop is outside this contract.
 `root()` and the owner's `native_handle()` reject both nonconst and const rvalue
 owners. Keep the owner in a variable. Temporary value/member/range views can be
 used because they borrow the allocation, not the temporary wrapper. Ranges are
-multipass forward/borrowed ranges; iterator state is exactly the corresponding
-native iterator, with no hidden allocation. Borrowed strings preserve explicit
+multipass common forward/borrowed ranges. Iterators hold one current tape pointer,
+with no index counter or hidden allocation. They reuse the pinned header's
+`unsafe_yyjson_get_first/get_next` primitives and the native object value accessor;
+no byte layout is replicated. A container's next pointer is its end; parsed empty
+containers have identical first/end pointers. Native/proxy iteration tests check
+empty containers and nested sibling skipping. Borrowed strings preserve explicit
 lengths, including embedded NUL.
 
 | Operation | Contract |
