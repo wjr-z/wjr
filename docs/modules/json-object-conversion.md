@@ -83,3 +83,48 @@ fallbacks, PMR resource selection/retention and failure at every allocation of a
 exact PMR map copy. These tests check source preservation and cleanup without
 requiring a stronger guarantee than the underlying container for arbitrary
 assignment failure. No parser or UTF-8 implementation is replaced.
+
+## Borrowed value projections
+
+An existing live owning document can supply `std::string_view` values without
+copying their bytes. This works for const and mutable lvalues, including views
+nested in standard array/dictionary conversions and registered structures:
+
+```cpp
+struct row_view {
+    row_view() = default;
+    std::string_view name;
+    std::vector<std::string_view> tags;
+    WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER(row_view, name, tags)
+};
+
+row_view project(const wjr::json::document &source) {
+    return static_cast<row_view>(source);
+}
+```
+
+Include `<string_view>`, `<vector>` and `<wjr/json/document.hpp>`. The caller must
+keep the source document and its string storage alive while using the returned
+views. Destroying/resetting a source node or invalidating its string storage also
+invalidates its views. PMR documents retain the additional requirement that their
+borrowed resource outlive the document. Copying a view does not extend either
+lifetime. The projection is independent of the parser's input buffer because an
+owning document has already materialized its strings. Containers still allocate
+their own element/node storage; this is not allocation-free DOM construction.
+
+Direct string views, array elements, dictionary mapped values and registered
+fields that reject rvalue documents also reject conversion/assignment from a
+temporary document, including const rvalues. A const-reference copy fallback must
+not bypass that rejection. Owning values such as `std::string`, their containers
+and owning registered structures retain copy/move conversions. Const-rvalue
+dispatch checks the actual const-qualified source instead of advertising a
+mutable-rvalue-only serializer.
+
+These checks follow each serializer's declared source-category contract; they
+cannot discover pointers hidden in arbitrary user-defined values. A custom
+serializer or constructor that accepts rvalues is responsible for the lifetime
+of its result. Dictionary keys keep their existing container construction rules:
+use owning `std::string` keys for these projections. In particular, implicit
+`std::string`-to-`string_view` key conversion is not a general ownership guarantee
+and this change does not introduce a key-lifetime inference system. Existing type
+errors, missing-field exceptions and duplicate-key parsing policy are unchanged.
