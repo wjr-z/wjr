@@ -151,6 +151,22 @@ set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
    PROPERTIES LABELS configuration)
 
 FetchContent_GetProperties(cpu_features)
+if(WJR_ARCH STREQUAL "x86")
+   foreach(_WJR_CPU_PROVIDER_MODE IN ITEMS installed preexisting alias disabled incompatible source never)
+      add_test(NAME wjr_cpu_provider_${_WJR_CPU_PROVIDER_MODE}
+         COMMAND ${CMAKE_COMMAND}
+         -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpu-provider
+         -B ${CMAKE_CURRENT_BINARY_DIR}/cpu-provider-${_WJR_CPU_PROVIDER_MODE}
+         ${WJR_POLICY_CMAKE_ARGS}
+         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+         -DWJR_CXX_STANDARD=${WJR_CXX_STANDARD}
+         -DWJR_CPU_TARGET=${WJR_CPU_TARGET}
+         -DMODE=${_WJR_CPU_PROVIDER_MODE}
+      )
+      set_tests_properties(wjr_cpu_provider_${_WJR_CPU_PROVIDER_MODE} PROPERTIES LABELS configuration)
+   endforeach()
+endif()
 foreach(_BENCHMARK_PROVIDER_MODE IN ITEMS installed preexisting disabled incompatible source)
    add_test(NAME wjr_benchmark_${_BENCHMARK_PROVIDER_MODE}
       COMMAND ${CMAKE_COMMAND}
