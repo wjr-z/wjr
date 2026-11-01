@@ -33,6 +33,7 @@
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/btree_range.hpp>
 #include <wjr/container/detail/btree_slot.hpp>
 #include <wjr/container/forward_list.hpp>
 #include <wjr/container/list.hpp>
@@ -1540,7 +1541,8 @@ public:
 
     /// @brief Insert a single-pass range, retaining unique/duplicate-key container semantics.
     /// @pre Input iterators remain valid while this tree is modified.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, _Alty> Iter,
+              std::sentinel_for<Iter> Sentinel>
     void insert(Iter first, Sentinel last) {
         for (; first != last; ++first) {
             if constexpr (multi)
@@ -1553,7 +1555,8 @@ public:
     /// @brief Explicitly use local hints for range import; unsorted input remains valid via
     /// fallback.
     /// @note Sorted/local runs can benefit; random input may pay extra validation work.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, _Alty> Iter,
+              std::sentinel_for<Iter> Sentinel>
     void insert_with_hint(Iter first, Sentinel last) {
         auto hint = cend();
         for (; first != last; ++first) {

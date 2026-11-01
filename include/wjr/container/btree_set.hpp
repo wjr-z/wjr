@@ -45,7 +45,8 @@ public:
         : Mybase(std::move(other), alloc) {}
 
     /// @brief Construct a single-pass range using the supplied ordering.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     btree_set(Iter first, Sentinel last, const key_compare &comp = key_compare()) : Mybase(comp) {
         this->insert(first, last);
     }
@@ -56,14 +57,16 @@ public:
         : btree_set(il.begin(), il.end(), comp) {}
 
     /// @brief Construct a single-pass range using explicit ordering and allocator state.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     btree_set(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
         : Mybase(comp, alloc) {
         this->insert(first, last);
     }
 
     /// @brief Construct a range with the allocator and default ordering.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     requires btree_detail::default_allocator_order<key_compare, allocator_type>
     btree_set(Iter first, Sentinel last, const allocator_type &alloc)
         : btree_set(first, last, key_compare(), alloc) {}
@@ -167,7 +170,8 @@ public:
         : Mybase(std::move(other), alloc) {}
 
     /// @brief Construct a single-pass range using the supplied ordering.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     btree_multiset(Iter first, Sentinel last, const key_compare &comp = key_compare())
         : Mybase(comp) {
         this->insert(first, last);
@@ -179,14 +183,16 @@ public:
         : btree_multiset(il.begin(), il.end(), comp) {}
 
     /// @brief Construct a single-pass range using explicit ordering and allocator state.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     btree_multiset(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
         : Mybase(comp, alloc) {
         this->insert(first, last);
     }
 
     /// @brief Construct a range with the allocator and default ordering.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     requires btree_detail::default_allocator_order<key_compare, allocator_type>
     btree_multiset(Iter first, Sentinel last, const allocator_type &alloc)
         : btree_multiset(first, last, key_compare(), alloc) {}

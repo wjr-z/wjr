@@ -3,7 +3,7 @@
 `btree_map`, `btree_set`, `btree_multiset` and the experimental compact map accept
 the following forms. Range inputs use the same single-pass input and compatible
 sentinel contract as bulk insertion; dereferenced values must construct the stored
-value type. Duplicate keys follow the adapter's existing policy.
+value type through the tree's allocator. Duplicate keys follow the adapter's existing policy.
 
 | Form | Ordering / allocator |
 | --- | --- |
@@ -60,3 +60,52 @@ through the current allocator and comparator instead of constructing and moving
 a default-state temporary. Default and comparator-only empty construction still
 construct the allocator directly: no extra temporary/copy/move is introduced.
 These constructors add no tree state or node-layout changes.
+
+## Allocator-extended range values
+
+Range construction/insertion also accepts allocator-extended key/mapped copies
+when their ordinary copy constructors are deleted. This is useful for moving
+ownership from a temporary PMR resource to a persistent resource, or importing
+values into a differently configured tree type. It uses the same actual
+allocator construction as `emplace`; it does not create a temporary ordinary
+copy before calling the allocator.
+
+```cpp
+#include <string>
+
+struct resource_value {
+    using allocator_type = std::pmr::polymorphic_allocator<char>;
+    std::pmr::string text;
+    resource_value(std::allocator_arg_t, allocator_type a, int n) : text(n, 'x', a) {}
+    resource_value(std::allocator_arg_t, allocator_type a, const resource_value &v)
+        : text(v.text, a) {}
+    resource_value(const resource_value &) = delete;
+    resource_value(resource_value &&) = delete;
+};
+using source_type = wjr::btree_map<int, resource_value, std::less<>, allocator, 16>;
+using target_type = wjr::btree_map<int, resource_value, std::less<>, allocator, 32>;
+source_type source(std::less<>{}, allocator(&pool));
+source.try_emplace(1, 128);
+std::pmr::monotonic_buffer_resource other;
+target_type target(source.cbegin(), source.cend(), allocator(&other));
+```
+
+The example continues the allocator/pool declarations above. The source keeps
+its values; the new mapped string owns storage through `other`. Resource lifetime
+requirements remain unchanged. Map/set/multiset range forms share this admission;
+compact maps still require their original ordinary nothrow-move storage domain.
+
+Ordinary `constructible_from` values retain their existing path. For additional
+allocator-extended cases, the private constraint checks the actual nontrivial
+allocator-construction dispatch and the prefix/trailing `uses_allocator`
+constructor forms. Pair key/mapped references are checked recursively, preserving
+constness and rvalue references. An unconstrained PMR `construct` declaration alone
+does not make an invalid key, mapped source or non-pair input admissible.
+
+This models constructor arguments formed with the engine's rebound allocator;
+it does not infer arbitrary argument rewriting to a different inner allocator
+from a custom `construct` declaration. Existing ordinary input domains remain
+available. Nothrow destruction requirements and node/value termination boundaries
+are retained, while input-iterator exceptions preserve the constructor cleanup
+and insertion-prefix behavior described above. The experimental packed importer
+retains its separate, deliberately narrower input contract.

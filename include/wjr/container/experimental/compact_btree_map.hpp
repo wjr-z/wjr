@@ -98,7 +98,8 @@ public:
 
         : Mybase(std::move(other), alloc) {}
 
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     compact_btree_map(Iter first, Sentinel last,
                       const key_compare &comp = key_compare()) noexcept(noexcept(Mybase(comp)))
         : Mybase(comp) {
@@ -112,7 +113,8 @@ public:
         : compact_btree_map(il.begin(), il.end(), comp) {}
 
     /// @brief Construct a single-pass range using explicit ordering and allocator state.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     compact_btree_map(Iter first, Sentinel last, const key_compare &comp,
                       const allocator_type &alloc)
         : Mybase(comp, alloc) {
@@ -120,7 +122,8 @@ public:
     }
 
     /// @brief Construct a range with the allocator and default ordering.
-    template <btree_detail::insert_iterator<value_type> Iter, std::sentinel_for<Iter> Sentinel>
+    template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
+              std::sentinel_for<Iter> Sentinel>
     requires btree_detail::default_allocator_order<key_compare, allocator_type>
     compact_btree_map(Iter first, Sentinel last, const allocator_type &alloc)
         : compact_btree_map(first, last, key_compare(), alloc) {}
