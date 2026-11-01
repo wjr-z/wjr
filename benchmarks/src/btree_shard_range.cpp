@@ -1,5 +1,6 @@
 #include <wjr/container/btree_map.hpp>
 #include <wjr/container/experimental/btree_join_range.hpp>
+#include <wjr/container/experimental/btree_repack.hpp>
 #include <wjr/container/experimental/compact_btree_map.hpp>
 
 #include <array>
@@ -19,7 +20,7 @@
 namespace {
 constexpr size_t shard_count = 8;
 constexpr size_t shard_size = 512;
-enum class operation { merge, append, batch, node_hint };
+enum class operation { merge, append, batch, batch_repack, node_hint };
 
 #ifdef WJR_SHARD_MEMORY
 template <typename T>
@@ -42,8 +43,10 @@ struct fixture {
                 sources[s].try_emplace(s * 1024 + i);
     }
     void run() {
-        if constexpr (Op == operation::batch) {
+        if constexpr (Op == operation::batch || Op == operation::batch_repack) {
             wjr::experimental::append_btree_disjoint(destination, sources.begin(), sources.end());
+            if constexpr (Op == operation::batch_repack)
+                wjr::experimental::repack_compact_btree(destination);
         } else {
             for (auto &source : sources) {
                 if constexpr (Op == operation::append) {
@@ -139,6 +142,7 @@ void scenario(const std::string &label) {
     measure<compact, operation::merge>(label + "/compact_merge");
     measure<compact, operation::append>(label + "/compact_append");
     measure<compact, operation::batch>(label + "/compact_batch");
+    measure<compact, operation::batch_repack>(label + "/compact_batch_repack");
     using pair = std::pair<const uint64_t, Value>;
     using std_tree = std::map<uint64_t, Value, std::less<>, allocator<pair>>;
     measure<std_tree, operation::merge>(label + "/std_swap_merge");
