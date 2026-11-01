@@ -1,254 +1,28 @@
-# This is a basic workflow to help you get started with Actions
-
-name: Linux
-
-# Controls when the workflow will run
+name: Checked bigint parser evidence
 on:
-  # Triggers the workflow on push or pull request events
-  push:
-    branches: [ "main" ]
-    paths-ignore:
-      - "README.md"
-      - "docs/**"
-      - "AGENTS.md"
-      - ".gitignore"
-      - ".editorconfig"
-      - ".gitattributes"
-      - ".clang-format"
-      - ".pre-commit-config.yaml"
-      - ".github/workflows/pre-commit.yml"
-      - "devtools/profiler/**"
-      - ".github/workflows/profiler.yml"
-  pull_request:
-    branches: [ "main" ]
-    paths-ignore:
-      - "README.md"
-      - "docs/**"
-      - "AGENTS.md"
-      - ".gitignore"
-      - ".editorconfig"
-      - ".gitattributes"
-      - ".clang-format"
-      - ".pre-commit-config.yaml"
-      - ".github/workflows/pre-commit.yml"
-      - "devtools/profiler/**"
-      - ".github/workflows/profiler.yml"
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-# Only superseded revisions of the same PR share a cancellation group.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+permissions:
+  contents: read
 jobs:
-  tests:
-    # The type of runner that the job will run on
+  evidence:
     runs-on: ubuntu-24.04
-    name: ${{ matrix.sys.compiler }} ${{ matrix.sys.version }} C++${{ matrix.sys.standard }} ${{ matrix.sys.cpu }}
-    env:
-      CCACHE_COMPILERCHECK: content
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        sys:
-        - {compiler: clang, version: '17', standard: '20', cpu: native}
-        - {compiler: clang, version: '18', standard: '20', cpu: native}
-        - {compiler: clang, version: '19', standard: '20', cpu: native}
-        - {compiler: clang, version: '20', standard: '20', cpu: native}
-        - {compiler: gcc, version: '11', standard: '20', cpu: baseline}
-        - {compiler: gcc, version: '11', standard: '20', cpu: native}
-        - {compiler: gcc, version: '12', standard: '20', cpu: native}
-        - {compiler: gcc, version: '13', standard: '20', cpu: native}
-        - {compiler: gcc, version: '14', standard: '20', cpu: native}
-        - {compiler: gcc, version: '14', standard: '23', cpu: baseline}
-        - {compiler: clang, version: '20', standard: '23', cpu: baseline}
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+        compiler: [clang++-18, g++-13]
     steps:
-      - name: Check preinstalled toolchain
-        id: preinstalled
-        run: |
-          if [[ "${{matrix.sys.compiler}}" == gcc ]]; then
-            cc=gcc-${{matrix.sys.version}}; cxx=g++-${{matrix.sys.version}}
-          else
-            cc=clang-${{matrix.sys.version}}; cxx=clang++-${{matrix.sys.version}}
-          fi
-          cc_version=; cxx_version=
-          if command -v "$cc" && command -v "$cxx"; then
-            cc_version=$("$cc" -dumpversion)
-            cxx_version=$("$cxx" -dumpversion)
-          fi
-          if [[ "${cc_version%%.*}" == "${{matrix.sys.version}}" &&
-                "${cxx_version%%.*}" == "${{matrix.sys.version}}" ]]; then
-            # Require the sanitizer headers and runtime used by this matrix too.
-            printf '#include <sanitizer/asan_interface.h>\nint main() {}\n' > "$RUNNER_TEMP/wjr-asan-probe.cpp"
-            if "$cxx" -std=c++${{matrix.sys.standard}} -fsanitize=address \
-               "$RUNNER_TEMP/wjr-asan-probe.cpp" -o "$RUNNER_TEMP/wjr-asan-probe"; then
-              echo "available=true" >> "$GITHUB_OUTPUT"
-              echo "cc=$cc" >> "$GITHUB_OUTPUT"
-              echo "cxx=$cxx" >> "$GITHUB_OUTPUT"
-            fi
-          fi
-
-      - name: Install GCC
-        if: matrix.sys.compiler == 'gcc' && steps.preinstalled.outputs.available != 'true'
-        uses: egor-tensin/setup-gcc@v1
+      - uses: actions/checkout@v5
         with:
-          version: ${{matrix.sys.version}}
-          platform: x64
-
-      - name: Install LLVM and Clang
-        if: matrix.sys.compiler == 'clang' && steps.preinstalled.outputs.available != 'true'
-        uses: egor-tensin/setup-clang@v1
+          fetch-depth: 0
+      - name: Pinned fmt source and build tools
+        run: |
+          git submodule update --init third-party/fmt
+          sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Checked bounds, unchecked codegen and same-process controls
+        run: python3 research/checked-parse/run.py '${{ matrix.compiler }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          version: ${{matrix.sys.version}}
-          platform: x64
-
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Init submodule
-        run: git submodule update --init --recursive
-
-      - name: Cache CMake dependencies
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/wjr-fetchcontent
-          key: fetchcontent-${{ runner.os }}-${{ matrix.sys.compiler }}-${{ matrix.sys.version }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt', 'benchmarks/CMakeLists.txt') }}
-          restore-keys: |
-            fetchcontent-${{ runner.os }}-${{ matrix.sys.compiler }}-${{ matrix.sys.version }}-
-
-      - name: Install GMP
-        run: sudo apt-get update && sudo apt-get install -y libgmp-dev
-
-      - name: Install optional runtime development files
-        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
-        run: sudo apt-get install -y libopenblas-dev libtbb-dev
-
-      - name: Identify compilers and native target
-        id: compiler
-        run: |
-          if [[ "${{steps.preinstalled.outputs.available}}" == true ]]; then
-            CC=${{steps.preinstalled.outputs.cc}}; CXX=${{steps.preinstalled.outputs.cxx}}
-            if [[ "${{matrix.sys.compiler}}" == clang ]]; then
-              # Match setup-clang's driver paths and InstalledDir cache identity.
-              sudo ln -sfn "$(command -v "$CC")" /usr/local/bin/clang
-              sudo ln -sfn "$(command -v "$CXX")" /usr/local/bin/clang++
-              CC=/usr/local/bin/clang; CXX=/usr/local/bin/clang++
-            fi
-          elif [[ "${{matrix.sys.compiler}}" == gcc ]]; then
-            CC=gcc-${{matrix.sys.version}}; CXX=g++-${{matrix.sys.version}}
-          else
-            CC=clang; CXX=clang++
-          fi
-          for driver in "$CC" "$CXX"; do
-            echo "$driver -> $(readlink -f "$(command -v "$driver")")"
-            "$driver" --version
-            version=$("$driver" -dumpversion)
-            if [[ "${version%%.*}" != "${{matrix.sys.version}}" ]]; then
-              echo "::error::Unexpected compiler major: $version"
-              exit 1
-            fi
-          done
-          echo "CC=$CC" >> "$GITHUB_ENV"
-          echo "CXX=$CXX" >> "$GITHUB_ENV"
-          echo "CCACHE_DIR=$RUNNER_TEMP/wjr-ccache" >> "$GITHUB_ENV"
-          fingerprint_file="$RUNNER_TEMP/wjr-compiler-fingerprint.json"
-          echo "WJR_CCACHE_NATIVE_FINGERPRINT=$fingerprint_file" >> "$GITHUB_ENV"
-          . /etc/os-release
-          echo "os=${ImageOS:-unknown}-${ID:?}-${VERSION_ID:?}" >> "$GITHUB_OUTPUT"
-          python3 .github/scripts/compiler_fingerprint.py \
-            --family "${{matrix.sys.compiler}}" --cc "$CC" --cxx "$CXX" \
-            --output "$fingerprint_file" >> "$GITHUB_OUTPUT"
-          python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(json.dumps({lang: {key: d[lang][key] for key in ("path", "version", "target")} for lang in ("c", "cxx")}, indent=2))' "$fingerprint_file"
-
-      - name: Cache compiled objects
-        # v1.2.24: restore/save, bounded storage and statistics are owned by the action.
-        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d
-        with:
-          key: linux-v3-${{ steps.compiler.outputs.os }}-${{ runner.arch }}-${{ matrix.sys.compiler }}-${{ matrix.sys.version }}-cxx${{ matrix.sys.standard }}-${{ matrix.sys.cpu }}-${{ steps.compiler.outputs.toolchain }}
-          # No broader restore-keys. Native objects are isolated by the launcher;
-          # baseline objects can share this pool across different runner CPUs.
-          max-size: 500MB
-
-      - name: Validate compiler fingerprint guards
-        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
-        run: |
-          python3 .github/scripts/test_compiler_fingerprint.py
-          python3 .github/scripts/test_sccache_launcher.py
-
-      - name: Configure using CMake
-        run: |
-          benchmark_args=()
-          if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" || "${{matrix.sys.compiler}}" == "gcc" && "${{matrix.sys.version}}" == "11" ]]; then
-            benchmark_args+=(-DWJR_ENABLE_NP=ON)
-          fi
-          if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
-            benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON -DWJR_ENABLE_NP_CBLAS=ON -DWJR_ENABLE_TBB=ON)
-          fi
-          cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
-            -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
-            -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
-            -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
-            -DCMAKE_C_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
-            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
-            -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX "${benchmark_args[@]}"
-
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-      - name: Run tests
-        env:
-          OPENBLAS_NUM_THREADS: '1'
-          ASAN_OPTIONS: detect_leaks=1
-          LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
-        run: ctest --test-dir build --parallel 2 --verbose --output-on-failure
-
-      - name: Validate installed package
-        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
-        env:
-          OPENBLAS_NUM_THREADS: '1'
-          ASAN_OPTIONS: detect_leaks=1
-          LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
-        run: |
-          cmake --install build --prefix "$RUNNER_TEMP/wjr-install"
-          cmake -S test/consumer -B consumer-build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
-            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
-            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_EXPECT_CXX_STANDARD=20 \
-            -DWJR_TEST_NP=ON -DWJR_TEST_SIMD_XSIMD=ON -DWJR_TEST_NP_CBLAS=ON -DWJR_TEST_TBB=ON
-          cmake --build consumer-build --parallel
-          ctest --test-dir consumer-build --output-on-failure
-          cmake -S examples/np -B cblas-example-build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
-            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
-            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install" -DWJR_NP_EXAMPLES_CBLAS=ON
-          cmake --build cblas-example-build --target wjr_np_cblas --parallel
-          ctest --test-dir cblas-example-build --output-on-failure -R '^wjr_np_cblas$'
-          cmake -S examples/tbb -B tbb-example-build -GNinja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER="$CXX" \
-            -DCMAKE_CXX_COMPILER_LAUNCHER="python3;$GITHUB_WORKSPACE/.github/scripts/ccache_launcher.py" \
-            -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/wjr-install"
-          cmake --build tbb-example-build --parallel
-          ctest --test-dir tbb-example-build --output-on-failure
-          g++ --version
-          g++ -std=c++20 -O2 -march=x86-64 -DWJR_DEBUG_LEVEL=0 \
-            -Iinclude test/consumer/tbb.cpp -ltbb -o tbb-gcc-consumer
-          ./tbb-gcc-consumer
-          g++ -std=c++20 -O2 -march=x86-64 -fno-exceptions -DWJR_DISABLE_EXCEPTIONS \
-            -DWJR_DEBUG_LEVEL=0 -Iinclude test/consumer/tbb.cpp -ltbb -o tbb-gcc-noexceptions
-          ./tbb-gcc-noexceptions
-
-      - name: Validate SIMD benchmark backends
-        if: matrix.sys.compiler == 'clang' && matrix.sys.version == '20' && matrix.sys.standard == '20'
-        env:
-          ASAN_OPTIONS: detect_leaks=1
-          LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan_suppressions.txt
-        run: >-
-          ./build/bin/benchmarks
-          --benchmark_filter='((fill/(wjr|loop|xsimd)/u(16|32|64)/(value|zero)/n:(4|8|300)|mixed_fill/(wjr|loop|xsimd)/u64/(value|zero)/workload:1)/offset:1|scan/(wjr|loop|xsimd)/u64/n:(4|8|300)/offset:1/hit:(0|3)|mixed_scan/(wjr|loop|xsimd)/u64)/real_time$'
-          --benchmark_min_time=0.001s
+          name: checked-parser-${{ matrix.compiler }}
+          path: research-output
