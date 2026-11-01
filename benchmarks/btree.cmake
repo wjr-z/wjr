@@ -14,9 +14,13 @@ add_executable(btree_hint EXCLUDE_FROM_ALL src/btree_hint.cpp)
 add_executable(btree_bulk_build EXCLUDE_FROM_ALL src/btree_bulk_build.cpp)
 add_executable(btree_bulk_memory EXCLUDE_FROM_ALL src/btree_bulk_build.cpp)
 target_compile_definitions(btree_bulk_memory PRIVATE WJR_BULK_MEMORY=1)
+add_executable(btree_merge EXCLUDE_FROM_ALL src/btree_merge.cpp)
+add_executable(btree_merge_memory EXCLUDE_FROM_ALL src/btree_merge.cpp)
+target_compile_definitions(btree_merge_memory PRIVATE WJR_MERGE_MEMORY=1)
 target_link_libraries(benchmarks PRIVATE benchmark::benchmark)
 target_link_libraries(btree_hint PRIVATE benchmark::benchmark)
 target_link_libraries(btree_bulk_build PRIVATE benchmark::benchmark)
+target_link_libraries(btree_merge PRIVATE benchmark::benchmark)
 
 find_package(Git QUIET)
 set(btree_source "unknown")
@@ -36,7 +40,8 @@ set(btree_flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${btree_build_type}} ${WJR
 string(REPLACE ";" " " btree_flags "${btree_flags}")
 string(REPLACE "\"" "\\\"" btree_flags "${btree_flags}")
 
-foreach(btree_target IN ITEMS benchmarks btree_memory btree_hint btree_bulk_build btree_bulk_memory)
+foreach(btree_target IN ITEMS benchmarks btree_memory btree_hint
+        btree_bulk_build btree_bulk_memory btree_merge btree_merge_memory)
     # The general container path needs config/assert, never wjr::isa or GMP.
     target_link_libraries(${btree_target} PRIVATE wjr::assert wjr::iterator)
     target_compile_options(${btree_target} PRIVATE ${WJR_BASELINE_FLAGS})
@@ -78,7 +83,8 @@ if(WJR_BENCHMARK_ABSEIL)
     set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "Disable optional Abseil installation")
     set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Use the selected C++ standard")
     add_subdirectory("${WJR_BENCHMARK_ABSEIL_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/abseil" EXCLUDE_FROM_ALL)
-    foreach(btree_target IN ITEMS benchmarks btree_memory btree_bulk_build btree_bulk_memory)
+    foreach(btree_target IN ITEMS benchmarks btree_memory btree_bulk_build btree_bulk_memory
+            btree_merge btree_merge_memory)
         target_link_libraries(${btree_target} PRIVATE absl::btree)
         target_compile_definitions(${btree_target} PRIVATE WJR_BENCHMARK_ABSEIL=1)
     endforeach()
