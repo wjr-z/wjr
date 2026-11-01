@@ -26,6 +26,12 @@ namespace wjr {
 inline constexpr size_t stack_allocator_threshold = 16_KB;
 
 class unique_stack_allocator;
+class automatic_free_pool;
+
+namespace mem {
+/// @brief Resolve the originating module's pool only on arena growth paths.
+automatic_free_pool &_get_stack_free_pool() noexcept;
+} // namespace mem
 
 class stack_allocator_object {
     friend class unique_stack_allocator;
@@ -184,6 +190,10 @@ private:
 
     /// @brief The first allocated buffer, used to reset m_cache.ptr in _small_deallocate.
     std::byte *m_first = nullptr;
+
+    using pool_provider = automatic_free_pool &(*)() noexcept;
+    /// @note Constant-initialized module binding; bump/rewind paths do not inspect it.
+    pool_provider m_pool_provider = &mem::_get_stack_free_pool;
 };
 
 inline stack_allocator_object::stack_context::stack_context(stack_allocator_object *object) noexcept
@@ -198,13 +208,8 @@ inline stack_allocator_object::stack_context::~stack_context() noexcept {
 static_assert(std::is_trivially_destructible_v<stack_allocator_object>);
 
 namespace mem {
-/**
- * @note Shared library may use different stack_allocator_object instance. If applied for and
- * released from the same library, there is generally no problem.
- *
- * @todo Fix!!! This is an important issue.
- *
- */
+/// @note Default arenas may be module-local. Use parent.make_scope() to bind a
+/// nested scratch scope to an existing owner across a library boundary.
 inline thread_local stack_allocator_object _stack_allocator_singleton_object;
 } // namespace mem
 
@@ -246,6 +251,17 @@ public:
 
     ~unique_stack_allocator() = default;
 
+    /**
+     * @brief Create a nested scratch scope in this owner's arena, including across modules.
+     * @pre This owner and its module outlive the returned scope. Scopes in one
+     * arena are destroyed in reverse construction order on the same thread.
+     * @note Small allocations made through either owner are rewound by the child;
+     * no pointer into that scratch region may escape the child scope.
+     */
+    WJR_NODISCARD WJR_INTRINSIC_INLINE unique_stack_allocator make_scope() & noexcept {
+        return unique_stack_allocator(*m_context.object());
+    }
+
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *allocate(size_t n) noexcept {
         return m_context.object()->allocate(n, m_context);
     }
@@ -256,6 +272,9 @@ public:
     }
 
 private:
+    WJR_INTRINSIC_INLINE explicit unique_stack_allocator(Instance &object) noexcept
+        : m_context(std::addressof(object)) {}
+
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *_small_allocate(size_t n) noexcept {
         return m_context.object()->_small_allocate(n);
     }

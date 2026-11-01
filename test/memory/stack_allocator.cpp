@@ -76,3 +76,26 @@ TEST(stack_allocator, weak_small_allocations_keep_nested_rewind_behavior) {
     std::destroy_at(reused);
     std::destroy_at(outer);
 }
+
+TEST(stack_allocator, explicit_child_scope_rewinds_the_parent_arena) {
+    unique_stack_allocator owner;
+    weak_stack_allocator<int> allocator(owner);
+    auto *outer = allocator.allocate(1);
+    std::construct_at(outer, 17);
+    int *scratch = nullptr;
+    {
+        auto child = owner.make_scope();
+        scratch = allocator.allocate(1);
+        std::construct_at(scratch, 29);
+        auto *more = child.allocate<int>(1);
+        std::construct_at(more, 31);
+        EXPECT_EQ(*outer, 17);
+        EXPECT_EQ(*scratch, 29);
+        EXPECT_EQ(*more, 31);
+        std::destroy_at(more);
+        std::destroy_at(scratch);
+    }
+    EXPECT_EQ(allocator.allocate(1), scratch);
+    EXPECT_EQ(*outer, 17);
+    std::destroy_at(outer);
+}
