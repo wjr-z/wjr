@@ -61,7 +61,7 @@ for cc in ['clang++-18','g++-13']:
             if version=='new':
                 result=run([build/'domain'],tag+'-domain'); report['checks'].append({'name':tag+'-domain','result':result.returncode})
             elif asan:
-                result=run([build/'domain','--pool-only'],tag+'-old-uaf',None,dict(os.environ,ASAN_OPTIONS='detect_leaks=0:halt_on_error=1'))
+                result=run([build/'domain','--pool-only'],tag+'-old-uaf',None,dict(os.environ,ASAN_OPTIONS='allow_user_poisoning=0:detect_leaks=0:halt_on_error=1'))
                 assert result.returncode!=0 and b'heap-use-after-free' in result.stdout
                 report['checks'].append({'name':tag+'-old-uaf','result':result.returncode,'heap_use_after_free':True})
             if not asan:
