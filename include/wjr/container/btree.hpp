@@ -33,6 +33,7 @@
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/btree_lookup.hpp>
 #include <wjr/container/detail/btree_range.hpp>
 #include <wjr/container/detail/btree_slot.hpp>
 #include <wjr/container/forward_list.hpp>
@@ -1174,6 +1175,16 @@ protected:
         return _search<true, false>(key);
     }
 
+    /// @brief Borrow the original query, caching a standard C string's length only for lookup.
+    /// @note Empty trees perform no comparisons; owned-key construction still uses the original.
+    template <typename Lookup>
+    WJR_INTRINSIC_INLINE decltype(auto) _borrow_lookup(const Lookup &key) const noexcept {
+        if constexpr (btree_detail::cached_c_string_lookup<key_compare, key_type, Lookup>)
+            return empty() ? std::string_view{} : std::string_view(key);
+        else
+            return (key);
+    }
+
     struct _hint_position {
         const_iterator position;
         bool duplicate;
@@ -1353,6 +1364,8 @@ protected:
             /// Old implicit conversions ran before entering the insertion engine's noexcept path.
             key_type owned(std::forward<KeyArg>(key));
             return _emplace_key_at(position, std::move(owned), std::forward<Args>(args)...);
+        } else if constexpr (!Traits::is_map) {
+            return {_insert_iter(position, _create_node(std::forward<KeyArg>(key))), true};
         } else if constexpr (compact_slots) {
             btree_detail::compact_temporary<value_type, _Alty> value(
                 _get_allocator(), std::piecewise_construct,
@@ -1370,7 +1383,8 @@ protected:
     template <typename KeyArg, typename... Args>
     std::pair<iterator, bool> _try_emplace_hint_unique(const_iterator hint, KeyArg &&key,
                                                        Args &&...args) {
-        const auto location = _locate_hint(hint, key);
+        const auto &lookup = _borrow_lookup(key);
+        const auto location = _locate_hint(hint, lookup);
         if (location.duplicate)
             return {iterator(location.position), false};
         if constexpr (!std::same_as<remove_cvref_t<KeyArg>, key_type>) {
@@ -1515,8 +1529,9 @@ protected:
     template <typename Lookup, typename... Args>
     requires btree_detail::transparent_update<Lookup, key_compare, key_type, _Alty, const_iterator>
     std::pair<iterator, bool> _try_emplace_unique(Lookup &&key, Args &&...args) {
-        const_iterator iter = _get_insert_multi_pos(key);
-        if (WJR_UNLIKELY(_same_insert_key(iter, key)))
+        const auto &lookup = _borrow_lookup(key);
+        const_iterator iter = _get_insert_multi_pos(lookup);
+        if (WJR_UNLIKELY(_same_insert_key(iter, lookup)))
             return {_get_same_iterator(iter), false};
         return _emplace_key_at(iter, std::forward<Lookup>(key), std::forward<Args>(args)...);
     }
@@ -1786,20 +1801,22 @@ private:
 
     template <typename Lookup>
     const_iterator _find_key(const Lookup &key) const noexcept {
-        auto position = lower_bound(key);
-        if (position == cend() || key_comp()(key, Traits::get_key(*position)))
+        const auto &lookup = _borrow_lookup(key);
+        auto position = lower_bound(lookup);
+        if (position == cend() || key_comp()(lookup, Traits::get_key(*position)))
             return cend();
         return position;
     }
 
     template <typename Lookup>
     std::pair<const_iterator, const_iterator> _equal_keys(const Lookup &key) const noexcept {
-        auto first = lower_bound(key);
+        const auto &lookup = _borrow_lookup(key);
+        auto first = lower_bound(lookup);
         if constexpr (multi) {
-            return {first, upper_bound(key)};
+            return {first, upper_bound(lookup)};
         } else {
             auto last = first;
-            if (first != cend() && !key_comp()(key, Traits::get_key(*first)))
+            if (first != cend() && !key_comp()(lookup, Traits::get_key(*first)))
                 ++last;
             return {first, last};
         }
@@ -2201,7 +2218,8 @@ private:
 
     template <bool Upper, bool Adjust, typename Lookup>
     WJR_HOT WJR_FLATTEN const_iterator _search(const Lookup &key) const noexcept {
-        const_iterator iter = _search_impl<Upper>(key);
+        const auto &lookup = _borrow_lookup(key);
+        const_iterator iter = _search_impl<Upper>(lookup);
 
         if constexpr (Adjust) {
             if (WJR_LIKELY(!(iter.pos() & _search_mask))) {

@@ -42,8 +42,9 @@ private:
 
     template <typename Lookup>
     bool _count_unique(const Lookup &key) const {
-        auto iter = this->lower_bound(key);
-        return _is_lower_bound_same(iter, key);
+        const auto &lookup = this->_borrow_lookup(key);
+        auto iter = this->lower_bound(lookup);
+        return _is_lower_bound_same(iter, lookup);
     }
 
 public:
@@ -268,8 +269,9 @@ public:
     template <typename Lookup>
     requires btree_detail::transparent_lookup<key_compare, key_type, Lookup>
     mapped_type &at(const Lookup &key) {
-        auto iter = this->lower_bound(key);
-        if (!_is_lower_bound_same(iter, key)) {
+        const auto &lookup = this->_borrow_lookup(key);
+        auto iter = this->lower_bound(lookup);
+        if (!_is_lower_bound_same(iter, lookup)) {
             WJR_THROW(std::out_of_range("invalid map key"));
         }
         return iter->second;
