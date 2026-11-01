@@ -14,5 +14,10 @@ int main() {
     auto batch =
         std::views::iota(50, 54) | std::views::filter([](int value) { return value % 2 == 0; });
     queued.insert_range(queued.cend(), batch);
-    return std::ranges::equal(queued, std::array{10, 20, 30, 40, 50, 52}) ? 0 : 2;
+    if (!std::ranges::equal(queued, std::array{10, 20, 30, 40, 50, 52}))
+        return 2;
+    std::istringstream updates("21 22 23");
+    queued.replace_range(queued.cbegin() + 1, queued.cbegin() + 3,
+                         std::ranges::istream_view<int>(updates));
+    return std::ranges::equal(queued, std::array{10, 21, 22, 23, 40, 50, 52}) ? 0 : 3;
 }
