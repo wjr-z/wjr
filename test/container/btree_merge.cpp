@@ -206,6 +206,7 @@ TEST(BtreeMerge, DestinationEquivalenceAndMultiToUniqueMatchStandardContainers) 
     wjr::btree_multiset<int> all;
     all.merge(unique);
     all.merge(duplicate);
+    all.merge(all);
     EXPECT_TRUE(unique.empty());
     EXPECT_TRUE(duplicate.empty());
     EXPECT_EQ(all.size(), 256u);
@@ -256,8 +257,12 @@ TEST(BtreeMerge, CompactMoveOnlyValuesAndSharedPmrResource) {
         EXPECT_EQ(value.size(), 96u);
     }
     {
-        using move_tree = wjr::experimental::compact_btree_map<int, payload>;
-        move_tree destination, incoming;
+        using move_tree = wjr::experimental::compact_btree_map<int, payload, std::less<>,
+                                                               std::allocator<char>, 16>;
+        using incoming_tree = wjr::experimental::compact_btree_map<int, payload, std::greater<>,
+                                                                   std::allocator<char>, 5>;
+        move_tree destination;
+        incoming_tree incoming;
         for (int i = 0; i != 80; ++i)
             incoming.try_emplace(i, i);
         destination.merge(incoming);
