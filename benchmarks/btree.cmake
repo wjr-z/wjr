@@ -5,15 +5,8 @@ endif()
 set(CMAKE_CXX_STANDARD ${WJR_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
-set(BENCHMARK_ENABLE_INSTALL OFF)
-FetchContent_Declare(benchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG v1.9.0
-    GIT_SHALLOW ON
-)
-FetchContent_MakeAvailable(benchmark)
+include(wjrBenchmark)
+wjr_load_benchmark()
 
 add_executable(benchmarks src/btree_focused.cpp)
 add_executable(btree_memory src/btree_memory.cpp)

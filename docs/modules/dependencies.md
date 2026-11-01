@@ -1,4 +1,6 @@
-# Reusing fmt
+# Reusing build dependencies
+
+## fmt
 
 WJR first reuses an existing `fmt::fmt` target supplied by its parent project.
 Otherwise it searches for an installed fmt **11.2.1** config package, matching
@@ -25,5 +27,23 @@ REQUIRED)` before adding WJR.
 Installed WJR consumers must still be able to find fmt; externally supplied fmt
 is not copied into WJR's install prefix. Keep the external dependency's compiler,
 CRT, linkage and sanitizer requirements compatible with the consuming build.
-This change concerns fmt only; it does not enable additional dependency downloads
-or alter the other provider policies.
+
+## Google Benchmark
+
+Both the regular and focused B+ tree benchmark profiles reuse a parent-supplied
+`benchmark::benchmark` target. Otherwise they search for an installed **1.9.0**
+config package before building the pinned source fallback. Only explicitly enabled
+benchmark builds perform this search; normal library consumers do not depend on
+Google Benchmark.
+
+Point `CMAKE_PREFIX_PATH` or `benchmark_DIR` at an installed package. Explicit
+`FETCHCONTENT_SOURCE_DIR_BENCHMARK` and a local `benchmarks/benchmark` source tree
+take precedence over automatic discovery. Use
+`-DCMAKE_DISABLE_FIND_PACKAGE_benchmark=ON` to force the source fallback. Existing
+parent targets remain authoritative even when discovery is disabled; the parent
+owns their version and build compatibility.
+
+Installed binaries must match the compiler, CRT, linkage and instrumentation of
+the consuming build. A prebuilt benchmark library is not silently rebuilt with
+different sanitizer flags. GoogleTest's existing source/instrumentation policy is
+unchanged. No benchmark runtime or performance methodology changes here.

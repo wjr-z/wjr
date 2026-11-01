@@ -47,21 +47,8 @@ else()
     message(STATUS "GMP library not found, tests will be built without GMP support.")
 endif()
 
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "Suppressing warnings as errors" FORCE)
-set(BENCHMARK_ENABLE_INSTALL OFF)
-
-if(EXISTS benchmark)
-    add_subdirectory(benchmark)
-else()
-    FetchContent_Declare(
-        benchmark
-        GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG v1.9.0
-        GIT_SHALLOW ON
-    )
-    FetchContent_MakeAvailable(benchmark)
-endif()
+include(wjrBenchmark)
+wjr_load_benchmark()
 
 option(WJR_BENCHMARK_XSIMD "Compare SIMD kernels with pinned xsimd" OFF)
 
