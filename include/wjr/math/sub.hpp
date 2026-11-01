@@ -68,8 +68,7 @@ WJR_INTRINSIC_INLINE T builtin_subc(T a, T b, U c_in, U &c_out) noexcept {
 
 #endif // WJR_HAS_BUILTIN(SUBC)
 
-template <typename T, typename U>
-requires(is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>)
+template <nonbool_unsigned_integral T, std::unsigned_integral U>
 WJR_INTRINSIC_CONSTEXPR20 T subc(T a, T b, type_identity_t<U> c_in, U &c_out) noexcept {
     WJR_ASSERT_ASSUME_L2(c_in <= 1);
 

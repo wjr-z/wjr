@@ -4,6 +4,7 @@
 #include <limits>
 
 #include <wjr/math/add.hpp>
+#include <wjr/math/bitwise.hpp>
 #include <wjr/math/compare.hpp>
 #include <wjr/math/set.hpp>
 #include <wjr/math/shift.hpp>
@@ -17,6 +18,19 @@ concept carry_arithmetic = requires(T value, Carry carry) {
     { addc(value, value, Carry{}, carry) } -> std::same_as<T>;
     { subc(value, value, Carry{}, carry) } -> std::same_as<T>;
 };
+
+template <typename T>
+concept bitwise_array_arithmetic = requires(T *dst, const T *src) {
+    { wjr::math::xor_n(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
+    { wjr::math::or_n(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
+    { wjr::math::and_n(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
+    { wjr::math::not_n(dst, src, size_t{2}) } noexcept -> std::same_as<void>;
+};
+
+static_assert(bitwise_array_arithmetic<uint8_t> && bitwise_array_arithmetic<uint16_t> &&
+              bitwise_array_arithmetic<uint32_t> && bitwise_array_arithmetic<uint64_t>);
+static_assert(!bitwise_array_arithmetic<bool> && !bitwise_array_arithmetic<int> &&
+              !bitwise_array_arithmetic<float> && !bitwise_array_arithmetic<void *>);
 
 template <typename T>
 concept add_overflow_available = requires(T value) {

@@ -6,8 +6,7 @@
 
 namespace wjr {
 namespace math {
-template <typename T, typename U>
-requires(is_nonbool_unsigned_integral_v<T> && is_unsigned_integral_v<U>)
+template <nonbool_unsigned_integral T, std::unsigned_integral U>
 WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T addc(T a, T b, type_identity_t<U> c_in,
                                                U &c_out) noexcept;
 
