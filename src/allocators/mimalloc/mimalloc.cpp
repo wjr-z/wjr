@@ -15,7 +15,7 @@ void *mimalloc_memory_resource::do_allocate(std::size_t bytes, std::size_t align
 }
 
 void mimalloc_memory_resource::do_deallocate(void *pointer, std::size_t bytes,
-                                             std::size_t alignment) {
+                                             std::size_t alignment) noexcept {
     mi_free_size_aligned(pointer, bytes, alignment);
 }
 

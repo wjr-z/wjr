@@ -14,7 +14,7 @@ namespace wjr {
 
 namespace mimalloc_detail {
 /// @brief Report allocation failure using the library's exception policy.
-WJR_NORETURN void allocation_failure();
+WJR_NORETURN WJR_COLD void allocation_failure();
 } // namespace mimalloc_detail
 
 /**
@@ -85,7 +85,7 @@ public:
 
 private:
     void *do_allocate(std::size_t bytes, std::size_t alignment) override;
-    void do_deallocate(void *pointer, std::size_t bytes, std::size_t alignment) override;
+    void do_deallocate(void *pointer, std::size_t bytes, std::size_t alignment) noexcept override;
     bool do_is_equal(const std::pmr::memory_resource &other) const noexcept override;
 };
 

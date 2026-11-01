@@ -1,0 +1,351 @@
+{
+  "schema": 1,
+  "measurement_source": "6261a5641f6feee519f6508197e7beac5f9b7e15",
+  "source_base_commit": "84132724454c7d279badcca89bb128284be1076d",
+  "measurement_feature_patch": "diff --git a/CMakeLists.txt b/CMakeLists.txt\nindex 61b135d7..cf23164d 100644\n--- a/CMakeLists.txt\n+++ b/CMakeLists.txt\n@@ -42,6 +42,7 @@ option(WJR_ENABLE_ASAN \"Enable AddressSanitizer.\" OFF)\n option(WJR_ENABLE_NP \"Enable the experimental tensor data model.\" OFF)\n option(WJR_ENABLE_NP_CBLAS \"Enable the optional OpenBLAS LP64 tensor adapter.\" OFF)\n option(WJR_ENABLE_TBB \"Enable the optional prebuilt oneTBB chunk adapter.\" OFF)\n+option(WJR_ENABLE_MIMALLOC \"Enable explicit allocators using an installed mimalloc package.\" OFF)\n if(WJR_ENABLE_NP_CBLAS AND NOT WJR_ENABLE_NP)\n    message(FATAL_ERROR \"WJR_ENABLE_NP_CBLAS requires WJR_ENABLE_NP=ON.\")\n endif()\n@@ -126,6 +127,10 @@ set_property(GLOBAL PROPERTY WJR_ALL_TARGETS \"\")\n #\n add_subdirectory(src/config)\n \n+if(WJR_ENABLE_MIMALLOC)\n+   add_subdirectory(src/allocators/mimalloc)\n+endif()\n+\n if(WJR_ENABLE_NP)\n    add_subdirectory(src/np)\n endif()\n@@ -277,4 +282,4 @@ if(WJR_ENABLE_INSTALL)\n    install(FILES \"${PROJECT_BINARY_DIR}/${PROJECT_NAME}Alias.cmake\"\n       DESTINATION \"${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}\"\n    )\n-endif() # WJR_ENABLE_INSTALL\n\\ No newline at end of file\n+endif() # WJR_ENABLE_INSTALL\ndiff --git a/cmake/wjr-mimalloc-config.cmake b/cmake/wjr-mimalloc-config.cmake\nnew file mode 100644\nindex 00000000..48a3cf12\n--- /dev/null\n+++ b/cmake/wjr-mimalloc-config.cmake\n@@ -0,0 +1,11 @@\n+if(NOT TARGET wjr::mimalloc)\n+    find_package(mimalloc 3.6 QUIET CONFIG)\n+    if(NOT mimalloc_FOUND OR NOT TARGET mimalloc)\n+        set(wjr_mimalloc_FOUND FALSE)\n+        set(wjr_mimalloc_NOT_FOUND_MESSAGE \"The mimalloc component requires a prebuilt shared mimalloc 3.6 or later package.\")\n+        return()\n+    endif()\n+    include(\"${CMAKE_CURRENT_LIST_DIR}/wjrMimallocTargets.cmake\")\n+    target_link_libraries(wjr::mimalloc INTERFACE mimalloc)\n+endif()\n+set(wjr_mimalloc_FOUND TRUE)\ndiff --git a/include/wjr/memory/mimalloc.hpp b/include/wjr/memory/mimalloc.hpp\nnew file mode 100644\nindex 00000000..d6e7aae9\n--- /dev/null\n+++ b/include/wjr/memory/mimalloc.hpp\n@@ -0,0 +1,94 @@\n+#ifndef WJR_MEMORY_MIMALLOC_HPP__\n+#define WJR_MEMORY_MIMALLOC_HPP__\n+\n+#include <cstddef>\n+#include <limits>\n+#include <memory_resource>\n+#include <type_traits>\n+\n+#include <mimalloc.h>\n+\n+#include <wjr/config.hpp>\n+\n+namespace wjr {\n+\n+namespace mimalloc_detail {\n+/// @brief Report allocation failure using the library's exception policy.\n+WJR_NORETURN void allocation_failure();\n+} // namespace mimalloc_detail\n+\n+/**\n+ * @brief Stateless allocator selecting mimalloc for an individual container.\n+ * @note No construct/destroy hooks interfere with ordinary allocator-traits relocation.\n+ * @pre Storage is freed through the same mimalloc runtime instance that allocated it.\n+ */\n+template <typename T>\n+class mimalloc_allocator {\n+public:\n+    using value_type = T;\n+    using is_always_equal = std::true_type;\n+    using propagate_on_container_move_assignment = std::true_type;\n+\n+    constexpr mimalloc_allocator() noexcept = default;\n+    template <typename U>\n+    constexpr mimalloc_allocator(const mimalloc_allocator<U> &) noexcept {}\n+\n+    /// @brief Allocate uninitialized, correctly aligned storage for count elements.\n+    /// @throws std::bad_alloc On size overflow or backing allocation failure.\n+    WJR_NODISCARD WJR_MALLOC T *allocate(std::size_t count) {\n+        if (count > max_size()) {\n+            mimalloc_detail::allocation_failure();\n+        }\n+        void *pointer;\n+        if constexpr (alignof(T) <= alignof(std::max_align_t)) {\n+            pointer = mi_malloc(count * sizeof(T));\n+        } else {\n+            pointer = mi_malloc_aligned(count * sizeof(T), alignof(T));\n+        }\n+        if (pointer == nullptr) {\n+            mimalloc_detail::allocation_failure();\n+        }\n+        return static_cast<T *>(pointer);\n+    }\n+\n+    /// @pre pointer and count describe an outstanding allocation from an equal allocator.\n+    void deallocate(T *pointer, std::size_t count) noexcept {\n+        if constexpr (alignof(T) <= alignof(std::max_align_t)) {\n+            mi_free_size(pointer, count * sizeof(T));\n+        } else {\n+            mi_free_size_aligned(pointer, count * sizeof(T), alignof(T));\n+        }\n+    }\n+\n+    constexpr std::size_t max_size() const noexcept {\n+        return std::numeric_limits<std::size_t>::max() / sizeof(T);\n+    }\n+};\n+\n+template <typename T, typename U>\n+constexpr bool operator==(const mimalloc_allocator<T> &, const mimalloc_allocator<U> &) noexcept {\n+    return true;\n+}\n+\n+/**\n+ * @brief Thread-safe PMR adapter for mimalloc's ordinary allocation domain.\n+ * @pre This resource outlives its allocations' PMR owners, including moved-out values.\n+ * @note Resource identity defines equality. Destruction does not bulk-release allocations\n+ * or change the process/default PMR resource; underlying caches belong to mimalloc.\n+ */\n+class mimalloc_memory_resource final : public std::pmr::memory_resource {\n+public:\n+    mimalloc_memory_resource() noexcept = default;\n+    mimalloc_memory_resource(const mimalloc_memory_resource &) = delete;\n+    mimalloc_memory_resource &operator=(const mimalloc_memory_resource &) = delete;\n+    ~mimalloc_memory_resource() override = default;\n+\n+private:\n+    void *do_allocate(std::size_t bytes, std::size_t alignment) override;\n+    void do_deallocate(void *pointer, std::size_t bytes, std::size_t alignment) override;\n+    bool do_is_equal(const std::pmr::memory_resource &other) const noexcept override;\n+};\n+\n+} // namespace wjr\n+\n+#endif // WJR_MEMORY_MIMALLOC_HPP__\ndiff --git a/src/allocators/mimalloc/CMakeLists.txt b/src/allocators/mimalloc/CMakeLists.txt\nnew file mode 100644\nindex 00000000..246bc08f\n--- /dev/null\n+++ b/src/allocators/mimalloc/CMakeLists.txt\n@@ -0,0 +1,24 @@\n+# This opt-in module uses a prebuilt shared provider; it never downloads/builds mimalloc.\n+if(NOT TARGET mimalloc)\n+    find_package(mimalloc 3.6 CONFIG REQUIRED)\n+    if(TARGET mimalloc)\n+        set_property(TARGET mimalloc PROPERTY IMPORTED_GLOBAL TRUE)\n+    endif()\n+endif()\n+if(NOT TARGET mimalloc)\n+    message(FATAL_ERROR \"WJR's mimalloc adapter requires the package's shared mimalloc target.\")\n+endif()\n+\n+add_library(wjr-mimalloc STATIC mimalloc.cpp)\n+add_library(wjr::mimalloc ALIAS wjr-mimalloc)\n+set_target_properties(wjr-mimalloc PROPERTIES EXPORT_NAME mimalloc)\n+target_link_libraries(wjr-mimalloc PUBLIC wjr::config $<BUILD_INTERFACE:mimalloc>)\n+\n+if(WJR_ENABLE_INSTALL)\n+    install(TARGETS wjr-mimalloc EXPORT wjrMimallocTargets\n+        ARCHIVE DESTINATION \"${CMAKE_INSTALL_LIBDIR}\")\n+    install(EXPORT wjrMimallocTargets NAMESPACE wjr::\n+        DESTINATION \"${CMAKE_INSTALL_LIBDIR}/cmake/wjr\")\n+    install(FILES \"${PROJECT_SOURCE_DIR}/cmake/wjr-mimalloc-config.cmake\"\n+        DESTINATION \"${CMAKE_INSTALL_LIBDIR}/cmake/wjr\")\n+endif()\ndiff --git a/src/allocators/mimalloc/mimalloc.cpp b/src/allocators/mimalloc/mimalloc.cpp\nnew file mode 100644\nindex 00000000..b251d87f\n--- /dev/null\n+++ b/src/allocators/mimalloc/mimalloc.cpp\n@@ -0,0 +1,26 @@\n+#include <new>\n+\n+#include <wjr/macros/exceptions.hpp>\n+#include <wjr/memory/mimalloc.hpp>\n+\n+namespace wjr {\n+\n+void mimalloc_detail::allocation_failure() { WJR_THROW(std::bad_alloc{}); }\n+\n+void *mimalloc_memory_resource::do_allocate(std::size_t bytes, std::size_t alignment) {\n+    if (auto *pointer = mi_malloc_aligned(bytes, alignment)) {\n+        return pointer;\n+    }\n+    mimalloc_detail::allocation_failure();\n+}\n+\n+void mimalloc_memory_resource::do_deallocate(void *pointer, std::size_t bytes,\n+                                             std::size_t alignment) {\n+    mi_free_size_aligned(pointer, bytes, alignment);\n+}\n+\n+bool mimalloc_memory_resource::do_is_equal(const std::pmr::memory_resource &other) const noexcept {\n+    return this == &other;\n+}\n+\n+} // namespace wjr\ndiff --git a/test/CMakeLists.txt b/test/CMakeLists.txt\nindex e3194a04..c2125f61 100644\n--- a/test/CMakeLists.txt\n+++ b/test/CMakeLists.txt\n@@ -80,6 +80,10 @@ add_executable(\n \n target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})\n \n+if(WJR_ENABLE_MIMALLOC)\n+   add_subdirectory(consumer/mimalloc)\n+endif()\n+\n if(WJR_ENABLE_XSIMD)\n    target_link_libraries(tests PRIVATE wjr::simd_xsimd)\n    target_compile_definitions(tests PRIVATE WJR_TEST_XSIMD=1)\ndiff --git a/test/consumer/mimalloc/CMakeLists.txt b/test/consumer/mimalloc/CMakeLists.txt\nnew file mode 100644\nindex 00000000..0c10c1dd\n--- /dev/null\n+++ b/test/consumer/mimalloc/CMakeLists.txt\n@@ -0,0 +1,13 @@\n+find_package(Threads REQUIRED)\n+add_executable(wjr_mimalloc_consumer main.cpp)\n+target_link_libraries(wjr_mimalloc_consumer PRIVATE wjr::mimalloc wjr::json Threads::Threads)\n+if(WIN32)\n+    add_custom_command(TARGET wjr_mimalloc_consumer POST_BUILD\n+        COMMAND ${CMAKE_COMMAND} -E copy_if_different\n+            $<TARGET_FILE:mimalloc> $<TARGET_FILE_DIR:wjr_mimalloc_consumer>)\n+endif()\n+if(TARGET tests)\n+    add_dependencies(tests wjr_mimalloc_consumer)\n+endif()\n+add_test(NAME wjr_mimalloc_consumer COMMAND wjr_mimalloc_consumer)\n+set_tests_properties(wjr_mimalloc_consumer PROPERTIES LABELS unit)\ndiff --git a/test/consumer/mimalloc/main.cpp b/test/consumer/mimalloc/main.cpp\nnew file mode 100644\nindex 00000000..0877a1db\n--- /dev/null\n+++ b/test/consumer/mimalloc/main.cpp\n@@ -0,0 +1,124 @@\n+#include <wjr/json/pmr.hpp>\n+#include <wjr/memory/mimalloc.hpp>\n+#include <wjr/vector.hpp>\n+\n+#include <array>\n+#include <cstdint>\n+#include <memory>\n+#include <new>\n+#include <string>\n+#include <thread>\n+#include <vector>\n+\n+namespace {\n+using allocator = wjr::mimalloc_allocator<int>;\n+static_assert(std::is_empty_v<allocator> && std::is_trivially_copyable_v<allocator>);\n+static_assert(std::is_trivially_default_constructible_v<allocator>);\n+static_assert(std::is_nothrow_constructible_v<allocator, wjr::mimalloc_allocator<char>>);\n+static_assert(std::allocator_traits<allocator>::is_always_equal::value);\n+static_assert(std::same_as<std::allocator_traits<allocator>::rebind_alloc<char>,\n+                           wjr::mimalloc_allocator<char>>);\n+static_assert(wjr::is_trivially_allocator_construct_v<allocator, int, int &&>);\n+static_assert(wjr::is_trivially_allocator_destroy_v<allocator, int>);\n+static_assert(sizeof(allocator) == sizeof(std::allocator<int>));\n+static_assert(sizeof(wjr::mimalloc_memory_resource) == sizeof(std::pmr::memory_resource));\n+\n+struct alignas(4096) page {\n+    unsigned char data[4096];\n+};\n+\n+int typed_storage() {\n+    wjr::mimalloc_allocator<page> pages;\n+    for (std::size_t count : {0u, 1u, 3u, 16u}) {\n+        auto *pointer = pages.allocate(count);\n+        if (reinterpret_cast<uintptr_t>(pointer) % alignof(page) != 0 || !mi_check_owned(pointer))\n+            return 1;\n+        if (count) {\n+            pointer[0].data[0] = 1;\n+            pointer[count - 1].data[4095] = 2;\n+        }\n+        pages.deallocate(pointer, count);\n+    }\n+    {\n+        wjr::vector<std::unique_ptr<int>, wjr::mimalloc_allocator<std::unique_ptr<int>>> values;\n+        for (int i = 0; i != 128; ++i)\n+            values.emplace_back(std::make_unique<int>(i));\n+        values.reserve(512);\n+        auto moved = std::move(values);\n+        for (int i = 0; i != 128; ++i)\n+            if (*moved[i] != i)\n+                return 2;\n+    }\n+    std::vector<std::string, wjr::mimalloc_allocator<std::string>> strings(4, std::string(80, 'x'));\n+    if (!mi_check_owned(strings.data()) || strings[3].size() != 80)\n+        return 3;\n+    return 0;\n+}\n+\n+int resource_storage() {\n+    wjr::mimalloc_memory_resource resource, other;\n+    if (!resource.is_equal(resource) || resource.is_equal(other) ||\n+        resource.is_equal(*std::pmr::new_delete_resource()))\n+        return 4;\n+    for (std::size_t alignment : {1u, 8u, 16u, 64u, 4096u, 65536u})\n+        for (std::size_t bytes : {0u, 1u, 17u, 4097u}) {\n+            auto *pointer = resource.allocate(bytes, alignment);\n+            if (reinterpret_cast<uintptr_t>(pointer) % alignment || !mi_check_owned(pointer))\n+                return 5;\n+            if (bytes) {\n+                auto *payload = static_cast<volatile unsigned char *>(pointer);\n+                payload[0] = 1;\n+                payload[bytes - 1] = 2;\n+            }\n+            resource.deallocate(pointer, bytes, alignment);\n+        }\n+    std::array<void *, 256> pointers{};\n+    std::thread producer([&] {\n+        for (auto &pointer : pointers)\n+            pointer = resource.allocate(80, 32);\n+    });\n+    producer.join();\n+    std::thread consumer([&] {\n+        for (auto *pointer : pointers)\n+            resource.deallocate(pointer, 80, 32);\n+    });\n+    consumer.join();\n+\n+    std::pmr::vector<std::pmr::string> nested(&resource);\n+    nested.emplace_back(80, 'a');\n+    if (nested.front().get_allocator().resource() != &resource ||\n+        !mi_check_owned(nested.front().data()))\n+        return 6;\n+    wjr::json::ondemand_reader reader;\n+    reader.read(\n+        R\"({\"description\":\"long owned string backed by the selected resource\",\"items\":[1,2,3]})\");\n+    auto parsed = wjr::json::pmr_document::parse_with_allocator(\n+        reader, std::pmr::polymorphic_allocator<std::byte>(&resource));\n+    if (!parsed || parsed->get_allocator().resource() != &resource)\n+        return 7;\n+    const auto &object = parsed->get<wjr::json::object_t>();\n+    const auto &text = object.find(\"description\")->second.get<wjr::json::string_t>();\n+    if (text.get_allocator().resource() != &resource || !mi_check_owned(text.data()))\n+        return 8;\n+#if !defined(WJR_DISABLE_EXCEPTIONS)\n+    try {\n+        wjr::mimalloc_allocator<uint64_t> integers;\n+        (void)integers.allocate(integers.max_size() + 1);\n+        return 9;\n+    } catch (const std::bad_alloc &) {\n+    }\n+    try {\n+        (void)resource.allocate(std::numeric_limits<std::size_t>::max(), 16);\n+        return 10;\n+    } catch (const std::bad_alloc &) {\n+    }\n+#endif\n+    return 0;\n+}\n+} // namespace\n+\n+int main() {\n+    if (int result = typed_storage())\n+        return result;\n+    return resource_storage();\n+}\n",
+  "provider_commit": "56dc5eb80145f9a3ba7ca23d47c6a248b9d8586c",
+  "provider_version": "3.6.1",
+  "provider_options": {
+    "MI_OVERRIDE": "OFF",
+    "MI_WIN_REDIRECT": "OFF on Windows",
+    "MI_OPT_ARCH": "OFF",
+    "MI_USE_CXX": "ON",
+    "MI_STATS": "OFF",
+    "MI_PROFILE": "OFF",
+    "MI_SECURE": "OFF",
+    "MI_GUARDED": "OFF"
+  },
+  "scope": "Steady-state owning PMR JSON parse and destruction; reader per batch, common iteration count within each workload, seven rotating repetitions, single CPU affinity; excludes input loading and initial resource setup. No RSS/hardware-counter/startup claim.",
+  "windows": {
+    "cpu": "Intel Core i5-13500HX",
+    "os": "Windows-11-10.0.22631-SP0",
+    "compiler": "Clang 18.1.8 clang-cl /O2 /MD C++20 baseline",
+    "affinity_mask": 4,
+    "median_ns": {
+      "small": {
+        "std_new_delete": 1096.043396,
+        "mimalloc": 611.151123,
+        "std_unsynchronized_pool": 649.311829
+      },
+      "wide": {
+        "std_new_delete": 19675.585938,
+        "mimalloc": 8048.901367,
+        "std_unsynchronized_pool": 8599.365234
+      },
+      "twitter": {
+        "std_new_delete": 3233493.75,
+        "mimalloc": 1349415.625,
+        "std_unsynchronized_pool": 1594809.375
+      }
+    }
+  },
+  "linux": {
+    "cpu": ": INTEL(R) XEON(R) PLATINUM 8573C",
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "profiles": [
+      {
+        "name": "clang18",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+        "consumer_passed": true,
+        "provider_tracking": "OFF",
+        "median_ns": {
+          "small": {
+            "std_new_delete": 796.997948,
+            "mimalloc": 679.61264,
+            "std_unsynchronized_pool": 891.536179
+          },
+          "wide": {
+            "std_new_delete": 15517.498169,
+            "mimalloc": 13381.546265,
+            "std_unsynchronized_pool": 15967.102661
+          },
+          "twitter": {
+            "std_new_delete": 3092051.59375,
+            "mimalloc": 2185644.5625,
+            "std_unsynchronized_pool": 2773096.96875
+          }
+        },
+        "affinity_cpu": "0",
+        "adapter_commands": [
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-clang18",
+            "command": "/usr/bin/clang++-18 -DSTACK_LINE_READER_BUFFER_SIZE=1024 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -I/home/runner/work/wjr/wjr/_cpu_features/include -I/home/runner/work/wjr/wjr/third-party/fmt/include -isystem /home/runner/work/wjr/wjr/_mi-release/include/mimalloc-3.6 -O3 -DNDEBUG -std=gnu++20 -march=x86-64 -o CMakeFiles/mimalloc_study.dir/home/runner/work/wjr/wjr/mimalloc_study.cpp.o -c /home/runner/work/wjr/wjr/mimalloc_study.cpp",
+            "file": "/home/runner/work/wjr/wjr/mimalloc_study.cpp",
+            "output": "CMakeFiles/mimalloc_study.dir/home/runner/work/wjr/wjr/mimalloc_study.cpp.o"
+          },
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-clang18",
+            "command": "/usr/bin/clang++-18 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -isystem /home/runner/work/wjr/wjr/_mi-release/include/mimalloc-3.6 -O3 -DNDEBUG -std=gnu++20 -o wjr/src/allocators/mimalloc/CMakeFiles/wjr-mimalloc.dir/mimalloc.cpp.o -c /home/runner/work/wjr/wjr/src/allocators/mimalloc/mimalloc.cpp",
+            "file": "/home/runner/work/wjr/wjr/src/allocators/mimalloc/mimalloc.cpp",
+            "output": "wjr/src/allocators/mimalloc/CMakeFiles/wjr-mimalloc.dir/mimalloc.cpp.o"
+          },
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-clang18",
+            "command": "/usr/bin/clang++-18 -DSTACK_LINE_READER_BUFFER_SIZE=1024 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -I/home/runner/work/wjr/wjr/_cpu_features/include -I/home/runner/work/wjr/wjr/third-party/fmt/include -isystem /home/runner/work/wjr/wjr/_mi-release/include/mimalloc-3.6 -O3 -DNDEBUG -std=gnu++20 -march=x86-64 -o consumer/CMakeFiles/wjr_mimalloc_consumer.dir/main.cpp.o -c /home/runner/work/wjr/wjr/test/consumer/mimalloc/main.cpp",
+            "file": "/home/runner/work/wjr/wjr/test/consumer/mimalloc/main.cpp",
+            "output": "consumer/CMakeFiles/wjr_mimalloc_consumer.dir/main.cpp.o"
+          }
+        ]
+      },
+      {
+        "name": "gcc13",
+        "compiler": "g++-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "consumer_passed": true,
+        "provider_tracking": "OFF",
+        "median_ns": {
+          "small": {
+            "std_new_delete": 836.997116,
+            "mimalloc": 714.347336,
+            "std_unsynchronized_pool": 880.569199
+          },
+          "wide": {
+            "std_new_delete": 14077.511108,
+            "mimalloc": 11910.573486,
+            "std_unsynchronized_pool": 14224.966797
+          },
+          "twitter": {
+            "std_new_delete": 3047694.46875,
+            "mimalloc": 2098476.34375,
+            "std_unsynchronized_pool": 2672748.71875
+          }
+        },
+        "affinity_cpu": "0",
+        "adapter_commands": [
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-gcc13",
+            "command": "/usr/bin/g++-13 -DSTACK_LINE_READER_BUFFER_SIZE=1024 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -I/home/runner/work/wjr/wjr/_cpu_features/include -I/home/runner/work/wjr/wjr/third-party/fmt/include -isystem /home/runner/work/wjr/wjr/_mi-release/include/mimalloc-3.6 -O3 -DNDEBUG -std=gnu++20 -march=x86-64 -o CMakeFiles/mimalloc_study.dir/home/runner/work/wjr/wjr/mimalloc_study.cpp.o -c /home/runner/work/wjr/wjr/mimalloc_study.cpp",
+            "file": "/home/runner/work/wjr/wjr/mimalloc_study.cpp",
+            "output": "CMakeFiles/mimalloc_study.dir/home/runner/work/wjr/wjr/mimalloc_study.cpp.o"
+          },
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-gcc13",
+            "command": "/usr/bin/g++-13 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -isystem /home/runner/work/wjr/wjr/_mi-release/include/mimalloc-3.6 -O3 -DNDEBUG -std=gnu++20 -o wjr/src/allocators/mimalloc/CMakeFiles/wjr-mimalloc.dir/mimalloc.cpp.o -c /home/runner/work/wjr/wjr/src/allocators/mimalloc/mimalloc.cpp",
+            "file": "/home/runner/work/wjr/wjr/src/allocators/mimalloc/mimalloc.cpp",
+            "output": "wjr/src/allocators/mimalloc/CMakeFiles/wjr-mimalloc.dir/mimalloc.cpp.o"
+          },
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-gcc13",
+            "command": "/usr/bin/g++-13 -DSTACK_LINE_READER_BUFFER_SIZE=1024 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -I/home/runner/work/wjr/wjr/_cpu_features/include -I/home/runner/work/wjr/wjr/third-party/fmt/include -isystem /home/runner/work/wjr/wjr/_mi-release/include/mimalloc-3.6 -O3 -DNDEBUG -std=gnu++20 -march=x86-64 -o consumer/CMakeFiles/wjr_mimalloc_consumer.dir/main.cpp.o -c /home/runner/work/wjr/wjr/test/consumer/mimalloc/main.cpp",
+            "file": "/home/runner/work/wjr/wjr/test/consumer/mimalloc/main.cpp",
+            "output": "consumer/CMakeFiles/wjr_mimalloc_consumer.dir/main.cpp.o"
+          }
+        ]
+      },
+      {
+        "name": "clang18-asan",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+        "consumer_passed": true,
+        "provider_tracking": "ASAN",
+        "adapter_commands": [
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-clang18-asan",
+            "command": "/usr/bin/clang++-18 -DSTACK_LINE_READER_BUFFER_SIZE=1024 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -I/home/runner/work/wjr/wjr/_cpu_features/include -I/home/runner/work/wjr/wjr/third-party/fmt/include -isystem /home/runner/work/wjr/wjr/_mi-asan/include/mimalloc-3.6 -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -DNDEBUG -std=gnu++20 -fsanitize=address -fno-omit-frame-pointer -march=x86-64 -o CMakeFiles/mimalloc_study.dir/home/runner/work/wjr/wjr/mimalloc_study.cpp.o -c /home/runner/work/wjr/wjr/mimalloc_study.cpp",
+            "file": "/home/runner/work/wjr/wjr/mimalloc_study.cpp",
+            "output": "CMakeFiles/mimalloc_study.dir/home/runner/work/wjr/wjr/mimalloc_study.cpp.o"
+          },
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-clang18-asan",
+            "command": "/usr/bin/clang++-18 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -isystem /home/runner/work/wjr/wjr/_mi-asan/include/mimalloc-3.6 -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -DNDEBUG -std=gnu++20 -fsanitize=address -fno-omit-frame-pointer -o wjr/src/allocators/mimalloc/CMakeFiles/wjr-mimalloc.dir/mimalloc.cpp.o -c /home/runner/work/wjr/wjr/src/allocators/mimalloc/mimalloc.cpp",
+            "file": "/home/runner/work/wjr/wjr/src/allocators/mimalloc/mimalloc.cpp",
+            "output": "wjr/src/allocators/mimalloc/CMakeFiles/wjr-mimalloc.dir/mimalloc.cpp.o"
+          },
+          {
+            "directory": "/home/runner/work/wjr/wjr/_client-clang18-asan",
+            "command": "/usr/bin/clang++-18 -DSTACK_LINE_READER_BUFFER_SIZE=1024 -DWJR_DEBUG_LEVEL=0 -I/home/runner/work/wjr/wjr/include -I/home/runner/work/wjr/wjr/_cpu_features/include -I/home/runner/work/wjr/wjr/third-party/fmt/include -isystem /home/runner/work/wjr/wjr/_mi-asan/include/mimalloc-3.6 -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -DNDEBUG -std=gnu++20 -fsanitize=address -fno-omit-frame-pointer -march=x86-64 -o consumer/CMakeFiles/wjr_mimalloc_consumer.dir/main.cpp.o -c /home/runner/work/wjr/wjr/test/consumer/mimalloc/main.cpp",
+            "file": "/home/runner/work/wjr/wjr/test/consumer/mimalloc/main.cpp",
+            "output": "consumer/CMakeFiles/wjr_mimalloc_consumer.dir/main.cpp.o"
+          }
+        ]
+      }
+    ]
+  },
+  "codegen": {
+    "typed_vs_handwritten": {
+      "dynamic": {
+        "identical": true,
+        "typed_instructions": [
+          "subq\t$40, %rsp",
+          "movq\t%rcx, %rax",
+          "shrq\t$61, %rax",
+          "jne\t.LBB_3",
+          "shlq\t$3, %rcx",
+          "callq\t*__imp_mi_malloc(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_3",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ],
+        "reference_instructions": [
+          "subq\t$40, %rsp",
+          "movq\t%rcx, %rax",
+          "shrq\t$61, %rax",
+          "jne\t.LBB_3",
+          "shlq\t$3, %rcx",
+          "callq\t*__imp_mi_malloc(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_3",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ]
+      },
+      "fixed": {
+        "identical": true,
+        "typed_instructions": [
+          "subq\t$40, %rsp",
+          "movl\t$128, %ecx",
+          "callq\t*__imp_mi_malloc(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_2",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ],
+        "reference_instructions": [
+          "subq\t$40, %rsp",
+          "movl\t$128, %ecx",
+          "callq\t*__imp_mi_malloc(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_2",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ]
+      },
+      "aligned": {
+        "identical": true,
+        "typed_instructions": [
+          "subq\t$40, %rsp",
+          "movq\t%rcx, %rax",
+          "shrq\t$58, %rax",
+          "jne\t.LBB_3",
+          "shlq\t$6, %rcx",
+          "movl\t$64, %edx",
+          "callq\t*__imp_mi_malloc_aligned(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_3",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ],
+        "reference_instructions": [
+          "subq\t$40, %rsp",
+          "movq\t%rcx, %rax",
+          "shrq\t$58, %rax",
+          "jne\t.LBB_3",
+          "shlq\t$6, %rcx",
+          "movl\t$64, %edx",
+          "callq\t*__imp_mi_malloc_aligned(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_3",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ]
+      }
+    },
+    "resource_attribute_change": {
+      "?do_allocate@mimalloc_memory_resource@wjr@@EEAAPEAX_K0@Z": {
+        "identical": true,
+        "old": [
+          "subq\t$40, %rsp",
+          "movq\t%rdx, %rcx",
+          "movq\t%r8, %rdx",
+          "callq\t*__imp_mi_malloc_aligned(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_2",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ],
+        "new": [
+          "subq\t$40, %rsp",
+          "movq\t%rdx, %rcx",
+          "movq\t%r8, %rdx",
+          "callq\t*__imp_mi_malloc_aligned(%rip)",
+          "testq\t%rax, %rax",
+          "je\t.LBB_2",
+          "addq\t$40, %rsp",
+          "retq",
+          "callq\t\"?allocation_failure@mimalloc_detail@wjr@@YAXXZ\"",
+          "int3"
+        ]
+      },
+      "?do_deallocate@mimalloc_memory_resource@wjr@@EEAAXPEAX_K1@Z": {
+        "identical": true,
+        "old": [
+          "movq\t%rdx, %rcx",
+          "movq\t%r8, %rdx",
+          "movq\t%r9, %r8",
+          "rex64 jmpq\t*__imp_mi_free_size_aligned(%rip)"
+        ],
+        "new": [
+          "movq\t%rdx, %rcx",
+          "movq\t%r8, %rdx",
+          "movq\t%r9, %r8",
+          "rex64 jmpq\t*__imp_mi_free_size_aligned(%rip)"
+        ]
+      }
+    }
+  },
+  "configurations": [
+    {
+      "name": "default-off",
+      "expected_success": true,
+      "exit_code": 0
+    },
+    {
+      "name": "enabled-without-provider",
+      "expected_success": false,
+      "exit_code": 1
+    },
+    {
+      "name": "installed-cxx23-configure",
+      "expected_success": true,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-cxx23-build",
+      "expected_success": true,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-cxx23-run",
+      "expected_success": true,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-required-missing",
+      "expected_success": false,
+      "exit_code": 1
+    }
+  ],
+  "validation": {
+    "windows_msvc1942_consumer": true,
+    "installed_cxx20_consumer": true,
+    "installed_cxx23_consumer": true,
+    "base_package_without_provider": true,
+    "windows_clang18_cxx20_consumer": true
+  },
+  "sources": {
+    "workload_cpp": "#include <wjr/json/pmr.hpp>\n#include <wjr/memory/mimalloc.hpp>\n#include <mimalloc.h>\n#include <chrono>\n#include <cstdio>\n#include <cstdlib>\n#include <fstream>\n#include <iterator>\n#include <memory_resource>\n#include <new>\n#include <string>\n\nusing mi_resource = wjr::mimalloc_memory_resource;\n\nvolatile size_t checksum;\nWJR_NOINLINE size_t batch(std::string_view text, std::pmr::memory_resource* resource, size_t count) {\n    wjr::json::ondemand_reader reader;\n    size_t total=0;\n    for(size_t i=0;i<count;++i) {\n        reader.read(text);\n        auto parsed=wjr::json::pmr_document::parse_with_allocator(reader, std::pmr::polymorphic_allocator<std::byte>(resource));\n        if(!parsed) std::abort();\n        total+=parsed->template get<wjr::json::object_t>().size();\n    }\n    return total;\n}\n\n#if defined(_WIN32)\nextern \"C\" __declspec(dllimport) void* __stdcall GetCurrentProcess();\nextern \"C\" __declspec(dllimport) int __stdcall SetProcessAffinityMask(void*, uintptr_t);\n#endif\n\nint main(int argc,char** argv) {\n#if defined(_WIN32)\n    if(!SetProcessAffinityMask(GetCurrentProcess(),4)) std::abort();\n#endif\n    std::ifstream input(argv[1],std::ios::binary);\n    std::string twitter{std::istreambuf_iterator<char>(input),{}};\n    if(twitter.size()<1000) return 1;\n    std::string small=R\"({\"name\":\"small record sufficiently long for heap string storage\",\"ids\":[1,2,3,4,5,6,7,8],\"nested\":{\"text\":\"reused long user string value with real ownership\"}})\";\n    std::string wide=\"{\";\n    for(int i=0;i<64;++i) {\n        if(i)wide+=',';\n        wide+='\"'+std::to_string(i)+\"\\\":\\\"non-sso dynamically allocated value text for the key\\\"\";\n    }\n    wide+='}';\n    mi_resource resource;\n    std::pmr::unsynchronized_pool_resource pool;\n    auto* standard=std::pmr::new_delete_resource();\n    auto* pointer=standard->allocate(64);\n    if(mi_check_owned(pointer)) return 2;\n    standard->deallocate(pointer,64);\n    std::pmr::memory_resource* resources[]={standard,&resource,&pool};\n    const char* names[]={\"std_new_delete\",\"mimalloc\",\"std_unsynchronized_pool\"};\n    std::puts(\"case,resource,sample,iterations,ns_per_document\");\n    for(auto item:{std::pair{\"small\",&small},std::pair{\"wide\",&wide},std::pair{\"twitter\",&twitter}}) {\n        size_t count=1;\n        while(count<1048576) {\n            auto begin=std::chrono::steady_clock::now();\n            checksum=batch(*item.second,standard,count);\n            if(std::chrono::steady_clock::now()-begin>std::chrono::milliseconds(80))break;\n            count*=2;\n        }\n        for(auto* provider:resources) checksum=batch(*item.second,provider,count);\n        for(int sample=0;sample<7;++sample)for(int order=0;order<3;++order) {\n            int index=(order+sample)%3;\n            auto begin=std::chrono::steady_clock::now();\n            checksum=batch(*item.second,resources[index],count);\n            double ns=std::chrono::duration<double,std::nano>(std::chrono::steady_clock::now()-begin).count()/count;\n            std::printf(\"%s,%s,%d,%zu,%.6f\\n\",item.first,names[index],sample,count,ns);\n        }\n    }\n}\n",
+    "linux_driver_py": "\"\"\"One frozen API adapter against three ordinary resources; no production CI changes.\"\"\"\nfrom pathlib import Path\nimport subprocess as sp, os, json, platform, csv, statistics\nroot=Path(__file__).resolve().parent\nout=root/'evidence';out.mkdir(exist_ok=True)\nprovider=root/'_provider'\ncpu_source=root/'_cpu_features'\ndef run(command,name,expect=0,env=None):\n    command=[str(x) for x in command]\n    result=sp.run(command,cwd=root,stdout=sp.PIPE,stderr=sp.STDOUT,env=env)\n    (out/(name+'.log')).write_bytes(result.stdout)\n    if result.returncode!=expect:\n        print(result.stdout.decode(errors='replace')[-6500:]);raise RuntimeError((name,result.returncode,command))\n    return result\nreport={'platform':platform.platform(),'cpu':Path('/proc/cpuinfo').read_text().split('model name')[1].split('\\n')[0],'source':'6261a5641f6feee519f6508197e7beac5f9b7e15','provider':'56dc5eb80145f9a3ba7ca23d47c6a248b9d8586c','profiles':[]}\nrun(['git','clone','--depth','1','--branch','v0.10.1','https://github.com/google/cpu_features.git',cpu_source],'cpu-source')\nfor name,compiler,ccompiler,asan in [('clang18','clang++-18','clang-18',False),('gcc13','g++-13','gcc-13',False),('clang18-asan','clang++-18','clang-18',True)]:\n    prefix=root/('_mi-'+('asan' if asan else 'release'))\n    mi_build=root/('_mi-build-'+('asan' if asan else 'release'))\n    if name!='gcc13':\n        command=['cmake','-S',provider,'-B',mi_build,'-GNinja','-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER=clang-18','-DCMAKE_CXX_COMPILER=clang++-18','-DCMAKE_INSTALL_PREFIX='+str(prefix),'-DMI_BUILD_SHARED=ON','-DMI_BUILD_STATIC=OFF','-DMI_BUILD_OBJECT=OFF','-DMI_BUILD_TESTS=OFF','-DMI_OVERRIDE=OFF','-DMI_OPT_ARCH=OFF','-DMI_USE_CXX=ON','-DMI_STATS=OFF','-DMI_PROFILE=OFF','-DMI_SECURE=OFF','-DMI_GUARDED=OFF']\n        if asan:command+=['-DMI_TRACK=ASAN','-DCMAKE_CXX_FLAGS=-fsanitize=address -fno-omit-frame-pointer']\n        run(command,name+'-provider-configure')\n        run(['cmake','--build',mi_build,'--parallel','2'],name+'-provider-build')\n        run(['cmake','--install',mi_build],name+'-provider-install')\n    harness=root/('_harness-'+name);harness.mkdir(exist_ok=True)\n    harness.joinpath('CMakeLists.txt').write_text('''cmake_minimum_required(VERSION 3.20)\nproject(mimalloc_research LANGUAGES CXX)\nenable_testing()\nset(WJR_BUILD_TESTS OFF CACHE BOOL \"\" FORCE)\nset(WJR_ENABLE_INSTALL OFF CACHE BOOL \"\" FORCE)\nset(WJR_ENABLE_ASSEMBLY OFF CACHE BOOL \"\" FORCE)\nset(WJR_ENABLE_MIMALLOC ON CACHE BOOL \"\" FORCE)\nset(WJR_CPU_TARGET baseline CACHE STRING \"\" FORCE)\nadd_subdirectory(\"${WJR_SOURCE}\" wjr)\nadd_subdirectory(\"${WJR_SOURCE}/test/consumer/mimalloc\" consumer)\nadd_executable(mimalloc_study \"${WJR_SOURCE}/mimalloc_study.cpp\")\ntarget_link_libraries(mimalloc_study PRIVATE wjr::json wjr::mimalloc)\n''')\n    build=root/('_client-'+name)\n    command=['cmake','-S',harness,'-B',build,'-GNinja','-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER='+ccompiler,'-DCMAKE_CXX_COMPILER='+compiler,'-DWJR_SOURCE='+str(root),'-DFETCHCONTENT_SOURCE_DIR_CPU_FEATURES='+str(cpu_source),'-Dmimalloc_DIR='+str(prefix/'lib/cmake/mimalloc-3.6'),'-DCMAKE_EXPORT_COMPILE_COMMANDS=ON']\n    if asan:command+=['-DWJR_ENABLE_ASAN=ON','-DCMAKE_CXX_FLAGS=-fsanitize=address,undefined -fno-omit-frame-pointer']\n    run(command,name+'-configure')\n    run(['cmake','--build',build,'--target','wjr_mimalloc_consumer']+([] if asan else ['mimalloc_study'])+['--parallel','2'],name+'-build')\n    run(['ctest','--test-dir',build,'--output-on-failure'],name+'-consumer')\n    item={'name':name,'compiler':sp.check_output([compiler,'--version'],text=True).splitlines()[0],'consumer_passed':True,'provider_tracking':'ASAN' if asan else 'OFF','compile_commands':json.loads((build/'compile_commands.json').read_text())}\n    if not asan:\n        cpu=str(min(os.sched_getaffinity(0)))\n        result=run(['taskset','-c',cpu,build/'mimalloc_study',root/'test/data/success/twitter.json'],name+'-timings')\n        rows=list(csv.DictReader(result.stdout.decode().splitlines()))\n        assert len(rows)==63,len(rows)\n        (out/(name+'-timings.csv')).write_bytes(result.stdout)\n        item['affinity_cpu']=cpu;item['rows']=rows\n        item['medians']={case:{provider:statistics.median(float(x['ns_per_document']) for x in rows if x['case']==case and x['resource']==provider) for provider in ['std_new_delete','mimalloc','std_unsynchronized_pool']} for case in ['small','wide','twitter']}\n    report['profiles'].append(item)\n(out/'result.json').write_text(json.dumps(report,indent=2)+'\\n')\nprint(json.dumps([{k:v for k,v in x.items() if k not in ['rows','compile_commands']} for x in report['profiles']],indent=2))\n",
+    "codegen_probe_cpp": "#include <wjr/memory/mimalloc.hpp>\nusing namespace wjr;\nstruct alignas(64) item { char bytes[64]; };\nextern \"C\" WJR_NOINLINE void* typed_dynamic(size_t n) { return mimalloc_allocator<uint64_t>{}.allocate(n); }\nextern \"C\" WJR_NOINLINE void* hand_dynamic(size_t n) {\n    if(n>std::numeric_limits<size_t>::max()/8) mimalloc_detail::allocation_failure();\n    void* p=mi_malloc(n*8); if(!p) mimalloc_detail::allocation_failure(); return p;\n}\nextern \"C\" WJR_NOINLINE void* typed_fixed() { return mimalloc_allocator<uint64_t>{}.allocate(16); }\nextern \"C\" WJR_NOINLINE void* hand_fixed() { void* p=mi_malloc(128); if(!p)mimalloc_detail::allocation_failure();return p; }\nextern \"C\" WJR_NOINLINE void* typed_aligned(size_t n) { return mimalloc_allocator<item>{}.allocate(n); }\nextern \"C\" WJR_NOINLINE void* hand_aligned(size_t n) {\n    if(n>std::numeric_limits<size_t>::max()/64) mimalloc_detail::allocation_failure();\n    void* p=mi_malloc_aligned(n*64,64);if(!p)mimalloc_detail::allocation_failure();return p;\n}\n"
+  },
+  "reproduce": "Apply measurement_feature_patch to source_base_commit in a fresh checkout. Write workload_cpp as mimalloc_study.cpp and linux_driver_py as research_mimalloc.py in that checkout; fetch provider_commit into _provider and initialize the pinned third-party/fmt submodule. On Ubuntu with CMake/Ninja, Clang18 and GCC13, run python3 research_mimalloc.py. It uses fresh output directories and preserves logs/data. The final cold/noexcept annotation adjustment has identical resource instructions in codegen.resource_attribute_change.",
+  "fixture": {
+    "path": "test/data/success/twitter.json",
+    "bytes": 631514,
+    "sha256": "68f2ed1261eeccb70ac34d8cab3c3b8bc7b7b510b6bd3a97ac5636e27e872d3c"
+  },
+  "run": "https://github.com/wjr-z/wjr/actions/runs/41288577793",
+  "provider_url": "https://github.com/microsoft/mimalloc"
+}

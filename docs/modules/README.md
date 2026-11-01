@@ -95,6 +95,13 @@ compact representation and its consumer are not implemented.
 
 需要低开销地暂存数据流、事件或生产者消费者之间的数据时使用。它依赖 `wjr::assert` 和 `wjr::iterator`。
 
+## `wjr::mimalloc`（可选）
+
+`WJR_ENABLE_MIMALLOC=ON` 提供按容器选择的 `mimalloc_allocator<T>` 和
+`mimalloc_memory_resource`，仅发现已安装的共享 mimalloc，不下载或构建依赖。
+默认分配器和全局 `new/malloc` 保持原配置；安装消费显式请求 `COMPONENTS mimalloc`。
+生命周期、配置和 Windows/Linux 实测见 [mimalloc 适配](mimalloc.md)。
+
 ## `wjr::tbb`（可选）
 
 设置 `WJR_ENABLE_TBB=ON` 后提供 `<wjr/parallel/tbb.hpp>` 的同步
