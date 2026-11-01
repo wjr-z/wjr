@@ -66,6 +66,14 @@ struct is_iterator : _is_iterator_impl<Iter> {};
 template <typename Iter>
 inline constexpr bool is_iterator_v = is_iterator<Iter>::value;
 
+/**
+ * @brief Iterator with the legacy category used by iterator-pair container APIs.
+ * @note This preserves WJR's existing trait admission. C++20 iterators without
+ * iterator_category belong to the separate range APIs.
+ */
+template <typename Iter>
+concept legacy_iterator = is_iterator_v<Iter>;
+
 /// @private
 template <typename Iter, typename Category, typename = void>
 struct _is_category_iterator_impl : std::false_type {};
@@ -152,10 +160,18 @@ struct is_contiguous_iterator : std::bool_constant<_is_contiguous_iterator_impl_
 template <typename Iter>
 inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+/**
+ * @brief Contiguous-storage domain used by WJR memory operations.
+ * @note Includes WJR's array and trivial move-iterator extensions; this is
+ * broader than std::contiguous_iterator.
+ */
+template <typename Iter>
+concept contiguous_storage_iterator = is_contiguous_iterator_v<Iter>;
+
+template <contiguous_storage_iterator Iter>
 using iterator_contiguous_value_t = std::remove_reference_t<iterator_reference_t<Iter>>;
 
-template <typename Iter, WJR_REQUIRES(is_contiguous_iterator_v<Iter>)>
+template <contiguous_storage_iterator Iter>
 using iterator_contiguous_pointer_t = std::add_pointer_t<iterator_contiguous_value_t<Iter>>;
 
 #if WJR_DEBUG_LEVEL >= 3
