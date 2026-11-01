@@ -1410,8 +1410,9 @@ public:
     }
 
 private:
+    /** @note Keep the tag load visible to the compiler constant test through inlined callers. */
     void _destroy() noexcept {
-        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(type())) {
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(m_value.m_type)) {
             switch (type()) {
             case value_t::null:
             case value_t::boolean:
