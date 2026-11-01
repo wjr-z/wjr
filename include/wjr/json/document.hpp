@@ -1915,14 +1915,14 @@ struct _document_serializer_object {
     /// from_document
 
     template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = doc.template get<object_t>();
     }
 
     template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
@@ -1934,7 +1934,7 @@ struct _document_serializer_object {
 
     template <typename Document,
               WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           std::is_same_v<typename Document::array_type, value_type>)>
+                           std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = std::move(doc.template get<object_t>());
@@ -1942,7 +1942,7 @@ struct _document_serializer_object {
 
     template <typename Document,
               WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::array_type, value_type>)>
+                           !std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
@@ -1953,14 +1953,14 @@ struct _document_serializer_object {
     }
 
     template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         return doc.template get<object_t>();
     }
 
     template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
@@ -1969,14 +1969,14 @@ struct _document_serializer_object {
 
     template <typename Document,
               WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           std::is_same_v<typename Document::array_type, value_type>)>
+                           std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         return std::move(doc.template get<object_t>());
     }
 
     template <typename Document,
               WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::array_type, value_type>)>
+                           !std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
         return value_type(std::make_move_iterator(obj.begin()), std::make_move_iterator(obj.end()));
@@ -1985,7 +1985,7 @@ struct _document_serializer_object {
     /// to_document
 
     template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(const value_type &val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
@@ -1993,7 +1993,7 @@ struct _document_serializer_object {
     }
 
     template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(const value_type &val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
@@ -2001,7 +2001,7 @@ struct _document_serializer_object {
     }
 
     template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(value_type &&val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
@@ -2009,7 +2009,7 @@ struct _document_serializer_object {
     }
 
     template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static void assign(value_type &&val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
@@ -2018,25 +2018,25 @@ struct _document_serializer_object {
     }
 
     template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
         return Document::_construct_object(val);
     }
 
     template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
         return Document::_construct_object(val.begin(), val.end());
     }
 
     template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
         return Document::_construct_object(std::move(val));
     }
 
     template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type>)>
+              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
         return Document::_construct_object(std::make_move_iterator(val.begin()),
                                            std::make_move_iterator(val.end()));
@@ -2053,7 +2053,7 @@ struct document_serializer_impl<std::multimap<Key, Value, Pr, Alloc>>
 
 template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
 struct document_serializer_impl<std::unordered_map<Key, Value, Hash, Eq, Alloc>>
-    : _document_serializer_array<std::unordered_map<Key, Value, Hash, Eq, Alloc>> {};
+    : _document_serializer_object<std::unordered_map<Key, Value, Hash, Eq, Alloc>> {};
 
 template <typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
 struct document_serializer_impl<std::unordered_multimap<Key, Value, Hash, Eq, Alloc>>
