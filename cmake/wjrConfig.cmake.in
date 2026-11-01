@@ -10,7 +10,7 @@ if (NOT TARGET fmt::fmt)
 endif()
 
 if (NOT TARGET CpuFeatures::cpu_features)
-    find_dependency(CpuFeatures CONFIG HINTS "${_WJR_PACKAGE_PREFIX}")
+    find_dependency(CpuFeatures 0.10.1 EXACT CONFIG HINTS "${_WJR_PACKAGE_PREFIX}")
 endif()
 
 include ("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")

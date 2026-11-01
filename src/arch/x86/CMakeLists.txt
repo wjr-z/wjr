@@ -1,18 +1,31 @@
 include(FetchContent)
 
-# Fetch cpu_features for x86 architecture
-FetchContent_Declare(
-    cpu_features
-    GIT_REPOSITORY https://github.com/google/cpu_features.git
-    GIT_TAG v0.10.1
-    GIT_SHALLOW ON
-    FIND_PACKAGE_ARGS 0.10.1
-)
+if(NOT TARGET CpuFeatures::cpu_features)
+    # Preserve explicit source choices and the provider-scope fixtures.
+    if(NOT FETCHCONTENT_SOURCE_DIR_CPU_FEATURES AND
+       NOT FETCHCONTENT_TRY_FIND_PACKAGE_MODE STREQUAL "NEVER")
+        find_package(CpuFeatures 0.10.1 EXACT QUIET CONFIG)
+        if(TARGET CpuFeatures::cpu_features)
+            # The official package imports this target in the current directory.
+            # Keep it visible to embedding projects, like the source-built alias.
+            set_property(TARGET CpuFeatures::cpu_features PROPERTY IMPORTED_GLOBAL TRUE)
+        endif()
+    endif()
 
-# Disable provider tests in this directory without changing the embedding project.
-set(BUILD_TESTING OFF)
+    if(NOT TARGET CpuFeatures::cpu_features)
+        # Package selection above already enforced the public X86Info ABI version.
+        set(FETCHCONTENT_TRY_FIND_PACKAGE_MODE NEVER)
+        FetchContent_Declare(cpu_features
+            GIT_REPOSITORY https://github.com/google/cpu_features.git
+            GIT_TAG v0.10.1
+            GIT_SHALLOW ON
+        )
 
-FetchContent_MakeAvailable(cpu_features)
+        # Disable provider tests here without changing the embedding project.
+        set(BUILD_TESTING OFF)
+        FetchContent_MakeAvailable(cpu_features)
+    endif()
+endif()
 
 wjr_cc_library(
     NAME

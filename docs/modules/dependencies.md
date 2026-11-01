@@ -28,6 +28,27 @@ Installed WJR consumers must still be able to find fmt; externally supplied fmt
 is not copied into WJR's install prefix. Keep the external dependency's compiler,
 CRT, linkage and sanitizer requirements compatible with the consuming build.
 
+## CpuFeatures
+
+On x86, WJR reuses a parent-supplied `CpuFeatures::cpu_features` target first.
+Otherwise it searches for the official installed CpuFeatures **0.10.1** config
+package before building the pinned `cpu_features` source. The exact version keeps
+the public `cpu_features::X86Info` ABI tied to the existing reviewed dependency.
+Parent targets retain their scope and alias; the parent owns their compatibility.
+
+Set `CMAKE_PREFIX_PATH` or `CpuFeatures_DIR` to the installed package. An explicit
+`FETCHCONTENT_SOURCE_DIR_CPU_FEATURES` override takes precedence over discovery.
+`CMAKE_DISABLE_FIND_PACKAGE_CpuFeatures=ON` or
+`FETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER` forces the pinned source fallback unless
+the parent already supplies the target. Missing or incompatible packages also use
+the source fallback. This works with WJR's CMake 3.20 minimum.
+
+An installed provider is not copied into WJR's install prefix. Independent
+installed WJR consumers must also be able to find CpuFeatures 0.10.1; a source-built
+provider keeps its existing installation behavior. Match the external provider's
+architecture, compiler, CRT, linkage and instrumentation to the consuming build.
+CPU detection, baseline/native options and provider test isolation are unchanged.
+
 ## Google Benchmark
 
 Both the regular and focused B+ tree benchmark profiles reuse a parent-supplied
