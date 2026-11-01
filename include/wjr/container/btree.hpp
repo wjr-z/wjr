@@ -1342,13 +1342,41 @@ protected:
         }
     }
 
+    /// @brief Construct at an already searched position, preserving implicit conversion failures.
+    template <typename KeyArg, typename... Args>
+    WJR_INTRINSIC_INLINE std::pair<iterator, bool> _emplace_key_at(const const_iterator &position,
+                                                                   KeyArg &&key, Args &&...args) {
+        if constexpr (!std::same_as<remove_cvref_t<KeyArg>, key_type> &&
+                      std::convertible_to<KeyArg &&, key_type> &&
+                      std::is_move_constructible_v<key_type> &&
+                      !std::is_nothrow_constructible_v<key_type, KeyArg &&>) {
+            /// Old implicit conversions ran before entering the insertion engine's noexcept path.
+            key_type owned(std::forward<KeyArg>(key));
+            return _emplace_key_at(position, std::move(owned), std::forward<Args>(args)...);
+        } else if constexpr (compact_slots) {
+            btree_detail::compact_temporary<value_type, _Alty> value(
+                _get_allocator(), std::piecewise_construct,
+                std::forward_as_tuple(std::forward<KeyArg>(key)),
+                std::forward_as_tuple(std::forward<Args>(args)...));
+            return {_insert_iter(position, value.get()), true};
+        } else {
+            ivalue_type value = _create_node(std::piecewise_construct,
+                                             std::forward_as_tuple(std::forward<KeyArg>(key)),
+                                             std::forward_as_tuple(std::forward<Args>(args)...));
+            return {_insert_iter(position, value), true};
+        }
+    }
+
     template <typename KeyArg, typename... Args>
     std::pair<iterator, bool> _try_emplace_hint_unique(const_iterator hint, KeyArg &&key,
                                                        Args &&...args) {
         const auto location = _locate_hint(hint, key);
         if (location.duplicate)
             return {iterator(location.position), false};
-        if constexpr (compact_slots) {
+        if constexpr (!std::same_as<remove_cvref_t<KeyArg>, key_type>) {
+            return _emplace_key_at(location.position, std::forward<KeyArg>(key),
+                                   std::forward<Args>(args)...);
+        } else if constexpr (compact_slots) {
             btree_detail::compact_temporary<value_type, _Alty> value(
                 _get_allocator(), std::piecewise_construct,
                 std::forward_as_tuple(std::forward<KeyArg>(key)),
@@ -1490,18 +1518,7 @@ protected:
         const_iterator iter = _get_insert_multi_pos(key);
         if (WJR_UNLIKELY(_same_insert_key(iter, key)))
             return {_get_same_iterator(iter), false};
-        if constexpr (compact_slots) {
-            btree_detail::compact_temporary<value_type, _Alty> value(
-                _get_allocator(), std::piecewise_construct,
-                std::forward_as_tuple(std::forward<Lookup>(key)),
-                std::forward_as_tuple(std::forward<Args>(args)...));
-            return {_insert_iter(iter, value.get()), true};
-        } else {
-            ivalue_type value = _create_node(std::piecewise_construct,
-                                             std::forward_as_tuple(std::forward<Lookup>(key)),
-                                             std::forward_as_tuple(std::forward<Args>(args)...));
-            return {_insert_iter(iter, value), true};
-        }
+        return _emplace_key_at(iter, std::forward<Lookup>(key), std::forward<Args>(args)...);
     }
 
 public:

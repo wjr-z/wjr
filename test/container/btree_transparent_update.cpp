@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory_resource>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -234,6 +235,44 @@ TEST(BtreeTransparentUpdate, BorrowedUpdatesRetainAllocatorOnlyMappedConstructio
         EXPECT_EQ(compact.at(3).owner, &owner);
     }
     EXPECT_EQ(owner.live_bytes, 0u);
+}
+
+struct implicit_query {
+    int number;
+    bool fail;
+    operator int() const {
+        if (fail)
+            throw std::runtime_error("key conversion");
+        return number;
+    }
+};
+struct implicit_order {
+    using is_transparent = void;
+    bool operator()(int a, int b) const noexcept { return a < b; }
+    bool operator()(int a, const implicit_query &b) const noexcept { return a < b.number; }
+    bool operator()(const implicit_query &a, int b) const noexcept { return a.number < b; }
+};
+template <typename Tree>
+void check_conversion_failure() {
+    Tree tree;
+    tree.try_emplace(1, 7);
+    const implicit_query hit{1, true}, miss{2, true};
+    EXPECT_FALSE(tree.try_emplace(hit, 0).second);
+    tree.try_emplace(tree.cend(), hit, 0);
+    tree.insert_or_assign(hit, 8);
+    EXPECT_EQ(tree[hit], 8);
+    EXPECT_THROW(tree.try_emplace(miss, 0), std::runtime_error);
+    EXPECT_THROW(tree.try_emplace(tree.cbegin(), miss, 0), std::runtime_error);
+    EXPECT_THROW(tree.insert_or_assign(miss, 0), std::runtime_error);
+    EXPECT_THROW(tree.insert_or_assign(tree.cend(), miss, 0), std::runtime_error);
+    EXPECT_THROW((void)tree[miss], std::runtime_error);
+    EXPECT_EQ(tree.size(), 1u);
+    EXPECT_EQ(tree.at(1), 8);
+}
+
+TEST(BtreeTransparentUpdate, ImplicitConversionExceptionsStillPropagateBeforeInsertion) {
+    check_conversion_failure<wjr::btree_map<int, int, implicit_order>>();
+    check_conversion_failure<wjr::experimental::compact_btree_map<int, int, implicit_order>>();
 }
 
 template <typename Tree, typename Query>
