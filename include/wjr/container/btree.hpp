@@ -94,10 +94,13 @@ template <typename Iter, typename Value>
 concept insert_iterator =
     std::input_iterator<Iter> && std::constructible_from<Value, std::iter_reference_t<Iter>>;
 
-/// @brief Admit a mapped source for both insertion and assignment, without common-reference rules.
-template <typename Source, typename Mapped>
+/// @brief Admit ordinary or allocator-extended mapped construction and assignment.
+template <typename Source, typename Mapped, typename Alloc>
 concept upsert_source =
-    std::constructible_from<Mapped, Source &&> &&
+    std::destructible<Mapped> &&
+    (std::constructible_from<Mapped, Source &&> ||
+     (!is_trivially_allocator_construct_v<Alloc, Mapped, Source &&> &&
+      range_allocator_arguments<Mapped, Alloc, Source &&>())) &&
     requires(Mapped &target, Source &&source) { target = std::forward<Source>(source); };
 
 /// @brief Permit default-order allocator convenience without hiding a same-type comparator.
