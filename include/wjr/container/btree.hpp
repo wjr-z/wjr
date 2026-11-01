@@ -2003,59 +2003,138 @@ private:
         _assign_tree<const value_type &>(other);
     }
 
-    /// @brief Reuse only an identical shape, preserving the copied tree's node footprint/fill.
-    static bool _same_copy_shape(const node_type *lhs, const node_type *rhs) noexcept {
-        if (lhs == nullptr || rhs == nullptr)
-            return lhs == rhs;
-        if (lhs->size() != rhs->size())
-            return false;
-        if (lhs->size() < 0)
-            return true;
-        const auto count = static_cast<slot_usize_type>(lhs->size());
-        for (slot_usize_type i = 0; i <= count; ++i) {
-            if (!_same_copy_shape(lhs->as_inner()->m_sons[i], rhs->as_inner()->m_sons[i]))
-                return false;
+    /// @brief Release an unshared retired branch, unlinking each leaf before its storage ends.
+    void _destroy_copy_branch(node_type *current) noexcept {
+        const auto size = current->size();
+        if (size < 0) {
+            auto *const leaf = current->as_leaf();
+            leaf->remove();
+            for (slot_usize_type i = 0; i < static_cast<slot_usize_type>(-size); ++i)
+                _destroy_slot(leaf->m_values[i]);
+            _drop_leaf_node(leaf);
+        } else {
+            auto *const inner = current->as_inner();
+            for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i)
+                _destroy_copy_branch(inner->m_sons[i]);
+            _drop_inner_node(inner);
         }
-        return true;
     }
 
-    /// @brief Reconstruct owned values without ending their allocation or node lifetimes.
-    void _copy_reuse_values(leaf_node_type *leaf, slot_usize_type count,
-                            const_iterator &source) noexcept {
+    /// @brief Clone an incompatible branch into an unpublished leaf chain.
+    std::pair<ikey_type, node_type *> _clone_copy_branch(const node_type *source,
+                                                         list_node_type &leaves) noexcept {
+        const auto size = source->size();
+        if (size < 0) {
+            auto *const leaf = _create_leaf_node();
+            leaf->size() = size;
+            for (slot_usize_type i = 0; i < static_cast<slot_usize_type>(-size); ++i)
+                _construct_leaf_value(leaf, i, from_ivalue(source->as_leaf()->m_values[i]));
+            leaves.push_back(leaf);
+            return {to_ikey(leaf->get_key(0)), leaf};
+        }
+        auto *const inner = _create_inner_node();
+        inner->size() = size;
+        ikey_type first_key;
+        for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
+            auto [key, child] = _clone_copy_branch(source->as_inner()->m_sons[i], leaves);
+            inner->m_sons[i] = child;
+            child->m_parent = inner;
+            child->pos() = i;
+            if (i == 0)
+                first_key = key;
+            else
+                inner->m_keys[i - 1] = key;
+        }
+        return {first_key, inner};
+    }
+
+    /// @brief Copy every value while reusing existing allocation prefixes, never comparing values.
+    void _reuse_copy_slots(leaf_node_type *destination, const leaf_node_type *source,
+                           slot_usize_type old_count, slot_usize_type count) noexcept {
+        for (slot_usize_type i = count; i < old_count; ++i)
+            _destroy_slot(destination->m_values[i]);
         auto &alloc = _get_allocator();
-        for (slot_usize_type i = 0; i < count; ++i, ++source) {
-            auto *const value = std::addressof(from_ivalue(leaf->m_values[i]));
+        const auto shared = std::min(old_count, count);
+        for (slot_usize_type i = 0; i < shared; ++i) {
+            auto *const value = std::addressof(from_ivalue(destination->m_values[i]));
             destroy_at_using_allocator(value, alloc);
-            uninitialized_construct_using_allocator(value, alloc, *source);
+            uninitialized_construct_using_allocator(value, alloc, from_ivalue(source->m_values[i]));
         }
+        for (slot_usize_type i = shared; i < count; ++i)
+            _construct_leaf_value(destination, i, from_ivalue(source->m_values[i]));
     }
 
-    /// @brief Keep the destination observably empty while its detached graph is reconstructed.
-    /// @note Construction/destruction retain the copy engine's existing noexcept boundary.
+    /// @brief Reuse compatible node storage in one traversal; replace only incompatible branches.
+    std::pair<ikey_type, node_type *> _reuse_copy_branch(node_type *owned, const node_type *source,
+                                                         list_node_type &leaves) noexcept {
+        if (owned == nullptr)
+            return _clone_copy_branch(source, leaves);
+        const auto old_size = owned->size();
+        const auto size = source->size();
+        if ((old_size < 0) != (size < 0)) {
+            _destroy_copy_branch(owned);
+            return _clone_copy_branch(source, leaves);
+        }
+        if (size < 0) {
+            auto *const leaf = owned->as_leaf();
+            leaf->remove();
+            _reuse_copy_slots(leaf, source->as_leaf(), static_cast<slot_usize_type>(-old_size),
+                              static_cast<slot_usize_type>(-size));
+            leaf->size() = size;
+            leaves.push_back(leaf);
+            return {to_ikey(leaf->get_key(0)), leaf};
+        }
+        auto *const inner = owned->as_inner();
+        for (slot_usize_type i = static_cast<slot_usize_type>(size) + 1;
+             i <= static_cast<slot_usize_type>(old_size); ++i)
+            _destroy_copy_branch(inner->m_sons[i]);
+        ikey_type first_key;
+        for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
+            auto *const previous =
+                i <= static_cast<slot_usize_type>(old_size) ? inner->m_sons[i] : nullptr;
+            auto [key, child] = _reuse_copy_branch(previous, source->as_inner()->m_sons[i], leaves);
+            inner->m_sons[i] = child;
+            child->m_parent = inner;
+            child->pos() = i;
+            if (i == 0)
+                first_key = key;
+            else
+                inner->m_keys[i - 1] = key;
+        }
+        inner->size() = size;
+        return {first_key, inner};
+    }
+
+    /// @brief Publish an empty destination until all copied values and graph links are complete.
+    /// @note All value/hook failures retain the existing copy engine's noexcept boundary.
     void _copy_reuse_tree(const basic_btree &other) noexcept {
         auto *const root = std::exchange(_get_root(), nullptr);
-        const auto count = std::exchange(_get_size(), 0);
-        list_node_type leaves;
-        leaves.init_self();
+        const auto old_count = std::exchange(_get_size(), 0);
+        list_node_type retired, replacement;
+        retired.init_self();
+        replacement.init_self();
         if (root != nullptr) {
-            replace(_get_sentry(), std::addressof(leaves));
+            replace(_get_sentry(), std::addressof(retired));
             _get_sentry()->init_self();
         }
         key_comp() = other.key_comp();
-        auto source = other.cbegin();
-        if (root == nullptr) {
-            _copy_reuse_values(_get_base(), static_cast<slot_usize_type>(count), source);
+        const auto *const source = other._get_root();
+        if (source == nullptr) {
+            if (root != nullptr)
+                _destroy_copy_branch(root);
+            _reuse_copy_slots(_get_base(), other._get_base(), root == nullptr ? old_count : 0,
+                              static_cast<slot_usize_type>(other.size()));
         } else {
-            for (auto *current = leaves.next(); current != std::addressof(leaves);
-                 current = current->next()) {
-                auto *const leaf = current->self();
-                _copy_reuse_values(leaf, static_cast<slot_usize_type>(-leaf->size()), source);
-                _replace_subtree_minimum(leaf, to_ikey(leaf->get_key(0)));
+            if (root == nullptr) {
+                for (slot_usize_type i = 0; i < old_count; ++i)
+                    _destroy_slot(_get_base()->m_values[i]);
             }
-            replace(std::addressof(leaves), _get_sentry());
+            auto [key, copied] = _reuse_copy_branch(root, source, replacement);
+            copied->m_parent = nullptr;
+            replace(std::addressof(replacement), _get_sentry());
+            _get_root() = copied;
         }
-        _get_root() = root;
-        _get_size() = count;
+        _get_size() = other.size();
     }
 
     /// @brief Rebuild a detached ownership graph without searching its retired keys.
@@ -2141,11 +2220,8 @@ private:
 
     void _copy_element(const basic_btree &other) noexcept {
         if constexpr (!Traits::is_inline_value) {
-            if (_get_size() == other._get_size() &&
-                _same_copy_shape(_get_root(), other._get_root())) {
-                _copy_reuse_tree(other);
-                return;
-            }
+            _copy_reuse_tree(other);
+            return;
         }
         clear();
         key_comp() = other.key_comp();

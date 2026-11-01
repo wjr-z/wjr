@@ -6,6 +6,7 @@
 #include <map>
 #include <memory_resource>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -101,7 +102,7 @@ void check_mismatch() {
         target.try_emplace(20000, 1);
         const auto allocations = second.allocations;
         target = source;
-        EXPECT_GT(second.allocations, allocations);
+        EXPECT_LE(second.allocations - allocations, first.allocations);
         EXPECT_EQ(second.live_bytes, first.live_bytes);
         for (int i = 0; i < 80; ++i)
             EXPECT_EQ(target.at(i), i);
@@ -200,7 +201,20 @@ struct alignas(64) counted {
     ~counted() noexcept { --live; }
 };
 struct hooks {
+    struct node_record {
+        std::function<int()> size;
+        std::function<void *()> parent;
+        std::function<unsigned()> position;
+        std::function<std::vector<void *>()> children;
+        std::function<std::vector<int>()> separators;
+        std::function<int()> minimum;
+        void *list = nullptr;
+        std::function<void *()> next;
+        std::function<void *()> previous;
+    };
     size_t allocations = 0, blocks = 0, constructs = 0, destroys = 0;
+    size_t bytes = 0, peak = 0;
+    std::map<void *, node_record> nodes;
     std::function<void()> observe;
 };
 template <typename T>
@@ -214,10 +228,13 @@ struct hooked_allocator {
     T *allocate(size_t n) {
         ++state->allocations;
         ++state->blocks;
+        state->bytes += n * sizeof(T);
+        state->peak = std::max(state->peak, state->bytes);
         return std::allocator<T>{}.allocate(n);
     }
     void deallocate(T *p, size_t n) noexcept {
         --state->blocks;
+        state->bytes -= n * sizeof(T);
         std::allocator<T>{}.deallocate(p, n);
     }
     template <typename U, typename... Args>
@@ -229,9 +246,52 @@ struct hooked_allocator {
                 state->observe();
         }
         std::construct_at(p, std::forward<Args>(args)...);
+        if constexpr (requires {
+                          p->size();
+                          p->m_parent;
+                          p->pos();
+                      }) {
+            using base_pointer = decltype(p->m_parent);
+            base_pointer node = p;
+            hooks::node_record record;
+            record.size = [p] { return p->size(); };
+            record.parent = [p] { return static_cast<void *>(p->m_parent); };
+            record.position = [p] { return p->pos(); };
+            if constexpr (requires { p->m_sons[0]; }) {
+                record.children = [p] {
+                    std::vector<void *> result;
+                    for (int i = 0; i <= p->size(); ++i)
+                        result.push_back(p->m_sons[i]);
+                    return result;
+                };
+                record.separators = [p] {
+                    std::vector<int> result;
+                    for (int i = 0; i < p->size(); ++i)
+                        result.push_back(p->m_keys[i]);
+                    return result;
+                };
+            } else {
+                using list_pointer = decltype(p->next());
+                list_pointer list = p;
+                record.list = list;
+                record.minimum = [p] { return p->get_key(0); };
+                record.next = [p] { return static_cast<void *>(p->next()); };
+                record.previous = [p] { return static_cast<void *>(p->prev()); };
+            }
+            state->nodes.emplace(node, std::move(record));
+        }
     }
     template <typename U>
     void destroy(U *p) noexcept {
+        if constexpr (requires {
+                          p->size();
+                          p->m_parent;
+                          p->pos();
+                      }) {
+            using base_pointer = decltype(p->m_parent);
+            base_pointer node = p;
+            EXPECT_EQ(state->nodes.erase(node), 1u);
+        }
         if constexpr (std::same_as<U, std::pair<const int, counted>>) {
             ++state->destroys;
             if (state->observe)
@@ -319,5 +379,164 @@ TEST(BtreeCopyReuse, IndirectSetAndMultisetKeysRetainTheirValueAllocations) {
     }
     EXPECT_EQ(first.live_bytes, 0u);
     EXPECT_EQ(second.live_bytes, 0u);
+}
+
+struct graph_snapshot {
+    std::vector<int> slots;
+    std::vector<void *> leaves;
+};
+int inspect_branch(hooks &state, void *node, graph_snapshot &out) {
+    auto &record = state.nodes.at(node);
+    if (record.size() < 0) {
+        out.slots.push_back(-record.size());
+        out.leaves.push_back(node);
+        return record.minimum();
+    }
+    const auto children = record.children();
+    const auto separators = record.separators();
+    int first = 0;
+    for (size_t i = 0; i < children.size(); ++i) {
+        const auto &child = state.nodes.at(children[i]);
+        EXPECT_EQ(child.parent(), node);
+        EXPECT_EQ(child.position(), i);
+        const auto minimum = inspect_branch(state, children[i], out);
+        if (i == 0)
+            first = minimum;
+        else
+            EXPECT_EQ(separators[i - 1], minimum);
+    }
+    return first;
+}
+graph_snapshot inspect_graph(hooks &state) {
+    graph_snapshot result;
+    void *root = nullptr;
+    for (const auto &[node, record] : state.nodes) {
+        if (record.parent() == nullptr) {
+            EXPECT_EQ(root, nullptr);
+            root = node;
+        }
+    }
+    if (root == nullptr)
+        return result;
+    inspect_branch(state, root, result);
+    for (size_t i = 0; i < result.leaves.size(); ++i) {
+        const auto &leaf = state.nodes.at(result.leaves[i]);
+        if (i != 0)
+            EXPECT_EQ(leaf.previous(), state.nodes.at(result.leaves[i - 1]).list);
+        if (i + 1 != result.leaves.size())
+            EXPECT_EQ(leaf.next(), state.nodes.at(result.leaves[i + 1]).list);
+    }
+    EXPECT_EQ(state.nodes.at(result.leaves.front()).previous(),
+              state.nodes.at(result.leaves.back()).next());
+    return result;
+}
+
+template <typename Tree>
+void redistribute_leaves(Tree &tree, int matched_percent, bool late) {
+    constexpr size_t leaves = 455;
+    const size_t changed = (leaves * (100 - matched_percent) + 50) / 100;
+    const size_t start = late ? leaves - changed : 0;
+    const size_t paired = changed % 2 ? changed - 3 : changed;
+    for (size_t i = 0; i < paired; i += 2) {
+        tree.erase(static_cast<int>(4 * ((start + i) * 9 + 1)));
+        tree.try_emplace(static_cast<int>(4 * ((start + i + 1) * 9 + 1) + 1), -1);
+    }
+    if (paired != changed) {
+        const size_t first = start + paired;
+        tree.erase(static_cast<int>(4 * (first * 9 + 1)));
+        tree.erase(static_cast<int>(4 * ((first + 1) * 9 + 1)));
+        tree.try_emplace(static_cast<int>(4 * ((first + 2) * 9 + 1) + 1), -1);
+        tree.try_emplace(static_cast<int>(4 * ((first + 2) * 9 + 1) + 2), -1);
+    }
+}
+
+TEST(BtreeCopyReuse, RecursiveLeafOccupancyMatchesNeverSkipValueCopiesOrRetainWrongShape) {
+    using tree = wjr::btree_map<int, counted, std::less<>, hooked_allocator<char>, 16>;
+    for (int percent : {0, 25, 50, 75, 100}) {
+        for (bool late : {false, true}) {
+            hooks first, second;
+            {
+                tree source(std::less<>{}, hooked_allocator<char>(first)),
+                    target(std::less<>{}, hooked_allocator<char>(second));
+                for (int i = 0; i < 4096; ++i) {
+                    source.try_emplace(4 * i, i);
+                    target.try_emplace(4 * i, i);
+                }
+                redistribute_leaves(target, percent, late);
+                const auto source_graph = inspect_graph(first),
+                           target_graph = inspect_graph(second);
+                ASSERT_EQ(source_graph.slots.size(), 455u);
+                ASSERT_EQ(source_graph.slots.size(), target_graph.slots.size());
+                size_t matched = 0;
+                for (size_t i = 0; i < 455; ++i)
+                    matched += source_graph.slots[i] == target_graph.slots[i];
+                const size_t changed = (455 * (100 - percent) + 50) / 100;
+                EXPECT_EQ(matched, 455 - changed);
+                const auto allocations = second.allocations, constructs = second.constructs,
+                           destroys = second.destroys, bytes = second.bytes;
+                const auto copies = counted::copies;
+                second.peak = bytes;
+                second.observe = [&] {
+                    EXPECT_TRUE(target.empty());
+                    EXPECT_EQ(target.begin(), target.end());
+                    EXPECT_EQ(source.size(), 4096u);
+                    EXPECT_EQ(source.at(0).number, 0);
+                };
+                target = source;
+                second.observe = {};
+                EXPECT_EQ(second.allocations - allocations, (changed + 1) / 2);
+                EXPECT_EQ(second.constructs - constructs, 4096u);
+                EXPECT_EQ(second.destroys - destroys, 4096u);
+                EXPECT_EQ(counted::copies - copies, 4096);
+                EXPECT_EQ(second.bytes, first.bytes);
+                EXPECT_LE(second.peak, bytes + 2 * sizeof(tree::value_type));
+                EXPECT_EQ(inspect_graph(second).slots, source_graph.slots);
+                for (int i = 0; i < 4096; ++i)
+                    EXPECT_EQ(target.at(4 * i).number, i);
+            }
+            EXPECT_TRUE(first.nodes.empty());
+            EXPECT_TRUE(second.nodes.empty());
+            EXPECT_EQ(first.blocks, 0u);
+            EXPECT_EQ(second.blocks, 0u);
+            EXPECT_EQ(counted::live, 0);
+        }
+    }
+}
+
+TEST(BtreeCopyReuse, RecursiveDifferentSizesKindsAndSsoPublishACompleteOwnedGraph) {
+    using tree = wjr::btree_map<int, counted, std::less<>, hooked_allocator<char>, 5>;
+    for (int source_size : {0, 1, 2, 3, 8, 17, 80, 257}) {
+        for (int target_size : {0, 1, 2, 3, 8, 17, 80, 257}) {
+            hooks first, second;
+            {
+                tree source(std::less<>{}, hooked_allocator<char>(first)),
+                    target(std::less<>{}, hooked_allocator<char>(second));
+                for (int i = 0; i < source_size; ++i)
+                    source.try_emplace(i * 4, i);
+                for (int i = 0; i < target_size; ++i)
+                    target.try_emplace(10000 + i * 3, -i);
+                const auto constructs = second.constructs, destroys = second.destroys;
+                second.observe = [&] {
+                    EXPECT_TRUE(target.empty());
+                    EXPECT_EQ(target.begin(), target.end());
+                    EXPECT_EQ(source.size(), source_size);
+                };
+                target = source;
+                second.observe = {};
+                EXPECT_EQ(second.constructs - constructs, source_size);
+                EXPECT_EQ(second.destroys - destroys, target_size);
+                EXPECT_EQ(second.bytes, first.bytes);
+                EXPECT_EQ(inspect_graph(second).slots, inspect_graph(first).slots);
+                ASSERT_EQ(target.size(), source_size);
+                for (int i = 0; i < source_size; ++i)
+                    EXPECT_EQ(target.at(i * 4).number, i);
+                target.try_emplace(-1, 7);
+                target.erase(-1);
+            }
+            EXPECT_EQ(first.blocks, 0u);
+            EXPECT_EQ(second.blocks, 0u);
+            EXPECT_EQ(counted::live, 0);
+        }
+    }
 }
 } // namespace
