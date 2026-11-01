@@ -284,7 +284,8 @@ size_t _biginteger_to_chars_power_of_two_impl(uint8_t *first, const uint64_t *up
         x >>= fix;
         *--first = conv.to(val);
         rest = hbits - fix;
-        if (WJR_UNLIKELY(rest == 0)) {
+        /// The shared digit may consume all high-limb bits, including its leading zero bits.
+        if (WJR_UNLIKELY(rest <= 0)) {
             goto DONE;
         }
     } else {
