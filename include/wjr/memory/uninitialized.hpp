@@ -576,7 +576,7 @@ OutputIt uninitialized_relocate_using_allocator(InputItInit first, InputItSe las
     if constexpr (is_trivially_allocator_construct_v<
                       Alloc, OutputValue,
                       std::remove_reference_t<iterator_reference_t<InputItInit>> &&> &&
-                  is_trivially_allocator_destroy_v<Alloc, iterator_category_t<InputItInit>>) {
+                  is_trivially_allocator_destroy_v<Alloc, InputValue>) {
         return wjr::_iter_wrap(dest, uninitialized_relocate(_first, _last, _dest));
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
@@ -651,7 +651,7 @@ OutputIt uninitialized_relocate_n_using_allocator(InputIt first, Size n, OutputI
     if constexpr (is_trivially_allocator_construct_v<
                       Alloc, OutputValue,
                       std::remove_reference_t<iterator_reference_t<InputIt>> &&> &&
-                  is_trivially_allocator_destroy_v<Alloc, iterator_category_t<InputIt>>) {
+                  is_trivially_allocator_destroy_v<Alloc, InputValue>) {
         return wjr::_iter_wrap(dest, uninitialized_relocate_n(_first, n, _dest));
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
