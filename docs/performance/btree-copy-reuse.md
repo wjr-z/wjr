@@ -1,152 +1,126 @@
-# Reusing indirect Btree copy-assignment storage
+# Single-pass indirect Btree copy reuse
 
-Repeatedly refreshing an owning snapshot with `destination = source` used to
-destroy and reallocate every node and indirect value, even when the two trees
-had identical shapes. At N16 and 4096 integer keys, a legacy map requested and
-released 4607 blocks per assignment: 4096 value blocks and 511 tree nodes.
+`destination = source` now reuses compatible storage **during** a recursive
+copy. There is no whole-tree same-shape preflight. Compatibility means the
+existing node has the required storage kind/capacity, not that its values are
+equal. Every source value is copy-constructed through its allocator, and every
+old destination value is destroyed, including completely matching snapshots.
 
-The copy-assignment engine now reuses those blocks when values are indirect,
-sizes match, and every corresponding node has the same child/slot count.
-This serves ordinary map snapshots and nontrivial set/multiset keys without a
-new API. Copy construction, move, mismatched shapes/sizes, compact maps and
-inline-value sets retain their existing implementations. The shape check scans
-metadata only; there is no comparator-based search, allocation or persistent
-cache/configuration field.
+This serves ordinary map snapshots and indirect set/multiset keys without a new
+API. Compact maps and inline-value sets keep their original copy path. Copy
+construction, move and allocator propagation retain their existing protocols.
 
-```cpp
-wjr::btree_map<unsigned long long, unsigned long long> current;
-// Populate current, then retain an independently owned snapshot.
-auto published = current;
-// After updating mapped values, reuse published's compatible storage.
-published = current;
-```
+## Local ownership protocol
 
-## Ownership and lifetime
+- Compatible inner nodes retain their allocation. Corresponding children are
+  copied once; missing source branches are cloned and surplus old branches are
+  released. The resulting child counts and separators match the source.
+- Compatible leaves retain their node and `min(old_count,new_count)` value
+  allocations. Surplus values are destroyed/deallocated; missing slots allocate
+  and construct. Actual const-key pairs end and restart their complete lifetimes;
+  no const key is assigned or reinterpreted.
+- Different node kinds replace only that branch. Parent/position links are
+  written for new nodes; reused children already occupy the correct parent slot.
+- A retired leaf ring and a cursor track the next unconsumed old leaf. Reused
+  leaves stay linked and advance the cursor. Fresh leaves insert before it;
+  retired leaves advance it before unlink/free. This avoids rebuilding every
+  existing leaf link on completely matching copies.
 
-Reuse never assigns into a const key. Each complete value object is destroyed
-and copy-constructed in its existing owned allocation through allocator hooks.
-The allocation and node objects remain alive. Separators are rebuilt from the
-new leaf minima, including indirect key pointers and changed comparator state.
-The source remains a complete, unchanged tree. During reconstruction the
-destination publishes an empty root/size/sentry; hooks cannot observe a partly
-rekeyed active graph. The detached graph is republished only after all values
-and separators are complete. Small-object slots follow the same value lifetime
-protocol without inventing heap nodes.
+The destination publishes an empty root, size and sentry during reconstruction;
+the source remains complete and unchanged. The completed graph is published
+only at the end. SSO slots use the same value-prefix protocol; heap-to-SSO frees
+the retired graph, and SSO-to-heap releases old inline-root values before cloning.
+Existing allocator propagation still releases incompatible old storage through
+its original owner before changing allocator state. The empty observation
+guarantee applies inside the detached reconstruction engine; that pre-existing
+propagation/release protocol is unchanged.
 
-Allocator propagation still runs first. An incompatible propagating allocator
-releases its old storage through the original allocator, then uses the existing
-fresh-copy path. Nonpropagating allocators retain their destination resource.
-Matching the complete shape preserves the source's node counts, occupancy and
-requested storage footprint; a larger, sparser destination is not retained.
+All operations remain inside the copy engine's existing `noexcept` boundary.
+There is no new recovery guarantee or wider termination domain. Values may still
+allocate internally, and copy assignment gains no reference-survival guarantee.
+Unused child slots beyond the active count are not cleared or read.
 
-These operations remain inside the existing copy engine's `noexcept` domain:
-comparator assignment, value construction/destruction and allocator hook
-failures already terminated there. This does not add exception recovery,
-new termination boundaries, or a pointer/reference survival guarantee for copy
-assignment. Element-owned allocations, such as long PMR strings, can still be
-destroyed and recreated; zero tree allocations does not mean zero total work.
+## Frozen comparison
 
-## Bounded measurements
+[Raw samples, ranges, CVs, memory passes and hashes](data/btree-copy-reuse.json)
+compare main's engine `0a58a4d3`, the original #281 head `ce72ba29`, and the final
+single-pass implementation `1a771930`. Linux
+[run 41316931943](https://github.com/wjr-z/wjr/actions/runs/41316931943) runs GCC
+and Clang on the same worker. Each profile uses the same fixture and N16, with
+uint64 keys and uint64 or 64-byte array mapped values. Timing uses ordinary
+`std::allocator`; counting is a separate executable. The order is
+main/prior/candidate/candidate/prior/main, five raw repetitions per invocation,
+minimum 0.005 seconds wall time. Ratios below one mean less time.
 
-The [machine-readable evidence](data/btree-copy-reuse.json) retains every raw
-sample, observed ranges, CVs, memory passes and source hashes. The frozen
-prototype is `3f241c9d`, reference `035303d5`, with Linux
-[run 41304495942](https://github.com/wjr-z/wjr/actions/runs/41304495942).
-That prototype also tried compact storage; the final scope deliberately rejects
-it. Windows Clang baseline/native assembly checks confirm that the selected
-indirect specializations are identical to the measured prototype, while final
-compact/inline-set copy assignment and legacy copy construction are identical
-to the original (only comments/blank lines removed). The timings below are of
-the frozen prototype, not an additional measurement of the narrowed branch.
+The 0/25/50/75/100 labels describe **paired leaf occupancy equality**, not value
+equality or the fraction of reusable storage. The 455-leaf fixture has exactly
+0/114/227/341/455 unchanged leaf occupancies. Inner kinds/counts remain equal,
+so even the 0% occupancy case has reusable fixed-capacity nodes. Separate empty
+and leaf-to-inner cases have no usable old graph. Other controls cover a late
+50% mismatch, shuffled inner shapes, and alternating 4096/4095 sizes. Sources
+alternate on every iteration, preventing a mismatch case from becoming matched
+after its first copy.
 
-All cases use N16, 4096 ascending uint64 keys and either uint64 or 64-byte array
-mapped values. Timing uses ordinary `std::allocator`, with counters in a separate
-pass. Reference/candidate run in RCCR order, five raw repetitions per invocation,
-minimum 0.005 seconds wall time. Thus each ratio uses ten samples per side.
-The ranges are observed `min(candidate)/max(reference)` through
-`max(candidate)/min(reference)`, not confidence intervals.
+| Profile / mapped | 0% | 25% | 50% early | 75% | 100% | 50% late | Random shape | Size mismatch |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Windows Clang / uint64 | .080 | .071 | .057 | .044 | .969 | .059 | .681 | .030 |
+| Windows Clang / 64-byte | .109 | .095 | .089 | .079 | 1.027 | .092 | .650 | .065 |
+| Linux GCC / uint64 | .144 | .131 | .115 | .102 | .891 | .115 | .726 | .086 |
+| Linux GCC / 64-byte | .200 | .197 | .182 | .170 | .982 | .186 | .807 | .164 |
+| Linux Clang / uint64 | .155 | .144 | .130 | .113 | .896 | .127 | .753 | .099 |
+| Linux Clang / 64-byte | .208 | .198 | .186 | .168 | .935 | .187 | .818 | .165 |
 
-Windows uses an i5-13500HX, CPU0, Clang 18.1.8 and MSVC STL 143.202408.
-Linux GCC 13.3 and Clang 18.1.3 share one EPYC 7763 runner, with libstdc++
-20240904/20240908. All use C++20, `-O3 -DNDEBUG -march=x86-64`.
-Different CPUs/STLs preclude attributing absolute differences to the OS.
-MSVC is covered functionally; there is no MSVC throughput claim.
+These are candidate/original-#281 median wall-time ratios. Every partial,
+random-shape and different-size observed envelope is below one. Completely
+matching and all-fresh cases have envelopes crossing one: their previous gains
+are retained without claiming a small additional improvement or zero overhead.
+All raw comparisons against main are also retained in the JSON. Observed
+`min(candidate)/max(reference)` to `max(candidate)/min(reference)` ranges are not
+confidence intervals.
 
-| Profile | Mapped | Matched candidate/reference | Observed range |
-| --- | --- | ---: | --- |
-| Windows Clang | uint64 | 0.023 | 0.018–0.042 |
-| Windows Clang | 64-byte | 0.056 | 0.050–0.079 |
-| Linux GCC | uint64 | 0.103 | 0.081–0.118 |
-| Linux GCC | 64-byte | 0.171 | 0.147–0.230 |
-| Linux Clang | uint64 | 0.110 | 0.089–0.131 |
-| Linux Clang | 64-byte | 0.182 | 0.159–0.235 |
+Windows uses Clang 18.1.8, MSVC STL 143.202408 and an i5-13500HX pinned to CPU0.
+Linux GCC 13.3/Clang 18.1.3 use libstdc++ 20240904/20240908 on one EPYC 7763.
+All use C++20, `-O3 -DNDEBUG -march=x86-64`. No cross-CPU absolute comparison or
+MSVC-compiler throughput claim is made. Shuffle order may differ across STLs;
+all engines within a profile consume the same trace.
 
-Two negative controls alternate between source trees on every iteration, so
-they cannot become matched copies after the first assignment. Shape mismatch
-moves one key between late leaves, exercising a nearly complete failed shape
-scan; size mismatch alternates 4096/4095 values and bypasses that scan.
+## Allocation and peak costs
 
-| Profile | Mapped | Shape mismatch ratio [range] | Size mismatch ratio [range] |
-| --- | --- | --- | --- |
-| Windows Clang | uint64 | 0.990 [0.898, 1.175] | 1.256 [0.559, 1.652] |
-| Windows Clang | 64-byte | 1.037 [0.917, 1.179] | 1.060 [0.902, 1.334] |
-| Linux GCC | uint64 | 0.981 [0.872, 1.083] | 0.989 [0.869, 1.132] |
-| Linux GCC | 64-byte | 1.001 [0.873, 1.158] | 1.005 [0.900, 1.119] |
-| Linux Clang | uint64 | 1.025 [0.978, 1.134] | 1.016 [0.943, 1.150] |
-| Linux Clang | 64-byte | 1.026 [0.887, 1.194] | 1.011 [0.886, 1.143] |
+For the leaf-occupancy cases, main needs 4607 allocations/releases per copy.
+Original #281 needs 4607 unless the whole graph matches. The single-pass copy
+needs **228/171/114/57/0**, in either direction. Different-size copies need 0/1
+instead of a complete rebuild. Random shapes still request roughly 2.8–3.0K
+blocks in the Windows fixture: this is local reuse, not a global free-block pool.
+Completely incompatible graphs retain the same fresh-copy allocation requests.
 
-These short controls do not prove fallback cost is zero. Windows uint64 size
-mismatch has particularly high dispersion; its unfavorable median is retained.
-Shape mismatch necessarily adds metadata traversal before the old allocation
-path, so applications that always change shape should measure that cost.
+Final requested storage equals the source graph's footprint; no sparse extra
+nodes are retained. Local growth can precede a later release. In the measured
+redistribution fixture the temporary excess is at most two value blocks:
+**32 bytes** for uint64 mapped values or **144 bytes** for 64-byte arrays.
+This is a measured fixture bound, not a universal peak bound. Random/size/kind
+controls retain every before/after/peak value. All memory passes finish with
+zero live bytes and balanced allocation/deallocation counts. Requested bytes
+exclude tree objects, allocator metadata and RSS.
 
-The rejected compact prototype has credible regressions despite matched-copy
-gains: uint64 shape mismatch is 1.063 [1.025, 1.096] on GCC and
-1.070 [1.043, 1.102] on Linux Clang; Windows uint64 size mismatch is
-1.464 [1.184, 1.800]. Compact and inline values therefore keep their original
-copy paths at compile time, without a runtime threshold or policy switch.
+The [initial evidence](data/btree-copy-reuse-initial.json) retains the rejected
+broader compact/inline proposal and mature std/Abseil controls. In particular,
+compact uint64 fallback had credible regressions; compact/inline remain excluded.
+Abseil's lower retained footprint in that fixture remains a tradeoff. Historical
+std/Abseil timings are not relabeled as measurements of this final implementation.
 
-## Mature controls and memory
+## Validation and reproduction
 
-The same fixture measures `std::map` and pinned Abseil `btree_map`
-`2a2d6aad626f75a32c8b7bb775fbff73d558b8b1`. No iterator/reference survives a
-mutation. Their broader exception/reference guarantees remain different from
-WJR; these are successful-copy timing comparisons, not full substitutability.
+Final **14 MSVC Release**, **14 Windows ASan/UBSan**, and **14 Linux ASan/UBSan**
+tests pass. Typed allocator ledgers verify parent/position, separator minima,
+forward/backward leaf links, exact per-value copy/construct/destroy counts,
+over-alignment, resource ownership and release. Coverage includes public self
+copy, all occupancy rates early/late, a source/destination 8×8 size/kind/SSO
+matrix, comparator changes, PMR indirect keys, and existing POCCA transitions.
+No equal-value shortcut is used. Initial generic recursion incurred a credible
+fully-matched slowdown; keeping reused ownership links and small leaf dispatch
+removed it before this version was accepted.
 
-| Profile | Mapped | Selected WJR/std matched time | Selected WJR/Abseil matched time |
-| --- | --- | ---: | ---: |
-| Windows Clang | uint64 | 0.030 | 0.144 |
-| Windows Clang | 64-byte | 0.052 | 0.146 |
-| Linux GCC | uint64 | 0.234 | 0.219 |
-| Linux GCC | 64-byte | 0.336 | 0.208 |
-| Linux Clang | uint64 | 0.197 | 0.283 |
-| Linux Clang | 64-byte | 0.291 | 0.215 |
-
-For selected WJR maps, matched assignment requests/releases **4607 → 0 tree
-blocks** on each profile. Fallback retains its original requests. Requested
-bytes before/after/peak are unchanged: the three simultaneously owned uint64
-trees use 463392 bytes, and the 64-byte mapped trees use 1151520 bytes.
-This is allocator-requested heap storage, excluding tree objects and allocator
-metadata; it is not RSS. Every independent memory pass ends at zero live bytes.
-
-Abseil retains less heap in this fixture: 220416/961464 bytes for the same three
-uint64/64-byte trees. WJR's faster matched refresh does not erase that memory
-tradeoff. libstdc++ already reuses std-map nodes here (zero copy allocations),
-whereas the tested MSVC STL requests 4096 nodes per assignment. Allocation-count
-reduction alone would not establish the measured timing result.
-
-## Correctness and reproduction
-
-The final 12 focused tests pass MSVC Release and Windows Clang ASan/UBSan.
-They cover indirect/inline map/set/multiset, duplicates, SSO/multilevel graphs,
-self-assignment, mismatched shapes/sizes, heap-to-SSO fallback, changed comparator
-state, PMR indirect string keys, over-aligned nontrivial values, balanced typed
-hooks, valid empty destination observation, and existing allocator propagation.
-The frozen broader prototype's 11 tests also passed Linux ASan/UBSan; the final
-additional indirect-set test remains in the normal compiler CI matrix.
-
-Configure the existing `btree` benchmark profile, then explicitly build
-`btree_copy` and `btree_copy_memory`; both are excluded from the default build.
-The existing reviewed Abseil option adds those controls. Timing and memory use
-the same fixture with separate executables, so accounting does not affect time.
-There is no new scheduled workflow or compiler matrix.
+Configure the existing btree benchmark profile and explicitly build
+`btree_copy` and `btree_copy_memory`; both remain `EXCLUDE_FROM_ALL`. Their common
+fixture separates timing/accounting. There is no new public configuration,
+scheduled workflow or compiler matrix.
