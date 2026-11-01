@@ -64,6 +64,19 @@ concept merge_compatible_traits =
     std::same_as<typename Source::_Alty, typename Destination::_Alty> &&
     (compact_slots_v<Source> == compact_slots_v<Destination>);
 
+/// @brief Recognize shared standard ordering without assuming custom comparator states agree.
+template <typename Source, typename Destination>
+concept merge_standard_order =
+    ((std::same_as<typename Source::key_compare, std::less<typename Source::key_type>> ||
+      std::same_as<typename Source::key_compare, std::less<>>) &&
+     (std::same_as<typename Destination::key_compare, std::less<typename Destination::key_type>> ||
+      std::same_as<typename Destination::key_compare, std::less<>>)) ||
+    ((std::same_as<typename Source::key_compare, std::greater<typename Source::key_type>> ||
+      std::same_as<typename Source::key_compare, std::greater<>>) &&
+     (std::same_as<typename Destination::key_compare,
+                   std::greater<typename Destination::key_type>> ||
+      std::same_as<typename Destination::key_compare, std::greater<>>));
+
 /// @brief Restrict the fixed-capacity integer search to cheap, same-key set comparisons.
 template <typename Key, typename Value, typename Compare, typename Lookup>
 concept standard_integral_set_lookup =
@@ -1640,6 +1653,13 @@ public:
         if constexpr (!_Alty_traits::is_always_equal::value)
             WJR_ASSERT(_get_allocator() == source._get_allocator());
 
+        constexpr bool ordered = btree_detail::merge_standard_order<Other, Traits>;
+        if constexpr (ordered && std::same_as<Traits, Other>) {
+            if (empty() && source._get_root() != nullptr) {
+                _move_tree(std::move(source));
+                return;
+            }
+        }
         auto current = source.begin();
         while (current != source.end()) {
             const auto &key = Traits::get_key(*current);
