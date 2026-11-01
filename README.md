@@ -58,7 +58,8 @@ SIMD 填充实验使用 `-DWJR_BENCHMARK_PROFILE=simd`；xsimd 对照默认关�
 - [ ] AMD上性能暂未测试调优（优先级低）
 - [ ] 可抢占调度器(EEVDF)
 - [ ] 协程库
-- [ ] 修复动态库下的unique_stack_allocator（优先级低）
+- [x] 修复动态库下的unique_stack_allocator：
+  [显式跨模块作用域与池所有权](docs/modules/stack-allocator.md)；默认arena仍可为模块局部
 - [ ] JSON封装（目前封装性能一般，并非零开销）
 - [x] biginteger完善，lazy计算（优先级低）
 - [ ] 按设计稿评估成熟 mdspan 实现，以及 view、owner 和表达式层
