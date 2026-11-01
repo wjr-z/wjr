@@ -10,6 +10,8 @@
 
 交付前已刷新到 packed-build 合入后的 main `91a8651b`。merge 的实际改动行、benchmark/test blob 与冻结版本一致；仅合并两个独立 `EXCLUDE_FROM_ALL` target 列表及上游 bulk friend 声明，CMake 配置通过。等价记录随数据保存，不重复整构建或计时。
 
+随后修正独立 memory pass 返回前遗留的 `active` 指针，先清空它再结束局部计数器生命周期。48 个内存输出行完全相同；该语句被 `WJR_MERGE_MEMORY` 隔离，timing 预处理结果逐字相同，未重复计时。production 核心和测试未改。
+
 - Windows i5-13500HX，Clang18.1.8/MSVC STL143.202408，固定 CPU0；Linux 同一 Ubuntu24.04 worker、AMD EPYC9V45，依次 GCC13.3.0/Clang18.1.3、系统 libstdc++，不固定 CPU。均 C++20、`-O3 -DNDEBUG -march=x86-64`。没有 MSVC 性能结论，不把跨 CPU 时间差归因 OS。
 - Google Benchmark1.9.0，每个重复固定 32 次 merge，五个 raw 重复。**只计 merge，构造两棵树和销毁不计时**；同一 binary 使用 `std::allocator`、无计数器。
 - WJR reference 是委托 `std::less<>` 的无状态等价 comparator，选择原通用路径。该 custom-comparator wrapper 及全部 callee 的 Clang 汇编与 base `e5fc5f81` 相同，仅删除注释/空行；新 standard-order 分支仍可能有不同编译布局，不能把控制组差异忽略。

@@ -95,6 +95,7 @@ void measure(const std::string &label, specification spec) {
     }
     if (stats.live != 0 || stats.allocations != stats.deallocations)
         std::abort();
+    active = nullptr;
     std::cout << label << '/' << spec.name << ',' << before << ',' << after << ',' << peak << ','
               << allocations << ',' << deallocations << ',' << stats.live << '\n';
 }

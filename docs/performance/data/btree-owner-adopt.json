@@ -3332,5 +3332,12 @@
       "include/wjr/container/experimental/compact_btree_map.hpp": "bbdbf7698f43c1cbf01e66893f842977b772c989"
     },
     "cmake_configure_all_four_targets_passed": true
+  },
+  "memory_lifetime_followup": {
+    "timing_preprocessed_equal": true,
+    "memory_rows_equal": 48,
+    "fix": "clear the global memory-pass active pointer before local stats expires; timing branch excluded by WJR_MERGE_MEMORY",
+    "before_benchmark_sha256": "5976e52181525e4e0dac89c504eebb0fc6389f367fbf7e728645e622274e9b85",
+    "after_benchmark_sha256": "e1c1cdc80caeff382099439b530b2f7b181294c6b5a84a2a73285411d55b1e4f"
   }
 }
