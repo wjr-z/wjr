@@ -198,6 +198,60 @@ public:
         return result.first;
     }
 
+    /// @brief Update a borrowed key without creating an owned key on a hit.
+    /// @pre Query comparisons do not throw; conversion to Key preserves ordering/equivalence.
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup,
+        typename... Args>
+    std::pair<iterator, bool> try_emplace(Lookup &&key, Args &&...args) {
+        return this->_try_emplace_unique(std::forward<Lookup>(key), std::forward<Args>(args)...);
+    }
+
+    /// @copydoc try_emplace(Lookup &&, Args &&...)
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup,
+        typename... Args>
+    iterator try_emplace(const_iterator hint, Lookup &&key, Args &&...args) {
+        return this
+            ->_try_emplace_hint_unique(hint, std::forward<Lookup>(key), std::forward<Args>(args)...)
+            .first;
+    }
+
+    /// @copydoc try_emplace(Lookup &&, Args &&...)
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup>
+    mapped_type &operator[](Lookup &&key) {
+        return try_emplace(std::forward<Lookup>(key)).first->second;
+    }
+
+    /// @copydoc try_emplace(Lookup &&, Args &&...)
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup,
+        btree_detail::upsert_source<mapped_type, allocator_type> Source>
+    std::pair<iterator, bool> insert_or_assign(Lookup &&key, Source &&value) {
+        auto result = try_emplace(std::forward<Lookup>(key), std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result;
+    }
+
+    /// @copydoc try_emplace(Lookup &&, Args &&...)
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup,
+        btree_detail::upsert_source<mapped_type, allocator_type> Source>
+    iterator insert_or_assign(const_iterator hint, Lookup &&key, Source &&value) {
+        auto result = this->_try_emplace_hint_unique(hint, std::forward<Lookup>(key),
+                                                     std::forward<Source>(value));
+        if (!result.second)
+            result.first->second = std::forward<Source>(value);
+        return result.first;
+    }
+
     size_type count(const key_type &key) const noexcept { return _count_unique(key) ? 1 : 0; }
 
     /// @brief Count an equivalent key using the transparent comparator without constructing a key.
