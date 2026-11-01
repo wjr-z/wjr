@@ -826,24 +826,20 @@ struct get_relocate_mode {
 template <typename T>
 inline constexpr relocate_t get_relocate_mode_v = get_relocate_mode<T>::value;
 
-/// @private Internal implementation for computing common relocate mode
+/// @private Reduce every customized mode without recursively rebuilding type packs.
 template <relocate_t Mode, typename... Args>
-struct _get_common_relocate_mode_impl;
-
-/// @private Base case: no more types to check
-template <relocate_t Mode>
-struct _get_common_relocate_mode_impl<Mode> {
-    static constexpr relocate_t value = Mode;
-};
-
-/// @private Recursive case: combine current mode with remaining types
-template <relocate_t Mode, typename T, typename... Args>
-struct _get_common_relocate_mode_impl<Mode, T, Args...> {
-    static constexpr relocate_t value =
-        _get_common_relocate_mode_impl<static_cast<relocate_t>(
-                                           std::min(to_underlying(Mode),
-                                                    to_underlying(get_relocate_mode_v<T>))),
-                                       Args...>::value;
+struct _get_common_relocate_mode_impl {
+    static constexpr relocate_t value = [] {
+        const std::underlying_type_t<relocate_t> modes[] = {
+            to_underlying(Mode), to_underlying(get_relocate_mode_v<Args>)...};
+        auto result = to_underlying(Mode);
+        for (auto mode : modes) {
+            if (mode < result) {
+                result = mode;
+            }
+        }
+        return static_cast<relocate_t>(result);
+    }();
 };
 
 template <typename... Args>
