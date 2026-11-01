@@ -1,0 +1,4 @@
+full.json -text
+truncated.json -text
+*.stdout.txt -text
+*.stderr.txt -text

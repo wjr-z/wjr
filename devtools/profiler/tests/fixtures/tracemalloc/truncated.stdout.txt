@@ -1,0 +1,2 @@
+retained payload=163840 bytes; released payload=131072 bytes; temporary payload=786432 bytes
+Payload bytes exclude object/harness overhead; peak is global, with no frame attribution.

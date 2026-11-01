@@ -1,0 +1,57 @@
+{
+  "build": {},
+  "bundle_id": "tracemalloc-274c9627473d39ba",
+  "created_at": "unknown",
+  "dirty_patch_sha256": "unknown",
+  "host": {},
+  "producer": {
+    "provider": "tracemalloc-json",
+    "version": "3.12.7"
+  },
+  "raw_source": {
+    "sha256": "274c9627473d39bac1b2d7989b65fa608e2d73acbf2065b54e0130c537ae57e4"
+  },
+  "regions": [
+    {
+      "contract_id": "tracemalloc-live-v1",
+      "id": "snapshot-pair",
+      "snapshot_pair": "baseline-to-ending",
+      "source_sha256": "unknown",
+      "variant": "profile",
+      "workload_id": "snapshot-pair"
+    }
+  ],
+  "revision": "unknown",
+  "schema_version": 1,
+  "semantic_contracts": {
+    "tracemalloc-live-v1": {
+      "correctness_evidence": "unknown",
+      "semantics": "Tracked live blocks at endpoints, signed retained differences, optional separate global checkpoint; not RSS/allocation volume.",
+      "version": "1"
+    }
+  },
+  "workloads": {
+    "snapshot-pair": {
+      "clock": "not_applicable",
+      "input_sha256": "unknown",
+      "instrumentation": {
+        "checkpoint": {
+          "domain_scope": "all_traced_domains",
+          "peak_window": "since reset_peak immediately after baseline snapshot",
+          "sampling_point": "immediately before ending take_snapshot"
+        },
+        "coverage": "unfiltered owned snapshots; all supplied domains (fixture has domain 0)",
+        "epoch_policy": "same tracing epoch; no clear/stop between endpoints; peak reset after baseline",
+        "harness_policy": "baseline Snapshot and checkpoint helper allocations included; GC explicit; no subtraction",
+        "kind": "wjr.tracemalloc-json/1",
+        "traceback_limit": 5
+      },
+      "parameters": "unknown",
+      "sample_level": "in_process_snapshot_pair",
+      "scope": "one declared in-process baseline/ending snapshot pair",
+      "threads": "unknown",
+      "time_mode": "not_applicable",
+      "version": "1"
+    }
+  }
+}

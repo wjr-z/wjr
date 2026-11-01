@@ -1,0 +1,283 @@
+{
+  "baseline": {
+    "records": [
+      {
+        "blocks": 3,
+        "domain": 0,
+        "size_bytes": 131177,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 34
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 15
+          }
+        ]
+      },
+      {
+        "blocks": 1,
+        "domain": 0,
+        "size_bytes": 56,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 35
+          },
+          {
+            "file": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\tracemalloc.py",
+            "line": 558
+          }
+        ]
+      }
+    ],
+    "traceback_limit": 5
+  },
+  "checkpoint": {
+    "current_bytes": 164762,
+    "domain_scope": "all_traced_domains",
+    "peak_bytes": 951375,
+    "peak_window": "since reset_peak immediately after baseline snapshot",
+    "sampling_point": "immediately before ending take_snapshot",
+    "tracer_overhead_bytes": 2096
+  },
+  "collection": {
+    "coverage": "unfiltered owned snapshots; all supplied domains (fixture has domain 0)",
+    "epoch_policy": "same tracing epoch; no clear/stop between endpoints; peak reset after baseline",
+    "harness_policy": "baseline Snapshot and checkpoint helper allocations included; GC explicit; no subtraction"
+  },
+  "ending": {
+    "records": [
+      {
+        "blocks": 1,
+        "domain": 0,
+        "size_bytes": 56,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 35
+          },
+          {
+            "file": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\tracemalloc.py",
+            "line": 558
+          }
+        ]
+      },
+      {
+        "blocks": 2,
+        "domain": 0,
+        "size_bytes": 312,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 35
+          },
+          {
+            "file": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\tracemalloc.py",
+            "line": 560
+          }
+        ]
+      },
+      {
+        "blocks": 2,
+        "domain": 0,
+        "size_bytes": 312,
+        "total_nframe": 4,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 35
+          },
+          {
+            "file": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\tracemalloc.py",
+            "line": 560
+          },
+          {
+            "file": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\tracemalloc.py",
+            "line": 423
+          }
+        ]
+      },
+      {
+        "blocks": 2,
+        "domain": 0,
+        "size_bytes": 72,
+        "total_nframe": 2,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 37
+          }
+        ]
+      },
+      {
+        "blocks": 2,
+        "domain": 0,
+        "size_bytes": 65593,
+        "total_nframe": 4,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 37
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 19
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 15
+          }
+        ]
+      },
+      {
+        "blocks": 2,
+        "domain": 0,
+        "size_bytes": 98361,
+        "total_nframe": 4,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 37
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 23
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 15
+          }
+        ]
+      },
+      {
+        "blocks": 3,
+        "domain": 0,
+        "size_bytes": 112,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 41
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\wjr_profiler\\exporters\\tracemalloc_json.py",
+            "line": 29
+          }
+        ]
+      },
+      {
+        "blocks": 1,
+        "domain": 0,
+        "size_bytes": 28,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 41
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\wjr_profiler\\exporters\\tracemalloc_json.py",
+            "line": 30
+          }
+        ]
+      },
+      {
+        "blocks": 3,
+        "domain": 0,
+        "size_bytes": 392,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 41
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\wjr_profiler\\exporters\\tracemalloc_json.py",
+            "line": 31
+          }
+        ]
+      },
+      {
+        "blocks": 1,
+        "domain": 0,
+        "size_bytes": 56,
+        "total_nframe": 3,
+        "traceback": [
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 62
+          },
+          {
+            "file": "D:\\repos\\.cache\\wjr\\worktrees\\profiler-tracemalloc-20261101\\devtools\\profiler\\tests\\fixtures\\tracemalloc\\program.py",
+            "line": 43
+          },
+          {
+            "file": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\tracemalloc.py",
+            "line": 558
+          }
+        ]
+      }
+    ],
+    "traceback_limit": 5
+  },
+  "producer": {
+    "build": [
+      "tags/v3.12.7:0b05ead",
+      "Oct  1 2024 03:06:41"
+    ],
+    "exporter_interpreter": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
+    "implementation": "CPython",
+    "version": "3.12.7"
+  },
+  "schema": "wjr.tracemalloc-json/1"
+}
