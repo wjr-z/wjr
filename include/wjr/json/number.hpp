@@ -61,8 +61,8 @@ WJR_INTRINSIC_INLINE from_chars_result<> from_chars_json(const char *first, cons
 
 /// @private Number parsing implementation
 namespace detail {
-WJR_PURE WJR_INTRINSIC_INLINE result<void> parse_number(const char *first, const char *last,
-                                                        basic_value &value) noexcept {
+WJR_INTRINSIC_INLINE result<void> parse_number(const char *first, const char *last,
+                                               basic_value &value) noexcept {
     const auto ret = number_detail::from_chars_json(first, last, value);
     if (WJR_LIKELY(ret)) {
         if (WJR_UNLIKELY(ret.ptr != last && !charconv_detail::isspace(*ret.ptr))) {
