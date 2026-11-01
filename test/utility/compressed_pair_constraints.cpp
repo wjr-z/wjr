@@ -74,4 +74,33 @@ static_assert(standard_gettable<compressed_pair<int, long> &, 0>);
 static_assert(standard_gettable<const compressed_pair<int, long> &, 1>);
 static_assert(standard_gettable<compressed_pair<int, long>, 0>);
 
+struct throwing_destructor_empty {
+    ~throwing_destructor_empty() noexcept(false) {}
+};
+struct throwing_destructor_value final {
+    int value;
+    ~throwing_destructor_value() noexcept(false) {}
+};
+
+/// @note Storage constraints retain trait admission, including throwing destructors.
+static_assert(!std::default_initializable<throwing_destructor_empty>);
+static_assert(std::is_default_constructible_v<compressed_pair<throwing_destructor_empty, int>>);
+static_assert(std::is_default_constructible_v<compressed_pair<int, throwing_destructor_empty>>);
+static_assert(std::is_default_constructible_v<
+              compressed_pair<throwing_destructor_value, throwing_destructor_empty>>);
+static_assert(std::is_constructible_v<compressed_pair<throwing_destructor_empty, int>,
+                                      wjr::default_construct_t, wjr::default_construct_t>);
+static_assert(std::is_constructible_v<compressed_pair<int, throwing_destructor_empty>, int,
+                                      wjr::default_construct_t>);
+
+using ordinary_pair = compressed_pair<int, long>;
+static_assert(std::same_as<decltype(&ordinary_pair::swap),
+                           void (ordinary_pair::*)(ordinary_pair &) noexcept>);
+static_assert([] {
+    ordinary_pair first{1, 2}, second{3, 4};
+    auto swap_members = &ordinary_pair::swap;
+    (first.*swap_members)(second);
+    return first.first() == 3 && first.second() == 4 && second.first() == 1 && second.second() == 2;
+}());
+
 } // namespace
