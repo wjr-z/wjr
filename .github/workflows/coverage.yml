@@ -31,8 +31,28 @@ jobs:
           -DCMAKE_C_COMPILER=clang
           -DCMAKE_CXX_COMPILER=clang++
 
+      - name: Check coverage report paths
+        run: python3 -m unittest discover -s test/tools -p test_generate_coverage_report.py
+
       - name: Generate coverage report
         run: cmake --build build --target coverage --parallel 2
+
+      - name: Upload coverage to Codacy
+        if: github.ref == 'refs/heads/main'
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          CODACY_REPORTER_VERSION: 14.1.3
+        run: |
+          if [ -z "$CODACY_PROJECT_TOKEN" ]; then
+            echo "::notice::Codacy upload skipped; configure the CODACY_PROJECT_TOKEN repository secret."
+            exit 0
+          fi
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/codacy/codacy-coverage-reporter/14.1.3/get.sh \
+            --output "$RUNNER_TEMP/codacy-coverage.sh"
+          bash "$RUNNER_TEMP/codacy-coverage.sh" report \
+            --language CPP --force-coverage-parser lcov \
+            --coverage-reports build/coverage/lcov.info
 
       - name: Upload HTML coverage report
         uses: actions/upload-artifact@v4
