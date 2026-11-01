@@ -45,13 +45,15 @@ static void wjr_vector_copy_construct(benchmark::State &state) {
 }
 
 template <typename T>
-static void wjr_vector_move_construct(benchmark::State &state) {
+static void wjr_vector_move_round_trip(benchmark::State &state) {
     size_t n = state.range(0);
     vector<T> vec(n);
 
     for (auto _ : state) {
         vector<T> copy(std::move(vec));
         benchmark::DoNotOptimize(copy);
+        vec = std::move(copy);
+        benchmark::DoNotOptimize(vec);
     }
 }
 
@@ -84,9 +86,9 @@ BENCHMARK(wjr_vector_copy_construct<int>)->NORMAL_TESTS(1, 2, 1 << 6);
 BENCHMARK(wjr_vector_copy_construct<double>)->NORMAL_TESTS(1, 2, 1 << 6);
 BENCHMARK(wjr_vector_copy_construct<std::string>)->NORMAL_TESTS(1, 2, 1 << 6);
 
-BENCHMARK(wjr_vector_move_construct<int>)->NORMAL_TESTS(1, 2, 1 << 6);
-BENCHMARK(wjr_vector_move_construct<double>)->NORMAL_TESTS(1, 2, 1 << 6);
-BENCHMARK(wjr_vector_move_construct<std::string>)->NORMAL_TESTS(1, 2, 1 << 6);
+BENCHMARK(wjr_vector_move_round_trip<int>)->NORMAL_TESTS(1, 2, 1 << 6);
+BENCHMARK(wjr_vector_move_round_trip<double>)->NORMAL_TESTS(1, 2, 1 << 6);
+BENCHMARK(wjr_vector_move_round_trip<std::string>)->NORMAL_TESTS(1, 2, 1 << 6);
 
 BENCHMARK(wjr_vector_emplace_back<int>)->NORMAL_TESTS(1, 2, 1 << 6);
 BENCHMARK(wjr_vector_emplace_back<double>)->NORMAL_TESTS(1, 2, 1 << 6);
