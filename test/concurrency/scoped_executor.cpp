@@ -44,6 +44,21 @@ struct count_task {
 struct throwing_task {
     task_step operator()(task_context &) { return task_step::finished; }
 };
+
+template <size_t N>
+auto make_tasks(std::array<size_t, N> &counts, std::array<std::thread::id, N> &owners,
+                size_t remaining) {
+    return [&]<size_t... I>(std::index_sequence<I...>) {
+        return std::array<cooperative_task<count_task>, N>{
+            cooperative_task(count_task{&counts[I], &owners[I], remaining})...};
+    }(std::make_index_sequence<N>{});
+}
+
+template <class S>
+concept admitted_batch = requires(const submitter &submit, S tasks) { submit.submit_batch(tasks); };
+static_assert(admitted_batch<std::span<cooperative_task<count_task>>>);
+static_assert(!admitted_batch<std::span<const cooperative_task<count_task>>>);
+static_assert(!admitted_batch<std::span<cooperative_task<count_task> *>>);
 template <class F>
 concept admitted_task = requires { typename cooperative_task<F>; };
 static_assert(!admitted_task<throwing_task>);
@@ -340,6 +355,195 @@ TEST(ScopedExecutor, AdmissionRaceWithGlobalDrain) {
                 EXPECT_EQ(counts[i], 0u);
             }
         }
+    }
+}
+
+TEST(ScopedExecutor, EmptyAndSingletonBatches) {
+    using task_type = cooperative_task<count_task>;
+    EXPECT_EQ(submitter{}.submit_batch(std::span<task_type>{}), executor_status::success);
+    cooperative_executor executor;
+    task_scope scope(executor, 1);
+    std::array<size_t, 1> counts{};
+    std::array<std::thread::id, 1> owners{};
+    auto tasks = make_tasks(counts, owners, 2);
+    EXPECT_EQ(submitter{}.submit_batch(std::span(tasks)), executor_status::unavailable);
+    EXPECT_EQ(scope.make_submitter().submit_batch(std::span(tasks)), executor_status::success);
+    ASSERT_EQ(scope.join(), executor_status::success);
+    EXPECT_EQ(counts[0], 2u);
+    EXPECT_EQ(tasks[0].outcome(), task_outcome::completed);
+    EXPECT_EQ(scope.make_submitter().submit_batch(std::span<task_type>{}),
+              executor_status::success);
+}
+
+TEST(ScopedExecutor, BatchBudgetRejectionDoesNotConsumeMembership) {
+    cooperative_executor executor;
+    task_scope scope(executor, 2);
+    std::array<size_t, 3> counts{};
+    std::array<std::thread::id, 3> owners{};
+    auto tasks = make_tasks(counts, owners, 3);
+    const auto submit = scope.make_submitter();
+    EXPECT_EQ(submitter{}.submit_batch(std::span(tasks)), executor_status::unavailable);
+    EXPECT_EQ(submit.submit_batch(std::span(tasks)), executor_status::capacity_limit);
+    for (auto &task : tasks) {
+        EXPECT_EQ(task.outcome(), task_outcome::not_submitted);
+    }
+    ASSERT_EQ(submit.submit_batch(std::span(tasks).first<2>()), executor_status::success);
+    ASSERT_EQ(scope.join(), executor_status::success);
+    EXPECT_EQ(counts, (std::array<size_t, 3>{3, 3, 0}));
+    EXPECT_EQ(tasks[2].outcome(), task_outcome::not_submitted);
+}
+
+TEST(ScopedExecutor, BatchAlreadyAcceptedMemberRejectsEveryFreshMember) {
+    cooperative_executor executor;
+    task_scope scope(executor, 3);
+    std::array<size_t, 3> counts{};
+    std::array<std::thread::id, 3> owners{};
+    auto tasks = make_tasks(counts, owners, 2);
+    const auto submit = scope.make_submitter();
+    ASSERT_EQ(submit.submit(tasks[1]), executor_status::success);
+    EXPECT_EQ(submit.submit_batch(std::span(tasks)), executor_status::already_submitted);
+    EXPECT_EQ(tasks[0].outcome(), task_outcome::not_submitted);
+    EXPECT_EQ(tasks[2].outcome(), task_outcome::not_submitted);
+    EXPECT_EQ(submit.submit(tasks[0]), executor_status::success);
+    EXPECT_EQ(submit.submit(tasks[2]), executor_status::success);
+    ASSERT_EQ(scope.join(), executor_status::success);
+    EXPECT_EQ(counts, (std::array<size_t, 3>{2, 2, 2}));
+    task_scope next(executor, 3);
+    EXPECT_EQ(next.make_submitter().submit_batch(std::span(tasks)),
+              executor_status::already_submitted);
+}
+
+TEST(ScopedExecutor, BatchScopeCancellationBeforeWorkerIngestion) {
+    cooperative_executor executor;
+    task_scope blocker_scope(executor, 1), scope(executor, 3), sealed(executor, 3);
+    gate started, release;
+    cooperative_task blocker([&](task_context &) noexcept {
+        started.open();
+        release.wait();
+        return task_step::finished;
+    });
+    ASSERT_EQ(blocker_scope.make_submitter().submit(blocker), executor_status::success);
+    started.wait();
+    std::array<size_t, 3> counts{};
+    std::array<std::thread::id, 3> owners{};
+    auto tasks = make_tasks(counts, owners, 2);
+    sealed.request_stop();
+    EXPECT_EQ(sealed.make_submitter().submit_batch(std::span(tasks)), executor_status::closed);
+    ASSERT_EQ(scope.make_submitter().submit_batch(std::span(tasks)), executor_status::success);
+    scope.request_stop();
+    release.open();
+    ASSERT_EQ(scope.join(), executor_status::success);
+    ASSERT_EQ(blocker_scope.join(), executor_status::success);
+    for (auto &task : tasks) {
+        EXPECT_EQ(task.outcome(), task_outcome::cancelled);
+    }
+    EXPECT_EQ(counts, (std::array<size_t, 3>{0, 0, 0}));
+}
+
+TEST(ScopedExecutor, BatchGlobalCancelAndImmediateReclamation) {
+    cooperative_executor executor;
+    task_scope blocker_scope(executor, 1), scope(executor, 4);
+    gate started;
+    cooperative_task blocker([&](task_context &context) noexcept {
+        started.open();
+        while (!context.stop_requested()) {
+            std::this_thread::yield();
+        }
+        return task_step::finished;
+    });
+    ASSERT_EQ(blocker_scope.make_submitter().submit(blocker), executor_status::success);
+    started.wait();
+    std::array<size_t, 4> counts{};
+    std::array<std::thread::id, 4> owners{};
+    using task_array = decltype(make_tasks(counts, owners, 2));
+    auto tasks = std::unique_ptr<task_array>(new task_array(make_tasks(counts, owners, 2)));
+    ASSERT_EQ(scope.make_submitter().submit_batch(std::span(*tasks)), executor_status::success);
+    EXPECT_EQ(executor.close_cancel(), executor_status::success);
+    ASSERT_EQ(scope.join(), executor_status::success);
+    ASSERT_EQ(blocker_scope.join(), executor_status::success);
+    for (auto &task : *tasks) {
+        EXPECT_EQ(task.outcome(), task_outcome::cancelled);
+    }
+    tasks.reset();
+    EXPECT_EQ(counts, (std::array<size_t, 4>{0, 0, 0, 0}));
+}
+
+TEST(ScopedExecutor, BatchAdmissionRaceWithGlobalDrainIsAllOrNone) {
+    constexpr size_t producers = 4, batch = 17, total = producers * batch;
+    for (size_t iteration = 0; iteration < 10; ++iteration) {
+        cooperative_executor executor;
+        task_scope scope(executor, total);
+        const auto submit = scope.make_submitter();
+        std::array<size_t, total> counts{};
+        std::array<std::thread::id, total> owners{};
+        auto tasks = make_tasks(counts, owners, 3);
+        std::array<executor_status, producers> statuses{};
+        std::array<std::thread, producers> threads;
+        gate start;
+        for (size_t p = 0; p < producers; ++p) {
+            threads[p] = std::thread([&, p] {
+                start.wait();
+                statuses[p] = submit.submit_batch(std::span(tasks).subspan(p * batch, batch));
+            });
+        }
+        start.open();
+        EXPECT_EQ(executor.close_drain(), executor_status::success);
+        for (auto &thread : threads) {
+            thread.join();
+        }
+        ASSERT_EQ(scope.join(), executor_status::success);
+        for (size_t p = 0; p < producers; ++p) {
+            const bool accepted = statuses[p] == executor_status::success;
+            EXPECT_TRUE(accepted || statuses[p] == executor_status::closed);
+            for (size_t i = p * batch; i < (p + 1) * batch; ++i) {
+                EXPECT_EQ(counts[i], accepted ? 3u : 0u);
+                EXPECT_EQ(tasks[i].outcome(),
+                          accepted ? task_outcome::completed : task_outcome::not_submitted);
+            }
+        }
+    }
+}
+
+TEST(ScopedExecutor, ConcurrentDisjointBatchesAllAccepted) {
+    constexpr size_t producers = 4, batch = 17, total = producers * batch;
+    cooperative_executor executor;
+    task_scope scope(executor, total);
+    const auto submit = scope.make_submitter();
+    std::array<size_t, total> counts{};
+    std::array<std::thread::id, total> owners{};
+    auto tasks = make_tasks(counts, owners, 2);
+    std::array<executor_status, producers> statuses{};
+    std::array<std::thread, producers> threads;
+    for (size_t p = 0; p < producers; ++p) {
+        threads[p] = std::thread([&, p] {
+            statuses[p] = submit.submit_batch(std::span(tasks).subspan(p * batch, batch));
+        });
+    }
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    ASSERT_EQ(scope.join(), executor_status::success);
+    for (auto status : statuses) {
+        EXPECT_EQ(status, executor_status::success);
+    }
+    for (size_t i = 0; i < total; ++i) {
+        EXPECT_EQ(counts[i], 2u);
+        EXPECT_EQ(owners[i], owners[0]);
+    }
+}
+
+TEST(ScopedExecutor, BatchJoinAllowsReclaimWhileWorkerLives) {
+    cooperative_executor executor;
+    for (size_t iteration = 0; iteration < 100; ++iteration) {
+        task_scope scope(executor, 4);
+        std::array<size_t, 4> counts{};
+        std::array<std::thread::id, 4> owners{};
+        using task_array = decltype(make_tasks(counts, owners, 2));
+        auto tasks = std::unique_ptr<task_array>(new task_array(make_tasks(counts, owners, 2)));
+        ASSERT_EQ(scope.make_submitter().submit_batch(std::span(*tasks)), executor_status::success);
+        ASSERT_EQ(scope.join(), executor_status::success);
+        tasks.reset();
+        EXPECT_EQ(counts, (std::array<size_t, 4>{2, 2, 2, 2}));
     }
 }
 } // namespace

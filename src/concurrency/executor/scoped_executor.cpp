@@ -194,6 +194,39 @@ executor_status submitter::submit(detail::task_base &task) const {
     return executor_status::success;
 }
 
+executor_status submitter::submit_batch_impl(detail::task_batch tasks) const {
+    if (!m_state) {
+        return executor_status::unavailable;
+    }
+    auto &scope = *m_state;
+    auto &domain = *scope.domain;
+    std::lock_guard lock(domain.mutex);
+    if (domain.closed || scope.sealed) {
+        return executor_status::closed;
+    }
+    for (size_t i = 0; i < tasks.size; ++i) {
+        const auto &task = *tasks.at(tasks.data, i);
+        if (task.m_scope != nullptr || task.m_outcome != task_outcome::not_submitted) {
+            return executor_status::already_submitted;
+        }
+    }
+    /// @note pending <= accepted, so remaining acceptance capacity bounds both counter additions.
+    if (tasks.size > scope.capacity - scope.accepted) {
+        return executor_status::capacity_limit;
+    }
+    for (size_t i = 0; i < tasks.size; ++i) {
+        auto &task = *tasks.at(tasks.data, i);
+        task.m_scope = &scope;
+        scope.tasks.push_back(static_cast<detail::executor_domain::scope_hook *>(&task));
+        domain.inbox.push_back(static_cast<detail::executor_domain::queue_hook *>(&task));
+    }
+    scope.accepted += tasks.size;
+    scope.pending += tasks.size;
+    domain.notify_locked();
+    /// @note No accepted task access after unlocking; a concurrent scope join may reclaim storage.
+    return executor_status::success;
+}
+
 void task_scope::request_stop() {
     auto &domain = *m_state->domain;
     std::lock_guard lock(domain.mutex);

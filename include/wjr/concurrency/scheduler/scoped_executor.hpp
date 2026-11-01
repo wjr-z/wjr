@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <span>
 #include <type_traits>
 #include <utility>
 
@@ -93,6 +94,13 @@ private:
     task_outcome m_outcome = task_outcome::not_submitted;
 };
 
+/// @brief Internal typed-array access; no pointer-list allocation or task metadata is needed.
+struct task_batch {
+    void *data;
+    size_t size;
+    task_base *(*at)(void *, size_t) noexcept;
+};
+
 } // namespace detail
 
 /**
@@ -133,7 +141,28 @@ public:
     /// @pre Concurrent producers use distinct tasks; submission of the same object is serialized.
     executor_status submit(detail::task_base &task) const;
 
+    /**
+     * @brief Atomically admit a contiguous array of distinct stable task objects, or reject all.
+     * @note Empty input succeeds without accessing scope state. The single-submit contract applies
+     * to every element; synchronize any previous scope join on a different executor externally.
+     */
+    template <class F, size_t Extent>
+    executor_status submit_batch(std::span<cooperative_task<F>, Extent> tasks) const {
+        if (tasks.empty()) {
+            return executor_status::success;
+        }
+        if (tasks.size() == 1) {
+            return submit(tasks.front());
+        }
+        return submit_batch_impl(
+            {tasks.data(), tasks.size(), [](void *data, size_t index) noexcept {
+                 return static_cast<detail::task_base *>(static_cast<cooperative_task<F> *>(data) +
+                                                         index);
+             }});
+    }
+
 private:
+    executor_status submit_batch_impl(detail::task_batch tasks) const;
     std::shared_ptr<detail::scope_state> m_state;
 };
 

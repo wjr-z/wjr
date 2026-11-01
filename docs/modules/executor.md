@@ -30,6 +30,10 @@ nonmovable and one-shot: an accepted task can never be resubmitted. Rejected tas
 remain caller-owned and unsubmitted. Serialize attempts to submit the same task,
 including attempts through different executors; different tasks may be submitted
 concurrently using the same cached `submitter`.
+Externally synchronize with any previous scope join on a different executor;
+membership is protected by that executor's publication mutex, not an additional
+per-task atomic. Joining or submitting distinct tasks on one executor uses its
+common mutex.
 
 Construct a `task_scope(executor, maximum_tasks)` and cache `make_submitter()` on
 each producer. The scope's explicit acceptance budget counts total successful
@@ -38,6 +42,40 @@ admissions, including completed tasks. Zero rejects all work. The bound is
 bounded EEVDF policy's fair-entity limit. Admission rejects closed scopes/domains,
 already accepted tasks and exhausted budgets. Successful admission makes the
 task's storage borrowed through scope join, even if its callback finishes early.
+
+### Batch admission
+
+`submit.submit_batch(std::span(tasks))` accepts a contiguous array of
+`cooperative_task<F>` objects. A subspan selects a producer's disjoint partition.
+The input shape requires actual distinct, live objects of one callable type,
+rather than arbitrary pointers or references which could repeat an address. A
+pointer span and const-task span are not admitted. Construct a stable `std::array`
+directly; tasks remain nonmovable. The example builds its array with an index
+sequence, without allocating individual task nodes.
+
+For a nonempty batch, success borrows every object through the same scope join.
+Rejection changes no task's membership/outcome, scope budget or queue. Validation
+priority matches single submit: unavailable handle, closed admission, any already
+accepted/completed object, then insufficient remaining budget. Already accepted
+objects still belong to their original scope and must reach that scope's join.
+There is no partial-success count, automatic splitting or rollback of user data.
+The span descriptor is not retained. A successfully admitted batch's callbacks
+can start before the producer returns; admission is atomic, execution is ordinary
+FIFO/RR and cancellation remains per task/scope.
+
+An empty batch is an unconditional no-op success, including for a default handle
+or a closed scope. It touches no scope/domain, spends no budget and does not notify.
+A singleton delegates to the existing single-submit path. Larger batches validate
+all elements and append them in input order under one publication lock, update
+both counters once and notify at most once. Closed/stop/join transitions use the
+same mutex, so they observe the entire accepted batch or a full rejection. The
+budget comparison uses remaining capacity before addition to avoid overflow.
+
+Batch publication has O(N) validation and link work while holding the mutex. It
+amortizes locks/notifications and does not shorten that critical section into an
+O(1) operation. An internal typed accessor is called twice per element to preserve
+valid derived-array indexing; no duplicate-detection set, per-task marker or
+shared ownership increment is added. The single-submit function is unchanged.
 
 `task.request_stop()` affects one task. `scope.request_stop()` seals admission and
 requests stop for all accepted tasks. Both are cooperative: a not-yet-invoked
@@ -77,6 +115,66 @@ throw standard exceptions. The worker invokes only `noexcept` callbacks; excepti
 escaping such a callback terminate according to the C++ contract. Shutdown does
 not forcibly unwind user code, and an endless `again` task makes drain endless.
 
+## Explicit execution cost profiles
+
+Time measurement is not required for cooperative scheduling. WJR's executor
+header and implementation contain no `chrono`, clock sampling or per-task
+timestamp field. The independent [M1 policy source](https://github.com/wjr-z/wjr/blob/8f30578d5d6460310cfe604ba8fb7b3b899f700f/include/wjr/concurrency/scheduler/eevdf.hpp)
+also takes explicit service units without sampling a clock. Standard mutex/CV,
+thread and OS internals remain implementation-dependent; this claim concerns
+WJR's task-admission, invocation and accounting paths.
+
+| Selected profile | API and cost |
+| --- | --- |
+| Default FIFO/RR executor | `submit` / `submit_batch`, callback `again` / `finished`. No service-time accounting or timestamp reads/stores. Local queue rotation and the synchronization listed below remain real costs. |
+| Separate M1 explicit-service fairness | `begin_dispatch` / `complete(cost, finished)`. Caller supplies meaningful records/operations; weighted arithmetic and two O(N) selection/accounting scans remain. Units are not automatically CPU time. |
+| Explicit timed accounting | Caller elects to sample around work and pass service to M1; this executor has no built-in timed-policy adapter. Clock type, units, resolution/rounding and numeric limits must be specified. No automatic per-task sampling is added. |
+| Explicit tracing | A caller's callable may write its own borrowed trace buffer, optionally with timestamps. No automatic trace hooks, trace allocation or enabled/disabled branch is inserted into default dispatch. |
+
+These are distinct cost contracts, not claims of identical fairness. RR shares
+callback opportunities; long callbacks may consume more CPU. Explicit-service
+fairness depends on honest reporting and meaningful units. Optional timing or
+tracing must justify its measurements and storage with a real workload before a
+library adapter is added.
+
+The next pool capability should use durable worker slots, bounded by 256 workers,
+and a proven publication/park/retire lifecycle. Placement, batch donation/stealing
+and local ready-policy selection stay separate. A default throughput/locality
+profile must not inherit global strict EEVDF, membership RCU, dynamic weights or
+per-task timing merely because another workload needs them. Dynamic resize moves
+thread construction, drain/handoff and retirement acknowledgement onto its slow
+path; this is a design direction, not an implemented pool or measured scalability
+result.
+
+Fixed source comparisons supporting these boundaries:
+
+- oneTBB `v2022.2.0`, `06ce6212da6710f4bb2d20a1904b018aa44069bf`, Apache-2.0:
+  [dispatch](https://github.com/uxlfoundation/oneTBB/blob/06ce6212da6710f4bb2d20a1904b018aa44069bf/src/tbb/task_dispatcher.h)
+  retrieves local work before receive/steal;
+  [monitor](https://github.com/uxlfoundation/oneTBB/blob/06ce6212da6710f4bb2d20a1904b018aa44069bf/src/tbb/concurrent_monitor.h)
+  separates prepare/check/commit/cancel parking, with actual fences and locks.
+  These private mechanisms are references, not WJR extension APIs or proof that
+  the entire provider has no clock costs.
+- Folly `v2026.10.05.00`, `b21dacab6bba3b8b39a642f127740aed4150a8e7`, Apache-2.0:
+  [CPUThreadPoolExecutor](https://github.com/facebook/folly/blob/b21dacab6bba3b8b39a642f127740aed4150a8e7/folly/executors/CPUThreadPoolExecutor.cpp)
+  separates queue and worker/parking decisions, including LIFO semaphore choices.
+  Its [base task](https://github.com/facebook/folly/blob/b21dacab6bba3b8b39a642f127740aed4150a8e7/folly/executors/ThreadPoolExecutor.cpp)
+  samples enqueue and execution times: it is not a zero-clock baseline. Reuse
+  practical ideas only after comparing their actual accounting/ownership costs.
+- Boost.Fiber `boost-1.89.0`, `238487b543e8863c647d31a82ccfc3fa11a960d9`, BSL-1.0:
+  [round_robin](https://github.com/boostorg/fiber/blob/238487b543e8863c647d31a82ccfc3fa11a960d9/src/algo/round_robin.cpp)
+  links/picks ready contexts without service timestamps, keeping timed suspension
+  separate. [work_stealing](https://github.com/boostorg/fiber/blob/238487b543e8863c647d31a82ccfc3fa11a960d9/src/algo/work_stealing.cpp)
+  separates local pop from victim search and pinned-context handling; its fixed
+  shared scheduler registration is not WJR's dynamic resize protocol.
+  [Properties](https://github.com/boostorg/fiber/blob/238487b543e8863c647d31a82ccfc3fa11a960d9/include/boost/fiber/algo/algorithm.hpp)
+  are an explicit policy extension and default to a per-context allocation, so
+  they must not be copied into every WJR task without a concrete need.
+
+These are source/contract reviews, not imported dependencies, Windows provider
+build results or comparative throughput measurements. No OS `task_struct` or
+cgroup representation is copied into this CPU executor.
+
 ## Synchronization and cost
 
 This is a mutex/condition-variable baseline, not a lock-free mailbox. No new RCU,
@@ -90,6 +188,7 @@ hook stays in its scope until join. Neither path allocates task nodes.
 | --- | --- |
 | Scope/handle creation | Shared state allocation per scope; shared ownership increment per cached handle. Standard thread/domain resources are setup costs. |
 | Successful submit | One mutex critical section; admission checks, two intrusive appends, two counters and an owner store. No shared-pointer copy, task allocation or callback copy. All producers contend on this one mutex. |
+| Batch of N > 1 | One mutex/at most one notification; N membership checks, 2N hook appends, N owner stores and two counter additions. All-or-none validation precedes publication; no temporary pointer list. |
 | Local `again` | Two relaxed stop loads before invocation, one indirect call, conditional stop polling after it, one local intrusive append; no mutex or reference-count update. |
 | Inbox ingestion | One mutex critical section, whole-ring splice in constant pointer work; every 64 steps or when ready empties. |
 | Terminal publication | One mutex critical section, outcome store and pending decrement; notification if last. Completion contends with producers. |

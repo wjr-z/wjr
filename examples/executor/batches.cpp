@@ -4,7 +4,6 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
-#include <memory>
 #include <thread>
 #include <vector>
 
@@ -26,17 +25,26 @@ struct checksum_batch {
     }
 };
 using task_type = cooperative_task<checksum_batch>;
+constexpr size_t batch_count = 16;
 
-bool submit_batches(const submitter &submit, const std::vector<std::unique_ptr<task_type>> &tasks) {
+template <size_t... I>
+auto make_tasks(const std::vector<uint32_t> &input, std::array<uint64_t, batch_count> &outputs,
+                std::index_sequence<I...>) {
+    return std::array<task_type, batch_count>{
+        cooperative_task(checksum_batch{&input, &outputs[I], I * input.size() / batch_count,
+                                        (I + 1) * input.size() / batch_count})...};
+}
+
+bool submit_batches(const submitter &submit, std::array<task_type, batch_count> &tasks) {
     constexpr size_t producers = 2;
     std::atomic<bool> failed{false};
     std::array<std::thread, producers> threads;
     for (size_t p = 0; p < producers; ++p) {
         threads[p] = std::thread([&, p] {
-            for (size_t i = p; i < tasks.size(); i += producers) {
-                if (submit.submit(*tasks[i]) != executor_status::success) {
-                    failed.store(true, std::memory_order_relaxed);
-                }
+            constexpr size_t per_producer = batch_count / producers;
+            if (submit.submit_batch(std::span(tasks).subspan(p * per_producer, per_producer)) !=
+                executor_status::success) {
+                failed.store(true, std::memory_order_relaxed);
             }
         });
     }
@@ -46,12 +54,11 @@ bool submit_batches(const submitter &submit, const std::vector<std::unique_ptr<t
     return !failed.load(std::memory_order_relaxed);
 }
 
-bool verify(const std::vector<uint32_t> &input,
-            const std::vector<std::unique_ptr<task_type>> &tasks,
-            const std::array<uint64_t, 16> &outputs) {
+bool verify(const std::vector<uint32_t> &input, const std::array<task_type, batch_count> &tasks,
+            const std::array<uint64_t, batch_count> &outputs) {
     uint64_t actual = 0, expected = 0;
     for (size_t i = 0; i < tasks.size(); ++i) {
-        if (tasks[i]->outcome() != task_outcome::completed) {
+        if (tasks[i].outcome() != task_outcome::completed) {
             return false;
         }
         actual += outputs[i];
@@ -65,19 +72,15 @@ bool verify(const std::vector<uint32_t> &input,
 } // namespace
 
 int main() {
-    constexpr size_t batches = 16, records = 65536;
+    constexpr size_t records = 65536;
     std::vector<uint32_t> input(records);
     for (size_t i = 0; i < records; ++i) {
         input[i] = static_cast<uint32_t>(i % 1009);
     }
-    std::array<uint64_t, batches> outputs{};
-    std::vector<std::unique_ptr<task_type>> tasks;
-    for (size_t i = 0; i < batches; ++i) {
-        tasks.push_back(std::make_unique<task_type>(checksum_batch{
-            &input, &outputs[i], i * records / batches, (i + 1) * records / batches}));
-    }
+    std::array<uint64_t, batch_count> outputs{};
+    auto tasks = make_tasks(input, outputs, std::make_index_sequence<batch_count>{});
     cooperative_executor executor;
-    task_scope scope(executor, batches);
+    task_scope scope(executor, batch_count);
     const bool accepted = submit_batches(scope.make_submitter(), tasks);
     if (scope.join() != executor_status::success || !accepted) {
         return 1;
