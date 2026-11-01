@@ -35,7 +35,7 @@ int main(int, char** argv) {
     std::fprintf(stderr,"arena=%zu owner=%zu\n",sizeof(wjr::stack_allocator_object),sizeof(wjr::unique_stack_allocator));
 }
 ''')
-report={'platform':platform.platform(),'base':base,'candidate':sp.check_output(['git','rev-parse','HEAD^'],text=True).strip(),'cpu':Path('/proc/cpuinfo').read_text().split('model name')[1].split('\n')[0],'compilers':{},'checks':[],'timings':[]}
+report={'platform':platform.platform(),'base':base,'candidate':'12ed5a53d2dcaace1d13854ae4d23996221ede86','cpu':Path('/proc/cpuinfo').read_text().split('model name')[1].split('\n')[0],'compilers':{},'checks':[],'timings':[]}
 def run(cmd,name,expect=0,env=None):
     result=sp.run([str(x) for x in cmd],cwd=root,stdout=sp.PIPE,stderr=sp.STDOUT,env=env)
     (out/(name+'.log')).write_bytes(result.stdout)
@@ -74,7 +74,7 @@ for cc in ['clang++-18','g++-13']:
                 for sample in range(7):
                     for version in (['old','new'] if sample%2==0 else ['new','old']):
                         result=run(['taskset','-c',cpu,out/(tag+'-'+version)/'bench',n,b,rounds],tag+f'-{case}-{sample}-{version}')
-                        samples[version].append(float(result.stdout.decode().splitlines()[0]))
+                        samples[version].append(float(next(line for line in result.stdout.decode().splitlines() if line[:1].isdigit())))
                 medians={k:statistics.median(v) for k,v in samples.items()}
                 report['timings'].append({'compiler':cc,'case':case,'samples_ns':samples,'median_ns':medians,'new_over_old':medians['new']/medians['old'],'cpu':cpu})
 (out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
