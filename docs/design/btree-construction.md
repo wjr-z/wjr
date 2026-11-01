@@ -61,6 +61,36 @@ a default-state temporary. Default and comparator-only empty construction still
 construct the allocator directly: no extra temporary/copy/move is introduced.
 These constructors add no tree state or node-layout changes.
 
+## Move-only single-pass sources
+
+The `input_iterator` contract includes move-only iterators such as C++20
+`istream_view` and a `transform_view` over that reader. Constructors transfer
+their already-owned iterator into a helper or delegated constructor rather than
+copying it. The sentinel retains its existing semiregular requirement. No input
+buffer, second pass, stored view or new range overload is introduced.
+
+```cpp
+#include <ranges>
+#include <sstream>
+
+std::istringstream numbers("8 3 1 3");
+auto input = std::ranges::istream_view<int>(numbers);
+wjr::btree_set<int> ids(input.begin(), input.end());
+
+std::istringstream rows("7 2 9 7");
+auto pairs = std::ranges::istream_view<int>(rows) |
+             std::views::transform([](int key) { return std::pair{key, key * 3}; });
+wjr::btree_map<int, int> index(pairs.begin(), pairs.end(), std::allocator<char>{});
+```
+
+The view and stream must remain alive during the call; the container does not
+retain their iterators. Element lifetime still follows the ordinary value and
+allocator contract. Default/comparator, explicit comparator+allocator and
+allocator-only constructor forms work across map, set, multiset and compact map.
+Allocator-extended-only mapped values can also be produced lazily by a transform.
+Constructor exception specifications and the failure/cleanup boundaries above
+remain unchanged; this does not add exception recovery to legacy noexcept forms.
+
 ## Allocator-extended range values
 
 Range construction/insertion also accepts allocator-extended key/mapped copies

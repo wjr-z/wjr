@@ -79,7 +79,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     btree_map(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
         : Mybase(comp, alloc) {
-        this->insert(first, last);
+        this->insert(std::move(first), last);
     }
 
     /// @brief Construct a range with the allocator and default ordering.
@@ -87,7 +87,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     requires btree_detail::default_allocator_order<key_compare, allocator_type>
     btree_map(Iter first, Sentinel last, const allocator_type &alloc)
-        : btree_map(first, last, key_compare(), alloc) {}
+        : btree_map(std::move(first), last, key_compare(), alloc) {}
 
     /// @brief Construct list values using explicit ordering and allocator state.
     btree_map(std::initializer_list<value_type> il, const key_compare &comp,
