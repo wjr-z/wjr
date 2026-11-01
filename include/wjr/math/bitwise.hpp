@@ -26,7 +26,7 @@ namespace wjr::math {
  * @param[in] src1 Second source array
  * @param[in] n Number of elements
  */
-template <nonbool_unsigned_integral T, int = 0>
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR void xor_n(T *dst, const T *src0, const T *src1, size_t n) noexcept {
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
@@ -47,7 +47,7 @@ WJR_INTRINSIC_CONSTEXPR void xor_n(T *dst, const T *src0, const T *src1, size_t 
  * @param[in] src1 Second source array
  * @param[in] n Number of elements
  */
-template <nonbool_unsigned_integral T, int = 0>
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR void or_n(T *dst, const T *src0, const T *src1, size_t n) noexcept {
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
@@ -68,7 +68,7 @@ WJR_INTRINSIC_CONSTEXPR void or_n(T *dst, const T *src0, const T *src1, size_t n
  * @param[in] src1 Second source array
  * @param[in] n Number of elements
  */
-template <nonbool_unsigned_integral T, int = 0>
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR void and_n(T *dst, const T *src0, const T *src1, size_t n) noexcept {
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src0, n));
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src1, n));
@@ -88,7 +88,7 @@ WJR_INTRINSIC_CONSTEXPR void and_n(T *dst, const T *src0, const T *src1, size_t 
  * @param[in] src Source array
  * @param[in] n Number of elements
  */
-template <nonbool_unsigned_integral T, int = 0>
+template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR void not_n(T *dst, const T *src, size_t n) noexcept {
     WJR_ASSERT_L2(WJR_IS_SAME_OR_INCR_P(dst, n, src, n));
 

@@ -25,10 +25,6 @@ concept bitwise_array_arithmetic = requires(T *dst, const T *src) {
     { wjr::math::or_n(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
     { wjr::math::and_n(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
     { wjr::math::not_n(dst, src, size_t{2}) } noexcept -> std::same_as<void>;
-    { wjr::math::xor_n<T, 1>(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
-    { wjr::math::or_n<T, 1>(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
-    { wjr::math::and_n<T, 1>(dst, src, src, size_t{2}) } noexcept -> std::same_as<void>;
-    { wjr::math::not_n<T, 1>(dst, src, size_t{2}) } noexcept -> std::same_as<void>;
 };
 
 static_assert(bitwise_array_arithmetic<uint8_t> && bitwise_array_arithmetic<uint16_t> &&
