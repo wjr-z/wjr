@@ -2003,6 +2003,61 @@ private:
         _assign_tree<const value_type &>(other);
     }
 
+    /// @brief Reuse only an identical shape, preserving the copied tree's node footprint/fill.
+    static bool _same_copy_shape(const node_type *lhs, const node_type *rhs) noexcept {
+        if (lhs == nullptr || rhs == nullptr)
+            return lhs == rhs;
+        if (lhs->size() != rhs->size())
+            return false;
+        if (lhs->size() < 0)
+            return true;
+        const auto count = static_cast<slot_usize_type>(lhs->size());
+        for (slot_usize_type i = 0; i <= count; ++i) {
+            if (!_same_copy_shape(lhs->as_inner()->m_sons[i], rhs->as_inner()->m_sons[i]))
+                return false;
+        }
+        return true;
+    }
+
+    /// @brief Reconstruct owned values without ending their allocation or node lifetimes.
+    void _copy_reuse_values(leaf_node_type *leaf, slot_usize_type count,
+                            const_iterator &source) noexcept {
+        auto &alloc = _get_allocator();
+        for (slot_usize_type i = 0; i < count; ++i, ++source) {
+            auto *const value = std::addressof(from_ivalue(leaf->m_values[i]));
+            destroy_at_using_allocator(value, alloc);
+            uninitialized_construct_using_allocator(value, alloc, *source);
+        }
+    }
+
+    /// @brief Keep the destination observably empty while its detached graph is reconstructed.
+    /// @note Construction/destruction retain the copy engine's existing noexcept boundary.
+    void _copy_reuse_tree(const basic_btree &other) noexcept {
+        auto *const root = std::exchange(_get_root(), nullptr);
+        const auto count = std::exchange(_get_size(), 0);
+        list_node_type leaves;
+        leaves.init_self();
+        if (root != nullptr) {
+            replace(_get_sentry(), std::addressof(leaves));
+            _get_sentry()->init_self();
+        }
+        key_comp() = other.key_comp();
+        auto source = other.cbegin();
+        if (root == nullptr) {
+            _copy_reuse_values(_get_base(), static_cast<slot_usize_type>(count), source);
+        } else {
+            for (auto *current = leaves.next(); current != std::addressof(leaves);
+                 current = current->next()) {
+                auto *const leaf = current->self();
+                _copy_reuse_values(leaf, static_cast<slot_usize_type>(-leaf->size()), source);
+                _replace_subtree_minimum(leaf, to_ikey(leaf->get_key(0)));
+            }
+            replace(std::addressof(leaves), _get_sentry());
+        }
+        _get_root() = root;
+        _get_size() = count;
+    }
+
     /// @brief Rebuild a detached ownership graph without searching its retired keys.
     /// @pre current is owned by source's allocator, but is no longer in source's active tree.
     std::pair<ikey_type, node_type *> _rec_move_detached_tree(node_type *current,
@@ -2085,6 +2140,10 @@ private:
     void _release_before_copy() { clear(); }
 
     void _copy_element(const basic_btree &other) noexcept {
+        if (_get_size() == other._get_size() && _same_copy_shape(_get_root(), other._get_root())) {
+            _copy_reuse_tree(other);
+            return;
+        }
         clear();
         key_comp() = other.key_comp();
         _copy_assign_tree(other);
