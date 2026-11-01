@@ -1,5 +1,14 @@
 # Pool-backed owning JSON snapshots
 
+For a separate readonly native-engine pipeline, see
+[yyjson statuses](yyjson/statuses.cpp) and its
+[ownership/component guide](../../docs/modules/json-yyjson.md). Build the installed
+consumer with `cmake -S examples/json/yyjson -B build-yyjson
+-DCMAKE_PREFIX_PATH="/path/to/wjr/install;/path/to/yyjson/install"`, then run
+`yyjson_statuses test/data/success/twitter.json`. It copies selected fields into
+owning application records and releases both input and DOM before consuming the
+records. The executable also has a small built-in fixture when no path is given.
+
 `pool_snapshots.cpp` parses successive configuration snapshots with one borrowed
 `std::pmr::unsynchronized_pool_resource`, replaces the active owning document,
 and mutates a string field after parsing. The standard pool can reuse released

@@ -1,0 +1,5 @@
+add_executable(yyjson_readonly_tests readonly.cpp)
+target_link_libraries(yyjson_readonly_tests PRIVATE wjr::yyjson gtest_main)
+add_dependencies(tests yyjson_readonly_tests)
+add_test(NAME yyjson_readonly_tests COMMAND yyjson_readonly_tests)
+set_tests_properties(yyjson_readonly_tests PROPERTIES LABELS unit)

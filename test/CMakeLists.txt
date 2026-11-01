@@ -84,6 +84,10 @@ if(WJR_ENABLE_MIMALLOC)
    add_subdirectory(consumer/mimalloc)
 endif()
 
+if(WJR_ENABLE_YYJSON)
+   add_subdirectory(consumer/yyjson)
+endif()
+
 if(WJR_ENABLE_XSIMD)
    target_link_libraries(tests PRIVATE wjr::simd_xsimd)
    target_compile_definitions(tests PRIVATE WJR_TEST_XSIMD=1)

@@ -10,6 +10,37 @@ if(wjr_wjr_unavailable_FOUND)
     message(FATAL_ERROR "An unavailable optional component was reported as found.")
 endif()
 
+option(WJR_TEST_YYJSON "Validate the installed yyjson readonly component." OFF)
+if(WJR_TEST_YYJSON)
+    if(TARGET wjr::yyjson OR TARGET yyjson::yyjson)
+        message(FATAL_ERROR "Ordinary package discovery imported the yyjson component/provider.")
+    endif()
+    find_package(wjr CONFIG REQUIRED COMPONENTS yyjson)
+    find_package(wjr CONFIG REQUIRED COMPONENTS yyjson)
+    get_target_property(_WJR_YYJSON_DEPS wjr::yyjson INTERFACE_LINK_LIBRARIES)
+    list(FILTER _WJR_YYJSON_DEPS INCLUDE REGEX "^yyjson::yyjson$")
+    list(LENGTH _WJR_YYJSON_DEPS _WJR_YYJSON_COUNT)
+    if(NOT wjr_yyjson_FOUND OR NOT _WJR_YYJSON_COUNT EQUAL 1)
+        message(FATAL_ERROR "Repeated yyjson discovery must retain exactly one provider dependency.")
+    endif()
+    add_executable(wjr_yyjson_consumer ../../examples/json/yyjson/statuses.cpp)
+    target_link_libraries(wjr_yyjson_consumer PRIVATE wjr::yyjson)
+    add_test(NAME wjr_yyjson_consumer COMMAND wjr_yyjson_consumer)
+    foreach(_WJR_OPTIONAL IN ITEMS ON OFF)
+        add_test(NAME wjr_yyjson_missing_dependency_optional_${_WJR_OPTIONAL}
+            COMMAND ${CMAKE_COMMAND}
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/component"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/yyjson-missing-dependency-${_WJR_OPTIONAL}"
+            -G "${CMAKE_GENERATOR}"
+            "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+            "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            -DWJR_REQUEST_COMPONENT=yyjson
+            -DWJR_OPTIONAL_COMPONENT=${_WJR_OPTIONAL}
+            -DCMAKE_DISABLE_FIND_PACKAGE_yyjson=TRUE)
+    endforeach()
+    set_tests_properties(wjr_yyjson_missing_dependency_optional_OFF PROPERTIES WILL_FAIL TRUE)
+endif()
+
 option(WJR_TEST_TBB "Validate the installed optional oneTBB component." OFF)
 # Run before other optional components to verify that TBB imports neither NP nor ISA backends.
 if(WJR_TEST_TBB)

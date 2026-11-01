@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20)
+project(wjr_yyjson_example LANGUAGES CXX)
+find_package(wjr CONFIG REQUIRED COMPONENTS yyjson)
+add_executable(yyjson_statuses statuses.cpp)
+target_link_libraries(yyjson_statuses PRIVATE wjr::yyjson)

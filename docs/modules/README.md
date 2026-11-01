@@ -72,6 +72,9 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 ## `wjr::json`
 
+Readonly native-engine ownership and views are available separately through the
+default-off [yyjson component](json-yyjson.md), linked as `wjr::yyjson`.
+
 JSON 数据结构和解析、序列化相关功能。
 
 [Owning immutable JSON design](../design/json-readonly-dom.md) records the measured

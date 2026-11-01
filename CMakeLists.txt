@@ -44,6 +44,7 @@ option(WJR_ENABLE_NP "Enable the experimental tensor data model." OFF)
 option(WJR_ENABLE_NP_CBLAS "Enable the optional OpenBLAS LP64 tensor adapter." OFF)
 option(WJR_ENABLE_TBB "Enable the optional prebuilt oneTBB chunk adapter." OFF)
 option(WJR_ENABLE_MIMALLOC "Enable explicit allocators using an installed mimalloc package." OFF)
+option(WJR_ENABLE_YYJSON "Enable the readonly adapter using an installed yyjson 0.13.0 package." OFF)
 if(WJR_ENABLE_NP_CBLAS AND NOT WJR_ENABLE_NP)
    message(FATAL_ERROR "WJR_ENABLE_NP_CBLAS requires WJR_ENABLE_NP=ON.")
 endif()
@@ -147,6 +148,10 @@ endif()
 # library : utility
 #
 add_subdirectory(src/utility)
+
+if(WJR_ENABLE_YYJSON)
+   add_subdirectory(src/json/yyjson)
+endif()
 
 if(WJR_ENABLE_TBB)
    add_subdirectory(src/concurrency/tbb)

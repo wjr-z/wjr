@@ -1,0 +1,21 @@
+name: Optional yyjson component
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installed-provider:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+      - name: Install the minimum GCC toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-11 g++-11
+      - name: Validate native provider, installed consumer and sanitizers
+        run: python3 test/consumer/yyjson/validate.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yyjson-validation-results
+          path: yyjson-validation-results
