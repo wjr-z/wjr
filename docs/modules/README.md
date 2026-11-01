@@ -72,6 +72,8 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 ## `wjr::json`
 
+[Serializer concepts](json-concepts.md) describe C++20 capabilities and exact source categories.
+
 JSON 数据结构和解析、序列化相关功能。
 
 [Owning immutable JSON design](../design/json-readonly-dom.md) records the measured
