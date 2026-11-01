@@ -85,8 +85,26 @@ if(WJR_ENABLE_XSIMD)
    target_compile_definitions(tests PRIVATE WJR_TEST_XSIMD=1)
 endif()
 
-add_test(NAME wjr_tests COMMAND tests)
-set_tests_properties(wjr_tests PROPERTIES
+if(WJR_ENABLE_TEST_SHARDING)
+   set(_WJR_UNIT_TEST_NAMES)
+   foreach(_WJR_SHARD_INDEX RANGE 0 1)
+      set(_WJR_SHARD_NAME wjr_tests_shard_${_WJR_SHARD_INDEX})
+      add_test(NAME ${_WJR_SHARD_NAME} COMMAND tests)
+      set_tests_properties(${_WJR_SHARD_NAME} PROPERTIES
+         ENVIRONMENT "GTEST_TOTAL_SHARDS=2;GTEST_SHARD_INDEX=${_WJR_SHARD_INDEX}"
+      )
+      if(WJR_ENABLE_COVERAGE)
+         set_property(TEST ${_WJR_SHARD_NAME} APPEND PROPERTY ENVIRONMENT
+            "LLVM_PROFILE_FILE=${CMAKE_CURRENT_BINARY_DIR}/wjr-tests-shard-${_WJR_SHARD_INDEX}-%p.profraw"
+         )
+      endif()
+      list(APPEND _WJR_UNIT_TEST_NAMES ${_WJR_SHARD_NAME})
+   endforeach()
+else()
+   add_test(NAME wjr_tests COMMAND tests)
+   set(_WJR_UNIT_TEST_NAMES wjr_tests)
+endif()
+set_tests_properties(${_WJR_UNIT_TEST_NAMES} PROPERTIES
    LABELS unit
    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )

@@ -109,7 +109,7 @@ jobs:
       - name: Configure using CMake
         shell: bash
         run: |
-          cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
+          cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON -DWJR_ENABLE_TEST_SHARDING=ON \
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_USE_GMP_TESTS=OFF \
             -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
