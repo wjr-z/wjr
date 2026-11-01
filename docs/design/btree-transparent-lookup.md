@@ -33,8 +33,7 @@ const bool available = enabled.count(path) != 0;
 
 | 容器 | 支持透明查询的现有操作 |
 | --- | --- |
-| map、set、multiset | const/mutable `lower_bound`、`upper_bound` |
-| map、set | `count` |
+| map、set、multiset | const/mutable `find`、`lower_bound`、`upper_bound`、`equal_range`，以及 `contains`、`count` |
 | map | const/mutable `at` |
 
 所有原有 `const Key&` 重载保留。异构重载要求比较器的 `is_transparent` 表示类型，
@@ -95,5 +94,44 @@ C string；自定义透明比较器收到原查询类型，不进行语义归一
 针对一个超过 SSO 长度的 PMR path，已存在键的 300 次 C-string 更新在旧实现产生
 300 次临时 Key 分配，新实现为零；目标 resource 两者均无新增分配。借用
 `string_view` 更新此前不可调用，现在也无需临时 Key。这是特定路径的分配计数，
-不表示所有工作负载更快：C string 比较可能反复计算长度，已知长度时优先传
-`string_view`。未改变同 Key 入口的运行时策略或节点布局。
+不表示所有工作负载更快。已知长度时优先传 `string_view`；下面的窄缓存避免标准
+string/less 的 C string 在搜索比较中反复计算长度。同 Key 入口策略及节点布局不变。
+
+## Unique set 的借用插入与 interning
+
+```cpp
+wjr::btree_set<std::string, std::less<>> interned;
+std::string_view token = "/api/v1/warehouses/inventory/availability";
+auto [position, inserted] = interned.insert(token);
+auto same = interned.insert(interned.end(), token);
+```
+
+`btree_set` 的普通/hint `insert` 先借用 Query 查找，仅在缺键时建立 owned Key。
+已有键返回原 iterator，不构造、移动或分配临时 Key。正确 hint 使用已有相邻 gap，
+错误 hint 回退已有搜索；没有保存借用对象。负约束及 query→Key 等价前提与 map 更新
+相同。已有 Key 重载、显式 member template/函数取址与 range/list insert 保留。
+multiset 每次本来都插入，不增加没有省构造收益的对应入口。
+
+长 PMR path 的 200 次重复普通/hint 插入，临时 Key 分配从 200 降到零，owner resource
+均无新增分配。Allocator-aware-only、不可移动且 align64 的 Key 也可直接从 Query
+经 owner 构造，无需先生成一个可移动临时 Key。原隐式转换的异常仍在 noexcept 插入
+引擎外传播；显式新查询及普通值构造遵循已有引擎合同。
+
+## 标准 string 的一次长度扫描
+
+仅当比较器**恰为 `std::less<>`**、Key 为
+`std::basic_string<char,std::char_traits<char>,Alloc>`、查询为普通非 volatile
+char pointer/array 时，共享 lookup 边界将查询借用为 `string_view` 并缓存长度。
+缓存覆盖 find/bounds/count/at/equal-range/erase 和 map/set 的透明更新/hint。
+空树不比较，lookup 不预扫描。数组按第一个 NUL 确定 C string 长度，绝不假设 N−1；
+显式 string_view 仍保留完整长度及内嵌零。
+
+Key/value 构造始终转发**原 Query**：不改变 allocator hook 收到的参数类型或 #279
+的异常边界。缺键的 owned Key 构造本身仍可扫描一次，此处承诺是 lookup 不重复扫描。
+自定义比较器、traits、其他 Query 类型及 volatile pointer 不规范化，保留原调用和
+可见副作用；`std::greater<>` 等未纳入这个窄策略。
+
+Clang18 baseline 实际汇编中，旧 C string `_search_impl` 循环及 comparator lambda
+含 strlen；新比较循环零 strlen，成功 borrowed lookup/重复插入只在入口扫描一次，
+新 Key 构造的扫描位于独立 miss 分支。已有 Key 和 string_view 入口、普通 insert、
+bounds 及 layout 的 baseline/native 汇编保持一致。未据此宣称通用吞吐提升。

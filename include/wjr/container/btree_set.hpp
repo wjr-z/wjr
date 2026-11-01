@@ -102,8 +102,9 @@ private:
 
     template <typename Lookup>
     bool _count_unique(const Lookup &key) const {
-        auto iter = this->lower_bound(key);
-        return _is_lower_bound_same(iter, key);
+        const auto &lookup = this->_borrow_lookup(key);
+        auto iter = this->lower_bound(lookup);
+        return _is_lower_bound_same(iter, lookup);
     }
 
 public:
@@ -113,6 +114,23 @@ public:
 
     std::pair<iterator, bool> insert(value_type &&val) noexcept {
         return this->_emplace_unique(std::move(val));
+    }
+
+    /// @brief Borrow a comparable key, constructing its owned value only when absent.
+    /// @pre Query comparisons do not throw; conversion to Key preserves ordering/equivalence.
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup>
+    std::pair<iterator, bool> insert(Lookup &&key) {
+        return this->_try_emplace_unique(std::forward<Lookup>(key));
+    }
+
+    /// @copydoc insert(Lookup &&)
+    template <
+        btree_detail::transparent_update<key_compare, key_type, allocator_type, const_iterator>
+            Lookup>
+    iterator insert(const_iterator hint, Lookup &&key) {
+        return this->_try_emplace_hint_unique(hint, std::forward<Lookup>(key)).first;
     }
 
     template <typename... Args>
