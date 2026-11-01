@@ -134,6 +134,21 @@ set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
 
 FetchContent_GetProperties(cpu_features)
 if(WJR_ARCH STREQUAL "x86" AND cpu_features_SOURCE_DIR)
+   foreach(_WJR_FMT_MODE IN ITEMS installed preexisting disabled incompatible)
+      add_test(NAME wjr_fmt_${_WJR_FMT_MODE}
+         COMMAND ${CMAKE_COMMAND}
+         -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/fmt-provider
+         -B ${CMAKE_CURRENT_BINARY_DIR}/fmt-${_WJR_FMT_MODE}
+         ${WJR_POLICY_CMAKE_ARGS}
+         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+         -DWJR_CXX_STANDARD=${WJR_CXX_STANDARD}
+         -DWJR_CPU_TARGET=${WJR_CPU_TARGET}
+         -DFETCHCONTENT_SOURCE_DIR_CPU_FEATURES=${cpu_features_SOURCE_DIR}
+         -DMODE=${_WJR_FMT_MODE}
+      )
+      set_tests_properties(wjr_fmt_${_WJR_FMT_MODE} PROPERTIES LABELS configuration)
+   endforeach()
    foreach(_WJR_TESTING_STATE IN ITEMS undefined cache-on cache-off normal-on normal-off
       normal-on-cache-off normal-off-cache-on)
       add_test(NAME wjr_provider_scope_${_WJR_TESTING_STATE}
