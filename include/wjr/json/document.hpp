@@ -1099,7 +1099,8 @@ public:
               std::forward<T>(val), in_place_document_serializer_to)) {}
 
     template <typename T>
-    requires(!to_document_assignable<basic_document, T &&>)
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !to_document_assignable<basic_document, T &&>)
     basic_document &operator=(T &&) = delete;
 
     template <typename T>

@@ -123,6 +123,13 @@ static_assert(json::to_document_assignable<document, const std::string &>);
 static_assert(json::from_document_constructible<std::optional<int>, const document &>);
 static_assert(json::from_document_constructible<std::array<int, 2>, const document &>);
 static_assert(json::from_document_constructible<record, const document &>);
+static_assert(std::is_assignable_v<document &, document &>);
+static_assert(std::is_assignable_v<document &, const document &>);
+static_assert(std::is_assignable_v<document &, document &&>);
+static_assert(std::is_assignable_v<json::pmr_document &, json::pmr_document &>);
+static_assert(std::is_assignable_v<json::pmr_document &, const json::pmr_document &>);
+static_assert(std::is_assignable_v<json::pmr_document &, json::pmr_document &&>);
+static_assert(json::to_document_assignable<json::pmr_document, json::pmr_document &>);
 
 } // namespace
 
