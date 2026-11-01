@@ -2064,27 +2064,40 @@ private:
             _construct_leaf_value(destination, i, from_ivalue(source->m_values[i]));
     }
 
-    /// @brief Reuse compatible node storage in one traversal; replace only incompatible branches.
-    std::pair<ikey_type, node_type *> _reuse_copy_branch(node_type *owned, const node_type *source,
-                                                         list_node_type &leaves) noexcept {
+    /// @brief Keep per-leaf copies outside the recursive inner-node stack frame.
+    WJR_INTRINSIC_INLINE std::pair<ikey_type, node_type *>
+    _reuse_copy_leaf(leaf_node_type *leaf, const leaf_node_type *source,
+                     list_node_type &leaves) noexcept {
+        const auto size = source->size();
+        leaf->remove();
+        _reuse_copy_slots(leaf, source, static_cast<slot_usize_type>(-leaf->size()),
+                          static_cast<slot_usize_type>(-size));
+        leaf->size() = size;
+        leaves.push_back(leaf);
+        return {to_ikey(leaf->get_key(0)), leaf};
+    }
+
+    /// @brief Dispatch by storage kind without recursing through compatible leaves.
+    WJR_INTRINSIC_INLINE std::pair<ikey_type, node_type *>
+    _reuse_copy_branch(node_type *owned, const node_type *source, list_node_type &leaves) noexcept {
         if (owned == nullptr)
             return _clone_copy_branch(source, leaves);
-        const auto old_size = owned->size();
+        const bool old_leaf = owned->size() < 0;
+        const bool source_leaf = source->size() < 0;
+        if (old_leaf && source_leaf)
+            return _reuse_copy_leaf(owned->as_leaf(), source->as_leaf(), leaves);
+        if (!old_leaf && !source_leaf)
+            return _reuse_copy_inner(owned->as_inner(), source->as_inner(), leaves);
+        _destroy_copy_branch(owned);
+        return _clone_copy_branch(source, leaves);
+    }
+
+    /// @brief Reuse each corresponding child once, creating or releasing only missing branches.
+    std::pair<ikey_type, node_type *> _reuse_copy_inner(inner_node_type *inner,
+                                                        const inner_node_type *source,
+                                                        list_node_type &leaves) noexcept {
+        const auto old_size = inner->size();
         const auto size = source->size();
-        if ((old_size < 0) != (size < 0)) {
-            _destroy_copy_branch(owned);
-            return _clone_copy_branch(source, leaves);
-        }
-        if (size < 0) {
-            auto *const leaf = owned->as_leaf();
-            leaf->remove();
-            _reuse_copy_slots(leaf, source->as_leaf(), static_cast<slot_usize_type>(-old_size),
-                              static_cast<slot_usize_type>(-size));
-            leaf->size() = size;
-            leaves.push_back(leaf);
-            return {to_ikey(leaf->get_key(0)), leaf};
-        }
-        auto *const inner = owned->as_inner();
         for (slot_usize_type i = static_cast<slot_usize_type>(size) + 1;
              i <= static_cast<slot_usize_type>(old_size); ++i)
             _destroy_copy_branch(inner->m_sons[i]);
@@ -2092,7 +2105,7 @@ private:
         for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
             auto *const previous =
                 i <= static_cast<slot_usize_type>(old_size) ? inner->m_sons[i] : nullptr;
-            auto [key, child] = _reuse_copy_branch(previous, source->as_inner()->m_sons[i], leaves);
+            auto [key, child] = _reuse_copy_branch(previous, source->m_sons[i], leaves);
             inner->m_sons[i] = child;
             child->m_parent = inner;
             child->pos() = i;
