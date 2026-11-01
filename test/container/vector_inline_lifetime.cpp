@@ -20,9 +20,10 @@ struct lifetime_state {
     /** @brief Release C++ test allocations retained by a failing regression. */
     ~lifetime_state() {
         for (auto *resource : resources) {
-            // nosemgrep:
-            // apex.lang.performance.ncino.operationsinloops.avoidnativedmlinloops.avoid-native-dml-in-loops
+            // clang-format off
+            // nosemgrep: apex.lang.performance.ncino.operationsinloops.avoidnativedmlinloops.avoid-native-dml-in-loops
             delete resource;
+            // clang-format on
         }
     }
 };
