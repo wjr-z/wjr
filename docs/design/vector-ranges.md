@@ -51,6 +51,14 @@ traversed once to obtain their distance; input ranges are never pre-consumed.
 Bulk-copy failure destroys the new prefix before publishing its size. A failed
 unsized single-pass append retains its completed prefix. Reservation follows the
 existing vector relocation and exception contract and may invalidate iterators.
+When move construction or allocator hooks can throw, `reserve` and heap
+`shrink_to_fit` keep old lifetimes intact until transfer succeeds and release
+uncommitted storage on failure. Size, capacity and allocation ownership are
+preserved; moved-from values can remain, so this is a basic guarantee. The
+existing nonthrowing relocation path remains unchanged. A nonbinding small-vector
+shrink may retain its allocation when returning to inline storage would require
+a potentially throwing transfer; the ordinary nonthrowing inline transition is
+retained.
 No temporary vector, per-element capacity check on the bulk path, new state, or
 change to legacy `assign` / `append` is introduced.
 
