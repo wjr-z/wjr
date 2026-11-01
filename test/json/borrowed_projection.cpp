@@ -115,6 +115,11 @@ static_assert(!can_project<const document, moving_value>);
 static_assert(!can_assign_projection<const document, moving_value>);
 static_assert(can_project<document, moving_value>);
 static_assert(can_assign_projection<document, moving_value>);
+static_assert(wjr::json::has_construct_to_document_v<document, document::object_type &&>);
+static_assert(wjr::json::has_assign_to_document_v<document, document::object_type &&>);
+static_assert(
+    wjr::json::has_construct_to_document_v<document, std::map<std::string, std::string> &&>);
+static_assert(wjr::json::has_assign_to_document_v<document, std::map<std::string, std::string> &&>);
 
 document text(std::string_view value) { return document::_construct_string(value); }
 

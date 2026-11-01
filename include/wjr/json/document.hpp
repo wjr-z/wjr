@@ -1970,12 +1970,19 @@ struct _document_serializer_object {
 private:
     /** @brief A pair's const-reference fallback must not hide a rejected mapped rvalue. */
     template <typename Document>
-    static constexpr bool _can_move_elements =
-        std::is_constructible_v<
-            typename value_type::value_type,
-            decltype(std::move(*std::declval<Document &>().template get<object_t>().begin()))> &&
-        (!has_construct_from_document_v<typename value_type::mapped_type, const Document &> ||
-         has_construct_from_document_v<typename value_type::mapped_type, Document &&>);
+    static constexpr bool _can_move_elements = [] {
+        if constexpr (requires(Document &doc) { doc.template get<object_t>().begin(); }) {
+            return std::is_constructible_v<
+                       typename value_type::value_type,
+                       decltype(std::move(
+                           *std::declval<Document &>().template get<object_t>().begin()))> &&
+                   (!has_construct_from_document_v<typename value_type::mapped_type,
+                                                   const Document &> ||
+                    has_construct_from_document_v<typename value_type::mapped_type, Document &&>);
+        } else {
+            return false;
+        }
+    }();
 
 public:
     template <typename Document,
