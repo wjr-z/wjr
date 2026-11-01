@@ -1,6 +1,6 @@
 """Archived two-module lifetime regression and same-machine performance controls."""
 from pathlib import Path
-import subprocess as sp, json, os, platform, statistics
+import subprocess as sp, json, os, platform, statistics, sys
 root=Path(__file__).resolve().parent
 out=root/'research-output'; out.mkdir(exist_ok=True)
 old=out/'old'; (old/'wjr/memory').mkdir(parents=True,exist_ok=True)
@@ -42,9 +42,9 @@ def run(cmd,name,expect=0,env=None):
     if expect is not None and result.returncode!=expect:
         print(result.stdout.decode(errors='replace')[-6000:]); raise RuntimeError((name,result.returncode))
     return result
-for cc in ['clang++-18','g++-13']:
+for cc in (['clang++-18'] if '--asan-only' in sys.argv else ['clang++-18','g++-13']):
     report['compilers'][cc]=sp.check_output([cc,'--version'],text=True).splitlines()[0]
-    for asan in ([False,True] if cc.startswith('clang') else [False]):
+    for asan in ([True] if '--asan-only' in sys.argv else [False,True] if cc.startswith('clang') else [False]):
         tag=cc+('-asan' if asan else '-release')
         for version in ['old','new']:
             build=out/(tag+'-'+version); build.mkdir(exist_ok=True)
