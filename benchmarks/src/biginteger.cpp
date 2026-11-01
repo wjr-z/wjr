@@ -1,3 +1,4 @@
+#include <bit>
 #include <charconv>
 #include <vector>
 
@@ -276,29 +277,40 @@ static void wjr_div_qr_s(benchmark::State &state) {
         [&]() { wjr::div_qr_s(q.data(), r.data(), a.data(), n, b.data(), m); });
 }
 
-static void wjr_biginteger_to_chars(benchmark::State &state) {
+static void wjr_biginteger_to_digits(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     std::vector<uint64_t> a(n);
-    std::vector<char> s(n * 64);
+    std::vector<uint8_t> s(n * 64 + 1);
 
-    std::generate(a.begin(), a.end(), mt_rand);
+    std::mt19937_64 generator(1);
+    std::generate(a.begin(), a.end(), std::ref(generator));
+    a.back() |= uint64_t{1} << 63;
 
     for (auto _ : state) {
-        wjr::biginteger_to_chars(s.data(), a.data(), n, base);
+        auto result =
+            wjr::biginteger_to_chars(s.data(), a.data(), n, base, wjr::origin_converter_t{});
+        benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
     }
 }
 
-static void wjr_biginteger_from_chars(benchmark::State &state) {
+static void wjr_biginteger_from_digits(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
-    std::vector<uint64_t> a(n);
-    std::vector<char> s(n);
+    const auto bits = base == 10 ? 4 : std::countr_zero(static_cast<unsigned int>(base));
+    std::vector<uint64_t> a((n * bits + 63) / 64 + 1);
+    std::vector<uint8_t> s(n);
 
-    std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
+    std::mt19937_64 generator(1);
+    std::generate(s.begin(), s.end(), [&]() { return generator() % base; });
+    s.front() = 1 + generator() % (base - 1);
 
     for (auto _ : state) {
-        wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base);
+        auto result = wjr::biginteger_from_chars(s.data(), s.data() + s.size(), a.data(), base,
+                                                 wjr::origin_converter_t{});
+        benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
     }
 }
 
@@ -635,29 +647,49 @@ static void gmp_div_qr_s(benchmark::State &state) {
         [&]() { mpn_tdiv_qr(q.data(), r.data(), 0, a.data(), n, b.data(), m); });
 }
 
-static void gmp_biginteger_to_chars(benchmark::State &state) {
+static void gmp_biginteger_to_digits(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
     std::vector<uint64_t> a(n);
-    std::vector<char> s(n * 64);
+    std::vector<uint64_t> scratch(base == 10 ? n : 0);
+    std::vector<unsigned char> s(n * 64 + 1);
 
-    std::generate(a.begin(), a.end(), mt_rand);
+    std::mt19937_64 generator(1);
+    std::generate(a.begin(), a.end(), std::ref(generator));
+    a.back() |= uint64_t{1} << 63;
 
-    for (auto _ : state) {
-        mpn_get_str((unsigned char *)s.data(), base, a.data(), n);
+    if (base == 10) {
+        /// GMP clobbers decimal input; include its copy to preserve the source contract.
+        for (auto _ : state) {
+            std::copy(a.begin(), a.end(), scratch.begin());
+            auto result = mpn_get_str(s.data(), base, scratch.data(), n);
+            benchmark::DoNotOptimize(result);
+            benchmark::ClobberMemory();
+        }
+    } else {
+        for (auto _ : state) {
+            auto result = mpn_get_str(s.data(), base, a.data(), n);
+            benchmark::DoNotOptimize(result);
+            benchmark::ClobberMemory();
+        }
     }
 }
 
-static void gmp_biginteger_from_chars(benchmark::State &state) {
+static void gmp_biginteger_from_digits(benchmark::State &state) {
     auto base = state.range(0);
     auto n = state.range(1);
-    std::vector<uint64_t> a(n);
-    std::vector<char> s(n);
+    const auto bits = base == 10 ? 4 : std::countr_zero(static_cast<unsigned int>(base));
+    std::vector<uint64_t> a((n * bits + 63) / 64 + 1);
+    std::vector<unsigned char> s(n);
 
-    std::generate(s.begin(), s.end(), []() { return '0' + mt_rand() % 10; });
+    std::mt19937_64 generator(1);
+    std::generate(s.begin(), s.end(), [&]() { return generator() % base; });
+    s.front() = 1 + generator() % (base - 1);
 
     for (auto _ : state) {
-        mpn_set_str(a.data(), (unsigned char *)s.data(), s.size(), base);
+        auto result = mpn_set_str(a.data(), s.data(), s.size(), base);
+        benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
     }
 }
 
@@ -715,8 +747,8 @@ BENCHMARK(wjr_sqr)->NORMAL_TESTS(4, 2, 1024);
 BENCHMARK(wjr_div_qr_1)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(wjr_div_qr_s)->Apply(Product2D);
-BENCHMARK(wjr_biginteger_to_chars)->Apply(biginteger_to_chars_tests);
-BENCHMARK(wjr_biginteger_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
+BENCHMARK(wjr_biginteger_to_digits)->Apply(biginteger_to_chars_tests);
+BENCHMARK(wjr_biginteger_from_digits)->BIGINTEGER_FROM_CHARS_TESTS();
 
 BENCHMARK(wjr_bi_add)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(wjr_bi_add_ui)->NORMAL_TESTS(4, 2, 256);
@@ -751,7 +783,7 @@ BENCHMARK(gmp_sqr)->NORMAL_TESTS(4, 2, 1024);
 BENCHMARK(gmp_div_qr_1)->NORMAL_TESTS(4, 2, 256);
 BENCHMARK(gmp_div_qr_2)->DenseRange(2, 4, 1)->RangeMultiplier(2)->Range(8, 256);
 BENCHMARK(gmp_div_qr_s)->Apply(Product2D);
-BENCHMARK(gmp_biginteger_to_chars)->Apply(biginteger_to_chars_tests);
-BENCHMARK(gmp_biginteger_from_chars)->BIGINTEGER_FROM_CHARS_TESTS();
+BENCHMARK(gmp_biginteger_to_digits)->Apply(biginteger_to_chars_tests);
+BENCHMARK(gmp_biginteger_from_digits)->BIGINTEGER_FROM_CHARS_TESTS();
 
 #endif // WJR_USE_GMP
