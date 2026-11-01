@@ -190,6 +190,26 @@ struct in_place_document_serializer_object_move_t {};
 inline constexpr in_place_document_serializer_object_move_t
     in_place_document_serializer_object_move{};
 
+namespace detail {
+
+template <typename Document, typename Base, typename Value>
+concept backend_assignable_source = has_Mybase_assign_from_document_v<Base, Value, Document &&>;
+
+template <typename Document, typename Base, typename Value>
+concept backend_constructible_source =
+    has_Mybase_construct_from_document_v<Base, Value, Document &&>;
+
+template <typename Value, typename Base, typename Document>
+concept backend_assignable_target = has_Mybase_assign_to_document_v<Base, Document, Value &&>;
+
+template <typename Value, typename Base, typename Document>
+concept backend_constructible_target = has_Mybase_construct_to_document_v<Base, Document, Value &&>;
+
+template <typename Key, typename Traits>
+concept document_key = Traits::template is_other_key<Key>::value;
+
+} // namespace detail
+
 template <typename Mybase>
 class document_serializer_auto_completion : private Mybase {
 public:
@@ -199,33 +219,30 @@ public:
 
     /// Use functions of Mybase.
 
-    template <typename Document,
-              WJR_REQUIRES(has_Mybase_assign_from_document_v<Mybase, value_type, Document &&>)>
+    template <detail::backend_assignable_source<Mybase, value_type> Document>
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         Mybase::assign(std::forward<Document>(doc), val, in_place_document_serializer_from);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(has_Mybase_construct_from_document_v<Mybase, value_type, Document &&>)>
+    template <detail::backend_constructible_source<Mybase, value_type> Document>
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         return Mybase::construct(std::forward<Document>(doc), in_place_document_serializer_from);
     }
 
     /// Use member functions of value_type
 
-    template <typename Document,
-              WJR_REQUIRES(!has_Mybase_assign_from_document_v<Mybase, value_type, Document &&> &&
-                           std::is_assignable_v<value_type &, Document &&>)>
+    template <typename Document>
+    requires(!detail::backend_assignable_source<Document, Mybase, value_type> &&
+             std::is_assignable_v<value_type &, Document &&>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = std::forward<Document>(doc);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!has_Mybase_construct_from_document_v<Mybase, value_type, Document &&> &&
-                           std::is_constructible_v<value_type, Document &&,
-                                                   in_place_document_serializer_from_t>)>
+    template <typename Document>
+    requires(!detail::backend_constructible_source<Document, Mybase, value_type> &&
+             std::is_constructible_v<value_type, Document &&, in_place_document_serializer_from_t>)
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         return value_type(std::forward<Document>(doc), in_place_document_serializer_from);
     }
@@ -234,14 +251,13 @@ public:
 
     /// Use functions of Mybase.
 
-    template <typename Document, typename U = value_type,
-              WJR_REQUIRES(has_Mybase_assign_to_document_v<Mybase, Document, U &&>)>
+    template <typename Document, detail::backend_assignable_target<Mybase, Document> U = value_type>
     constexpr static void assign(U &&val, Document &doc, in_place_document_serializer_to_t) {
         Mybase::assign(std::forward<U>(val), doc, in_place_document_serializer_to);
     }
 
-    template <typename Document, typename U = value_type,
-              WJR_REQUIRES(has_Mybase_construct_to_document_v<Mybase, Document, U &&>)>
+    template <typename Document,
+              detail::backend_constructible_target<Mybase, Document> U = value_type>
     constexpr static Document construct(U &&val, in_place_document_serializer_to_t) {
         return Mybase::template construct<Document>(std::forward<U>(val),
                                                     in_place_document_serializer_to);
@@ -249,16 +265,16 @@ public:
 
     /// Use static member functions of value_type
 
-    template <typename Document, typename U = value_type,
-              WJR_REQUIRES(!has_Mybase_assign_to_document_v<Mybase, Document, U &&> &&
-                           has_Mybase_assign_to_document_v<value_type, Document, U &&>)>
+    template <typename Document, typename U = value_type>
+    requires(!detail::backend_assignable_target<U, Mybase, Document> &&
+             detail::backend_assignable_target<U, value_type, Document>)
     constexpr static void assign(U &&val, Document &doc, in_place_document_serializer_to_t) {
         value_type::assign(std::forward<U>(val), doc, in_place_document_serializer_to);
     }
 
-    template <typename Document, typename U = value_type,
-              WJR_REQUIRES(!has_Mybase_construct_to_document_v<Mybase, Document, U &&> &&
-                           has_Mybase_construct_to_document_v<value_type, Document, U &&>)>
+    template <typename Document, typename U = value_type>
+    requires(!detail::backend_constructible_target<U, Mybase, Document> &&
+             detail::backend_constructible_target<U, value_type, Document>)
     constexpr static Document construct(U &&val, in_place_document_serializer_to_t) {
         return value_type::template construct<Document>(std::forward<U>(val),
                                                         in_place_document_serializer_to);
@@ -302,12 +318,28 @@ WJR_REGISTER_HAS_TYPE(construct_to_document,
                           std::declval<T>(), in_place_document_serializer_to),
                       Document, T);
 
+/// @brief Whether a serializer can assign an existing value from the exact document category.
+template <typename T, typename Document>
+concept from_document_assignable = has_assign_from_document_v<T, Document>;
+
+/// @brief Whether a serializer can construct a value from the exact document category.
+template <typename T, typename Document>
+concept from_document_constructible = has_construct_from_document_v<T, Document>;
+
+/// @brief Whether a serializer can assign a document from the exact value category.
+template <typename Document, typename T>
+concept to_document_assignable = has_assign_to_document_v<Document, T>;
+
+/// @brief Whether a serializer can construct a document from the exact value category.
+template <typename Document, typename T>
+concept to_document_constructible = has_construct_to_document_v<Document, T>;
+
 namespace detail {
 
 template <typename T, typename Document>
 concept document_value_constructible =
     is_document_v<remove_cvref_t<Document>> && !std::is_reference_v<T> &&
-    has_construct_from_document_v<T, Document>;
+    from_document_constructible<T, Document>;
 
 /** @brief Types whose converting constructors would bypass their document serializer. */
 template <typename T>
@@ -391,40 +423,32 @@ private:                                                                        
               __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_CALLER) {}           \
                                                                                                    \
 public:                                                                                            \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER)>) \
     explicit Type(const ::wjr::json::basic_document<Traits> &__wjr_document,                       \
                   ::wjr::json::in_place_document_serializer_from_t)                                \
         : Type(__wjr_document.template get<::wjr::json::object_t>(),                               \
                ::wjr::json::in_place_document_serializer_object_copy) {}                           \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>) \
     explicit Type(::wjr::json::basic_document<Traits> &&__wjr_document,                            \
                   ::wjr::json::in_place_document_serializer_from_t)                                \
         : Type(std::move(__wjr_document.template get<::wjr::json::object_t>()),                    \
                ::wjr::json::in_place_document_serializer_object_move) {}                           \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            !std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(!std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                    \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>) \
     explicit Type(::wjr::json::basic_document<Traits> &&,                                          \
                   ::wjr::json::in_place_document_serializer_from_t) = delete;                      \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            !std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_CONST_RV_CTOR_ENABLER_CALLER)>)>    \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(!std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                    \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_CONST_RV_CTOR_ENABLER_CALLER)>)    \
     explicit Type(const ::wjr::json::basic_document<Traits> &&,                                    \
                   ::wjr::json::in_place_document_serializer_from_t) = delete;                      \
                                                                                                    \
@@ -442,41 +466,33 @@ private:                                                                        
     }                                                                                              \
                                                                                                    \
 public:                                                                                            \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_ENABLER_CALLER)>)>      \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_ENABLER_CALLER)>)      \
     Type &operator=(const ::wjr::json::basic_document<Traits> &__wjr_document) {                   \
         _assign(__wjr_document.template get<::wjr::json::object_t>(),                              \
                 ::wjr::json::in_place_document_serializer_object_copy);                            \
         return *this;                                                                              \
     }                                                                                              \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER)>)>      \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER)>)      \
     Type &operator=(::wjr::json::basic_document<Traits> &&__wjr_document) {                        \
         _assign(std::move(__wjr_document.template get<::wjr::json::object_t>()),                   \
                 ::wjr::json::in_place_document_serializer_object_move);                            \
         return *this;                                                                              \
     }                                                                                              \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            !std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER)>)>      \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(!std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                    \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_ASSIGN_ENABLER_CALLER)>)      \
     Type &operator=(::wjr::json::basic_document<Traits> &&) = delete;                              \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            !std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_CONST_RV_ASSIGN_ENABLER_CALLER)>)>  \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(!std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                    \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_CONST_RV_ASSIGN_ENABLER_CALLER)>)  \
     Type &operator=(const ::wjr::json::basic_document<Traits> &&) = delete;
 
 // to_document
@@ -511,11 +527,10 @@ private:                                                                        
     }                                                                                              \
                                                                                                    \
 public:                                                                                            \
-    template <typename Document, typename TT = Type,                                               \
-              WJR_REQUIRES(                                                                        \
-                  std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                \
-                      (__VA_ARGS__),                                                               \
-                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_COPY_ENABLER_CALLER)>)>         \
+    template <typename Document, typename TT = Type>                                               \
+    requires(                                                                                      \
+        std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                          \
+            (__VA_ARGS__), __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_COPY_ENABLER_CALLER)>)     \
     static Document construct(const Type &__wjr_tp,                                                \
                               ::wjr::json::in_place_document_serializer_to_t) {                    \
         using namespace wjr::json;                                                                 \
@@ -524,11 +539,10 @@ public:                                                                         
                       ::wjr::json::in_place_document_serializer_object_copy);                      \
         return __wjr_document;                                                                     \
     }                                                                                              \
-    template <typename Document, typename TT = Type,                                               \
-              WJR_REQUIRES(                                                                        \
-                  std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                \
-                      (__VA_ARGS__),                                                               \
-                      __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_ENABLER_CALLER)>)>         \
+    template <typename Document, typename TT = Type>                                               \
+    requires(                                                                                      \
+        std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                          \
+            (__VA_ARGS__), __WJR_REGISTER_TO_DOCUMENT_OBJECT_SERIALIZER_MOVE_ENABLER_CALLER)>)     \
     static Document construct(Type &&__wjr_tp, ::wjr::json::in_place_document_serializer_to_t) {   \
         using namespace wjr::json;                                                                 \
         Document __wjr_document = Document::_construct_object();                                   \
@@ -536,12 +550,10 @@ public:                                                                         
                       ::wjr::json::in_place_document_serializer_object_move);                      \
         return __wjr_document;                                                                     \
     }                                                                                              \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER)>) \
     static void assign(const Type &__wjr_tp, ::wjr::json::basic_document<Traits> &__wjr_document,  \
                        ::wjr::json::in_place_document_serializer_to_t) {                           \
         using namespace wjr::json;                                                                 \
@@ -550,12 +562,10 @@ public:                                                                         
         }                                                                                          \
         assign_object(__wjr_tp, __wjr_document, in_place_document_serializer_object_copy);         \
     }                                                                                              \
-    template <                                                                                     \
-        typename Traits, typename TT = Type,                                                       \
-        WJR_REQUIRES(                                                                              \
-            std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                      \
-                (__VA_ARGS__),                                                                     \
-                __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>)> \
+    template <typename Traits, typename TT = Type>                                                 \
+    requires(std::conjunction_v<WJR_PP_QUEUE_TRANSFORM_EXPAND(                                     \
+                 (__VA_ARGS__),                                                                    \
+                 __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER)>) \
     static void assign(Type &&__wjr_tp, ::wjr::json::basic_document<Traits> &__wjr_document,       \
                        ::wjr::json::in_place_document_serializer_to_t) {                           \
         using namespace wjr::json;                                                                 \
@@ -954,8 +964,8 @@ public:
     }
 
     template <typename T>
-    requires(uses_allocator && has_assign_to_document_v<basic_document, T &&> &&
-             !std::is_same_v<remove_cvref_t<T>, basic_document>)
+    requires(uses_allocator && to_document_assignable<basic_document, T &&> &&
+             !std::same_as<remove_cvref_t<T>, basic_document>)
     basic_document(std::allocator_arg_t, const storage_allocator_type &allocator, T &&value)
         : allocator_state(std::allocator_arg, allocator) {
         WJR_TRY {
@@ -1043,7 +1053,7 @@ public:
         return get<object_t>().at(key);
     }
 
-    template <typename Key, WJR_REQUIRES(traits_type::template is_other_key<Key>::value)>
+    template <detail::document_key<traits_type> Key>
     reference at(const Key &key) {
         auto &obj = get<object_t>();
         const auto iter = obj.find(key);
@@ -1055,7 +1065,7 @@ public:
         return iter->second;
     }
 
-    template <typename Key, WJR_REQUIRES(traits_type::template is_other_key<Key>::value)>
+    template <detail::document_key<traits_type> Key>
     const_reference at(const Key &key) const {
         const auto &obj = get<object_t>();
         const auto iter = obj.find(key);
@@ -1076,21 +1086,25 @@ public:
         return get<object_t>()[std::move(key)];
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_construct_to_document_v<basic_document, T &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !to_document_constructible<basic_document, T &&>)
     explicit basic_document(T &&) = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_construct_to_document_v<basic_document, T &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             to_document_constructible<basic_document, T &&>)
     explicit basic_document(T &&val)
         : basic_document(document_serializer<T>::template construct<basic_document>(
               std::forward<T>(val), in_place_document_serializer_to)) {}
 
-    template <typename T, WJR_REQUIRES(!has_assign_to_document_v<basic_document, T &&>)>
+    template <typename T>
+    requires(!to_document_assignable<basic_document, T &&>)
     basic_document &operator=(T &&) = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_assign_to_document_v<basic_document, T &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             to_document_assignable<basic_document, T &&>)
     basic_document &operator=(T &&val) {
         if constexpr (uses_allocator) {
             basic_document replacement(std::allocator_arg, this->get_allocator(),
@@ -1103,84 +1117,92 @@ public:
         return *this;
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_construct_from_document_v<T, const basic_document &>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_constructible<T, const basic_document &>)
     explicit operator T() & = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_construct_from_document_v<T, const basic_document &>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_constructible<T, const basic_document &>)
     explicit operator T() const & = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_construct_from_document_v<T, basic_document &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_constructible<T, basic_document &&>)
     explicit operator T() && = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_construct_from_document_v<T, const basic_document &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_constructible<T, const basic_document &&>)
     explicit operator T() const && = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_construct_from_document_v<T, const basic_document &>)>
+    template <from_document_constructible<const basic_document &> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     explicit operator T() & {
         return document_serializer<T>::construct(*this, in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_construct_from_document_v<T, const basic_document &>)>
+    template <from_document_constructible<const basic_document &> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     explicit operator T() const & {
         return document_serializer<T>::construct(*this, in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_construct_from_document_v<T, basic_document &&>)>
+    template <from_document_constructible<basic_document &&> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     explicit operator T() && {
         return document_serializer<T>::construct(std::move(*this),
                                                  in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_construct_from_document_v<T, const basic_document &&>)>
+    template <from_document_constructible<const basic_document &&> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     explicit operator T() const && {
         return document_serializer<T>::construct(std::move(*this),
                                                  in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_assign_from_document_v<T, const basic_document &>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_assignable<T, const basic_document &>)
     void get_to(T &) & = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_assign_from_document_v<T, const basic_document &>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_assignable<T, const basic_document &>)
     void get_to(T &) const & = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_assign_from_document_v<T, basic_document &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_assignable<T, basic_document &&>)
     void get_to(T &) && = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       !has_assign_from_document_v<T, const basic_document &&>)>
+    template <typename T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document> &&
+             !from_document_assignable<T, const basic_document &&>)
     void get_to(T &) const && = delete;
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_assign_from_document_v<T, const basic_document &>)>
+    template <from_document_assignable<const basic_document &> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     void get_to(T &val) & {
         document_serializer<T>::assign(*this, val, in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_assign_from_document_v<T, const basic_document &>)>
+    template <from_document_assignable<const basic_document &> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     void get_to(T &val) const & {
         document_serializer<T>::assign(*this, val, in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_assign_from_document_v<T, basic_document &&>)>
+    template <from_document_assignable<basic_document &&> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     void get_to(T &val) && {
         document_serializer<T>::assign(std::move(*this), val, in_place_document_serializer_from);
     }
 
-    template <typename T, WJR_REQUIRES(!std::is_same_v<remove_cvref_t<T>, basic_document> &&
-                                       has_assign_from_document_v<T, const basic_document &&>)>
+    template <from_document_assignable<const basic_document &&> T>
+    requires(!std::same_as<remove_cvref_t<T>, basic_document>)
     void get_to(T &val) const && {
         document_serializer<T>::assign(std::move(*this), val, in_place_document_serializer_from);
     }
@@ -1317,12 +1339,12 @@ public:
         doc = std::move(other);
     }
 
-    template <typename Document, WJR_REQUIRES(std::is_same_v<Document, basic_document>)>
+    template <std::same_as<basic_document> Document>
     static Document construct(const basic_document &val, in_place_document_serializer_to_t) {
         return val;
     }
 
-    template <typename Document, WJR_REQUIRES(std::is_same_v<Document, basic_document>)>
+    template <std::same_as<basic_document> Document>
     static Document construct(basic_document &&val, in_place_document_serializer_to_t) {
         return std::move(val);
     }
@@ -1647,7 +1669,8 @@ struct document_serializer_impl<std::string_view> {
         val = doc.template get<string_t>();
     }
 
-    template <typename Document, WJR_REQUIRES(!std::is_lvalue_reference_v<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) = delete;
 
@@ -1657,7 +1680,8 @@ struct document_serializer_impl<std::string_view> {
         return value_type(doc.template get<string_t>());
     }
 
-    template <typename Document, WJR_REQUIRES(!std::is_lvalue_reference_v<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document>)
     constexpr static value_type construct(Document &&doc,
                                           in_place_document_serializer_from_t) = delete;
 
@@ -1692,7 +1716,8 @@ struct document_serializer_impl<std::basic_string<char, std::char_traits<char>, 
         val = doc.template get<string_t>();
     }
 
-    template <typename Document, WJR_REQUIRES(!std::is_lvalue_reference_v<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = std::move(doc.template get<string_t>());
@@ -1704,7 +1729,8 @@ struct document_serializer_impl<std::basic_string<char, std::char_traits<char>, 
         return value_type(doc.template get<string_t>());
     }
 
-    template <typename Document, WJR_REQUIRES(!std::is_lvalue_reference_v<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document>)
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         return value_type(std::move(doc.template get<string_t>()));
     }
@@ -1750,8 +1776,8 @@ struct _document_serializer_array {
 
     /// from_document
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::array_type, value_type>)
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = doc.template get<array_t>();
@@ -1865,91 +1891,85 @@ private:
     }
 
 public:
-    template <typename Document,
-              WJR_REQUIRES(
-                  !std::is_lvalue_reference_v<Document> &&
-                  !std::is_same_v<typename Document::array_type, value_type> &&
-                  (!has_assign_from_document_v<typename value_type::value_type, Document &&> ||
-                   !has_construct_from_document_v<typename value_type::value_type, Document &&>))>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::array_type, value_type> &&
+             (!from_document_assignable<typename value_type::value_type, Document &&> ||
+              !from_document_constructible<typename value_type::value_type, Document &&>))
     constexpr static void assign(Document &&, value_type &,
                                  in_place_document_serializer_from_t) = delete;
 
-    template <
-        typename Document,
-        WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                     !std::is_same_v<typename Document::array_type, value_type> &&
-                     !has_construct_from_document_v<typename value_type::value_type, Document &&>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::array_type, value_type> &&
+             !from_document_constructible<typename value_type::value_type, Document &&>)
     constexpr static value_type construct(Document &&,
                                           in_place_document_serializer_from_t) = delete;
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type> &&
-                           has_assign_from_document_v<
-                               iterator_value_t<decltype(std::declval<value_type &>().begin())>,
-                               const Document &> &&
-                           has_construct_from_document_v<
-                               iterator_value_t<decltype(std::declval<value_type &>().begin())>,
-                               const Document &>)>
+    template <typename Document>
+    requires(
+        !std::same_as<typename Document::array_type, value_type> &&
+        from_document_assignable<iterator_value_t<decltype(std::declval<value_type &>().begin())>,
+                                 const Document &> &&
+        from_document_constructible<
+            iterator_value_t<decltype(std::declval<value_type &>().begin())>, const Document &>)
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &arr = doc.template get<array_t>();
         assign(arr.begin(), arr.end(), val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             std::same_as<typename Document::array_type, value_type>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = std::move(doc.template get<array_t>());
     }
 
-    template <
-        typename Document,
-        WJR_REQUIRES(
-            !std::is_lvalue_reference_v<Document> &&
-            !std::is_same_v<typename Document::array_type, value_type> &&
-            has_assign_from_document_v<
-                iterator_value_t<decltype(std::declval<value_type &>().begin())>, Document &&> &&
-            has_construct_from_document_v<
-                iterator_value_t<decltype(std::declval<value_type &>().begin())>, Document &&>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::array_type, value_type> &&
+             from_document_assignable<
+                 iterator_value_t<decltype(std::declval<value_type &>().begin())>, Document &&> &&
+             from_document_constructible<
+                 iterator_value_t<decltype(std::declval<value_type &>().begin())>, Document &&>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &arr = doc.template get<array_t>();
         assign(std::make_move_iterator(arr.begin()), std::make_move_iterator(arr.end()), val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::array_type, value_type>)
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         return doc.template get<array_t>();
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type> &&
-                           has_construct_from_document_v<
-                               iterator_value_t<decltype(std::declval<value_type &>().begin())>,
-                               const Document &>)>
+    template <typename Document>
+    requires(
+        !std::same_as<typename Document::array_type, value_type> &&
+        from_document_constructible<
+            iterator_value_t<decltype(std::declval<value_type &>().begin())>, const Document &>)
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         auto &arr = doc.template get<array_t>();
         return construct(arr.begin(), arr.end());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             std::same_as<typename Document::array_type, value_type>)
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         return std::move(doc.template get<array_t>());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::array_type, value_type> &&
-                           has_construct_from_document_v<
-                               iterator_value_t<decltype(std::declval<value_type &>().begin())>,
-                               Document &&>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::array_type, value_type> &&
+             from_document_constructible<
+                 iterator_value_t<decltype(std::declval<value_type &>().begin())>, Document &&>)
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         auto &arr = doc.template get<array_t>();
         return construct(std::make_move_iterator(arr.begin()), std::make_move_iterator(arr.end()));
@@ -1957,8 +1977,8 @@ public:
 
     /// to_document
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::array_type, value_type>)
     constexpr static void assign(const value_type &val, Document &doc,
                                  in_place_document_serializer_to_t) {
         if (doc.type() != value_t::array) {
@@ -1969,15 +1989,13 @@ public:
         }
     }
 
-    template <typename Document,
-              WJR_REQUIRES(
-                  !std::is_same_v<typename Document::array_type, value_type> &&
-                  has_assign_to_document_v<
-                      Document,
-                      const iterator_value_t<decltype(std::declval<value_type &>().begin())> &> &&
-                  has_construct_to_document_v<
-                      Document,
-                      const iterator_value_t<decltype(std::declval<value_type &>().begin())> &>)>
+    template <typename Document>
+    requires(
+        !std::same_as<typename Document::array_type, value_type> &&
+        to_document_assignable<
+            Document, const iterator_value_t<decltype(std::declval<value_type &>().begin())> &> &&
+        to_document_constructible<
+            Document, const iterator_value_t<decltype(std::declval<value_type &>().begin())> &>)
     constexpr static void assign(const value_type &val, Document &doc,
                                  in_place_document_serializer_to_t) {
         if (doc.type() != value_t::array) {
@@ -1988,8 +2006,8 @@ public:
         }
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::array_type, value_type>)
     constexpr static void assign(value_type &&val, Document &doc,
                                  in_place_document_serializer_to_t) {
         if (doc.type() != value_t::array) {
@@ -2000,14 +2018,12 @@ public:
         }
     }
 
-    template <
-        typename Document,
-        WJR_REQUIRES(
-            !std::is_same_v<typename Document::array_type, value_type> &&
-            has_assign_to_document_v<
-                Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&> &&
-            has_construct_to_document_v<
-                Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&>)>
+    template <typename Document>
+    requires(!std::same_as<typename Document::array_type, value_type> &&
+             to_document_assignable<
+                 Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&> &&
+             to_document_constructible<
+                 Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&>)
     constexpr static void assign(value_type &&val, Document &doc,
                                  in_place_document_serializer_to_t) {
         if (doc.type() != value_t::array) {
@@ -2020,33 +2036,31 @@ public:
         }
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::array_type, value_type>)
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
         return Document::_construct_array(val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::array_type, value_type> &&
-                           has_construct_to_document_v<
-                               Document, const iterator_value_t<
-                                             decltype(std::declval<value_type &>().begin())> &>)>
+    template <typename Document>
+    requires(
+        !std::same_as<typename Document::array_type, value_type> &&
+        to_document_constructible<
+            Document, const iterator_value_t<decltype(std::declval<value_type &>().begin())> &>)
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
         return Document::_construct_array(val.begin(), val.end());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::array_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::array_type, value_type>)
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
         return Document::_construct_array(std::move(val));
     }
 
-    template <
-        typename Document,
-        WJR_REQUIRES(
-            !std::is_same_v<typename Document::array_type, value_type> &&
-            has_construct_to_document_v<
-                Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&>)>
+    template <typename Document>
+    requires(!std::same_as<typename Document::array_type, value_type> &&
+             to_document_constructible<
+                 Document, iterator_value_t<decltype(std::declval<value_type &>().begin())> &&>)
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
         return Document::_construct_array(std::make_move_iterator(val.begin()),
                                           std::make_move_iterator(val.end()));
@@ -2121,35 +2135,33 @@ private:
     }
 
 public:
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::object_type, value_type> &&
-                           !_can_move_elements<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::object_type, value_type> &&
+             !_can_move_elements<Document>)
     constexpr static void assign(Document &&, value_type &,
                                  in_place_document_serializer_from_t) = delete;
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::object_type, value_type> &&
-                           !_can_move_elements<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::object_type, value_type> &&
+             !_can_move_elements<Document>)
     constexpr static value_type construct(Document &&,
                                           in_place_document_serializer_from_t) = delete;
 
     /// from_document
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::object_type, value_type>)
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = doc.template get<object_t>();
     }
 
-    template <
-        typename Document,
-        WJR_REQUIRES(
-            !std::is_same_v<typename Document::object_type, value_type> &&
-            (!detail::needs_document_value_conversion<typename value_type::mapped_type> ||
-             has_construct_from_document_v<typename value_type::mapped_type, const Document &>))>
+    template <typename Document>
+    requires(!std::same_as<typename Document::object_type, value_type> &&
+             (!detail::needs_document_value_conversion<typename value_type::mapped_type> ||
+              from_document_constructible<typename value_type::mapped_type, const Document &>))
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
@@ -2157,18 +2169,18 @@ public:
         insert(obj.begin(), obj.end(), val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             std::same_as<typename Document::object_type, value_type>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         val = std::move(doc.template get<object_t>());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::object_type, value_type> &&
-                           _can_move_elements<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::object_type, value_type> &&
+             _can_move_elements<Document>)
     constexpr static void assign(Document &&doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
@@ -2176,36 +2188,34 @@ public:
         insert(std::make_move_iterator(obj.begin()), std::make_move_iterator(obj.end()), val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::object_type, value_type>)
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         return doc.template get<object_t>();
     }
 
-    template <
-        typename Document,
-        WJR_REQUIRES(
-            !std::is_same_v<typename Document::object_type, value_type> &&
-            (!detail::needs_document_value_conversion<typename value_type::mapped_type> ||
-             has_construct_from_document_v<typename value_type::mapped_type, const Document &>))>
+    template <typename Document>
+    requires(!std::same_as<typename Document::object_type, value_type> &&
+             (!detail::needs_document_value_conversion<typename value_type::mapped_type> ||
+              from_document_constructible<typename value_type::mapped_type, const Document &>))
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
         return construct(obj.begin(), obj.end());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             std::same_as<typename Document::object_type, value_type>)
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         return std::move(doc.template get<object_t>());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_lvalue_reference_v<Document> &&
-                           !std::is_same_v<typename Document::object_type, value_type> &&
-                           _can_move_elements<Document>)>
+    template <typename Document>
+    requires(!std::is_lvalue_reference_v<Document> &&
+             !std::same_as<typename Document::object_type, value_type> &&
+             _can_move_elements<Document>)
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
         return construct(std::make_move_iterator(obj.begin()), std::make_move_iterator(obj.end()));
@@ -2213,32 +2223,32 @@ public:
 
     /// to_document
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::object_type, value_type>)
     constexpr static void assign(const value_type &val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
         doc._emplace_object(val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(!std::same_as<typename Document::object_type, value_type>)
     constexpr static void assign(const value_type &val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
         doc._emplace_object(val.begin(), val.end());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::object_type, value_type>)
     constexpr static void assign(value_type &&val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
         doc._emplace_object(std::move(val));
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(!std::same_as<typename Document::object_type, value_type>)
     constexpr static void assign(value_type &&val, Document &doc,
                                  in_place_document_serializer_to_t) {
         doc.reset();
@@ -2246,26 +2256,26 @@ public:
                             std::make_move_iterator(val.end()));
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::object_type, value_type>)
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
         return Document::_construct_object(val);
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(!std::same_as<typename Document::object_type, value_type>)
     constexpr static Document construct(const value_type &val, in_place_document_serializer_to_t) {
         return Document::_construct_object(val.begin(), val.end());
     }
 
-    template <typename Document,
-              WJR_REQUIRES(std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(std::same_as<typename Document::object_type, value_type>)
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
         return Document::_construct_object(std::move(val));
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
+    template <typename Document>
+    requires(!std::same_as<typename Document::object_type, value_type>)
     constexpr static Document construct(value_type &&val, in_place_document_serializer_to_t) {
         return Document::_construct_object(std::make_move_iterator(val.begin()),
                                            std::make_move_iterator(val.end()));
