@@ -111,6 +111,13 @@ layout differences, while the parse caller is smaller. These are individual
 caller checks, not a linked-library-size or throughput claim. No blanket
 force-inline policy is imposed on consumers.
 
+Linux GCC 11/O3 matches the four scalar pairs and pointer-array traversal exactly;
+lookup retains an entry kind check (163/185 caller bytes), and parse has equal
+size with register differences. Linux Clang 18 matches scalar uint/string,
+unchecked access, array and lookup; number uses function-specific constant-pool
+labels, and parse adds two cold termination instructions. These compiler-specific
+limits are retained rather than claiming universal zero overhead.
+
 The optional tests cover native errors, scalar boundaries, input ownership,
 move/reset, duplicate/NUL keys and range lifetime/multipass behavior. Installed
 consumer tests check ordinary discovery isolation, repeated component discovery,
