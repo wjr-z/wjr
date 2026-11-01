@@ -1429,6 +1429,7 @@ private:
     basic_value m_value;
 };
 
+/** @note Checked scalar construction below can throw and must not promise pure/const effects. */
 template <>
 struct document_serializer_impl<std::nullptr_t> {
     using value_type = std::nullptr_t;
@@ -1446,7 +1447,7 @@ struct document_serializer_impl<std::nullptr_t> {
     }
 
     template <typename Document>
-    WJR_PURE static value_type construct(const Document &doc, in_place_document_serializer_from_t) {
+    static value_type construct(const Document &doc, in_place_document_serializer_from_t) {
         value_type val;
         assign(doc, val, in_place_document_serializer_from);
         return val;
@@ -1480,7 +1481,7 @@ struct document_serializer_impl<bool> {
     }
 
     template <typename Document>
-    WJR_PURE static value_type construct(const Document &doc, in_place_document_serializer_from_t) {
+    static value_type construct(const Document &doc, in_place_document_serializer_from_t) {
         value_type val;
         assign(doc, val, in_place_document_serializer_from);
         return val;
@@ -1532,7 +1533,7 @@ struct _document_serializer_arithmetic {
     }
 
     template <typename Document>
-    WJR_PURE static value_type construct(const Document &doc, in_place_document_serializer_from_t) {
+    static value_type construct(const Document &doc, in_place_document_serializer_from_t) {
         value_type val;
         assign(doc, val, in_place_document_serializer_from);
         return val;
