@@ -1,5 +1,12 @@
 #include <wjr/concurrency/scheduler/eevdf.hpp>
 
+static bool finish(wjr::sched::eevdf_queue &queue, wjr::sched::eevdf_entity &expected) {
+    const auto dispatch = queue.begin_dispatch();
+    return dispatch.status() == wjr::sched::eevdf_status::success &&
+           dispatch.entity() == &expected &&
+           queue.complete_dispatch(1, true) == wjr::sched::eevdf_status::success;
+}
+
 int main() {
     using namespace wjr::sched;
     eevdf_entity first, second;
@@ -10,10 +17,7 @@ int main() {
         return 1;
     }
     queue.close();
-    if (queue.begin_dispatch().entity != &second ||
-        queue.complete_dispatch(1, true) != eevdf_status::success ||
-        queue.begin_dispatch().entity != &first ||
-        queue.complete_dispatch(1, true) != eevdf_status::success) {
+    if (!finish(queue, second) || !finish(queue, first)) {
         if (queue.current() != nullptr) {
             (void)queue.complete_dispatch(0, true);
         }

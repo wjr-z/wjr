@@ -68,14 +68,21 @@ public:
 private:
     eevdf_queue *m_owner = nullptr;
     eevdf_parameters m_parameters;
-    uint32_t m_fraction;
-    uint64_t m_runtime;
-    uint64_t m_deadline;
+    uint32_t m_fraction = 0;
+    uint64_t m_runtime = 0;
+    uint64_t m_deadline = 0;
 };
 
-struct eevdf_dispatch {
-    eevdf_status status;
-    eevdf_entity *entity;
+class eevdf_dispatch {
+public:
+    constexpr eevdf_dispatch(eevdf_status status, eevdf_entity *entity) noexcept
+        : m_status(status), m_entity(entity) {}
+    constexpr eevdf_status status() const noexcept { return m_status; }
+    constexpr eevdf_entity *entity() const noexcept { return m_entity; }
+
+private:
+    eevdf_status m_status;
+    eevdf_entity *m_entity;
 };
 
 /**
@@ -123,8 +130,7 @@ public:
         if (entity.registered()) {
             return eevdf_status::already_registered;
         }
-        if (parameters.weight == 0 || parameters.weight > max_weight || parameters.request == 0 ||
-            parameters.request > max_service) {
+        if (!valid_parameters(parameters)) {
             return eevdf_status::invalid_parameters;
         }
         if (m_size == max_entities) {
@@ -191,24 +197,7 @@ public:
         if (service > max_service) {
             return fail_accounting();
         }
-
-        auto &entity = *m_current;
-        const auto numerator = service * virtual_scale + entity.m_fraction;
-        const auto runtime = entity.m_runtime + numerator / entity.m_parameters.weight;
-        if (runtime - m_dispatch_base > max_virtual_span) {
-            return fail_accounting();
-        }
-
-        entity.m_runtime = runtime;
-        entity.m_fraction = static_cast<uint32_t>(numerator % entity.m_parameters.weight);
-        if (runtime >= entity.m_deadline) {
-            entity.m_deadline = runtime + virtual_request(entity);
-        }
-        m_current = nullptr;
-        if (finished) {
-            detach(entity);
-        }
-        return eevdf_status::success;
+        return account_current(static_cast<uint32_t>(service), finished);
     }
 
     /// @brief Remove ready work without destroying its payload; a current dispatch must settle
@@ -242,6 +231,31 @@ public:
     }
 
 private:
+    static bool valid_parameters(eevdf_parameters parameters) noexcept {
+        return parameters.weight != 0 && parameters.weight <= max_weight &&
+               parameters.request != 0 && parameters.request <= max_service;
+    }
+
+    /// @brief Commit a validated charge only after the complete numerical candidate is in range.
+    eevdf_status account_current(uint32_t service, bool finished) noexcept {
+        auto &entity = *m_current;
+        const auto numerator = service * virtual_scale + entity.m_fraction;
+        const auto runtime = entity.m_runtime + numerator / entity.m_parameters.weight;
+        if (runtime - m_dispatch_base > max_virtual_span) {
+            return fail_accounting();
+        }
+        entity.m_runtime = runtime;
+        entity.m_fraction = static_cast<uint32_t>(numerator % entity.m_parameters.weight);
+        if (runtime >= entity.m_deadline) {
+            entity.m_deadline = runtime + virtual_request(entity);
+        }
+        m_current = nullptr;
+        if (finished) {
+            detach(entity);
+        }
+        return eevdf_status::success;
+    }
+
     struct aggregate {
         uint64_t base = 0;
         uint64_t sum = 0;
@@ -297,7 +311,7 @@ private:
 
     hook m_head;
     eevdf_entity *m_current = nullptr;
-    uint64_t m_dispatch_base;
+    uint64_t m_dispatch_base = 0;
     size_t m_size = 0;
     bool m_closed = false;
     bool m_faulted = false;

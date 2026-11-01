@@ -22,8 +22,8 @@ queue.enqueue(bulk_job,  {.weight = 3, .request = 256});
 queue.close(); // seals admission; registered jobs may still drain
 while (!queue.empty()) {
     auto dispatch = queue.begin_dispatch();
-    // Check dispatch.status, then perform a finite chunk for dispatch.entity.
-    auto result = process_chunk(*dispatch.entity);
+    // Check dispatch.status(), then perform a finite chunk for dispatch.entity().
+    auto result = process_chunk(*dispatch.entity());
     // Check the result; charge actual work, not the requested amount.
     queue.complete_dispatch(result.service_units, result.finished);
 }
@@ -106,7 +106,7 @@ setup/registration and dispatch/accounting with caller stack storage.
 A bounded Intel i5-13500HX CPU-0 probe used 100,000 charge/select cycles, five
 alternating samples and explicit service 1. Median ns/cycle were:
 
-| Entities | Borrowed intrusive queue | Packed flat policy arithmetic reference |
+| Entities | Borrowed intrusive queue | Packed arithmetic reference |
 | ---: | ---: | ---: |
 | 2 | 5.312 | 3.984 |
 | 16 | 41.909 | 19.583 |

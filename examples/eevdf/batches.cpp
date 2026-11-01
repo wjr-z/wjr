@@ -14,6 +14,14 @@ struct batch : wjr::sched::eevdf_entity {
     uint64_t checksum = 0;
 };
 
+static size_t process_chunk(batch &job) noexcept {
+    const size_t count = std::min(job.chunk, job.input->size() - job.position);
+    for (size_t i = 0; i < count; ++i) {
+        job.checksum += (*job.input)[job.position++];
+    }
+    return count;
+}
+
 int main() {
     using namespace wjr::sched;
     std::vector<uint64_t> small(4096), large(100000);
@@ -33,15 +41,12 @@ int main() {
     queue.close();
     while (!queue.empty()) {
         const auto dispatch = queue.begin_dispatch();
-        if (dispatch.status != eevdf_status::success) {
+        if (dispatch.status() != eevdf_status::success) {
             (void)queue.clear();
             return 2;
         }
-        auto &job = *static_cast<batch *>(dispatch.entity);
-        const size_t count = std::min(job.chunk, job.input->size() - job.position);
-        for (size_t i = 0; i < count; ++i) {
-            job.checksum += (*job.input)[job.position++];
-        }
+        auto &job = *static_cast<batch *>(dispatch.entity());
+        const size_t count = process_chunk(job);
         if (queue.complete_dispatch(count, job.position == job.input->size()) !=
             eevdf_status::success) {
             (void)queue.clear();
