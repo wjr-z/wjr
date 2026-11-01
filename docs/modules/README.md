@@ -62,6 +62,8 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 ## `wjr::biginteger`
 
+[Integer formatting](biginteger-format.md) covers fmt signs, base prefixes and padding.
+
 大整数类型和运算支持，包含加减乘除等大整数操作，并在可用时使用架构优化。
 
 需要处理超出内置整数范围的整数，或需要 WJR 大整数接口时使用。

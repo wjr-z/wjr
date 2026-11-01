@@ -3026,7 +3026,9 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
 
         const std::ios_base::fmtflags flags = os.flags();
 
-        if ((flags & std::ios::showpos) && !src.is_negate()) {
+        if (src.is_negate()) {
+            buffer.push_back('-');
+        } else if (flags & std::ios::showpos) {
             buffer.push_back('+');
         }
 
@@ -3046,7 +3048,11 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
             }
         }
 
-        (void)to_chars_unchecked(std::back_inserter(buffer), src, base);
+        if (src.empty()) {
+            buffer.push_back('0');
+        } else {
+            (void)biginteger_to_chars(std::back_inserter(buffer), src.data(), src.size(), base);
+        }
         // seems won't be empty
         WJR_ASSERT(!buffer.empty());
         _ostream_insert_unchecked(os, buffer.data(), buffer.size());
@@ -3076,25 +3082,41 @@ public:
         if (m_specs.upper()) {
             report_error("Upper letters are temporarily not supported");
         }
+        if (m_specs.localized() || m_specs.type() == presentation_type::chr) {
+            report_error("Localized and character biginteger formatting are not supported");
+        }
         return end;
     }
 
 private:
-    void do_format(const wjr::biginteger_view &value,
-                   wjr::vector<char, wjr::weak_stack_allocator<char>> &buffer) const;
+    unsigned do_format(const wjr::biginteger_view &value,
+                       wjr::vector<char, wjr::weak_stack_allocator<char>> &buffer) const;
 
 public:
     template <typename Context>
     auto format(const wjr::biginteger_view &value, Context &ctx) const -> decltype(ctx.out()) {
         wjr::unique_stack_allocator stkal;
         wjr::vector<char, wjr::weak_stack_allocator<char>> buffer(stkal);
-        do_format(value, buffer);
+        const auto prefix_size = do_format(value, buffer);
         std::string_view data(buffer.data(), buffer.size());
         auto specs = format_specs(m_specs);
         if (m_specs.dynamic()) {
             detail::handle_dynamic_spec(specs.dynamic_width(), specs.width, m_specs.width_ref, ctx);
         }
-        return detail::write_bytes<char>(ctx.out(), data, specs);
+        if (specs.align() != align::numeric) {
+            return detail::write_bytes<char, align::right>(ctx.out(), data, specs);
+        }
+        const size_t width = static_cast<size_t>(specs.width);
+        const size_t padding = width > data.size() ? width - data.size() : 0;
+        /// Keep zero padding after the sign and base prefix, as for ordinary integers.
+        return detail::write_padded<char, align::right>(
+            ctx.out(), specs, data.size() + padding,
+            [&](detail::reserve_iterator<decltype(ctx.out())> out) {
+                out = detail::copy<char>(data.data(), data.data() + prefix_size, out);
+                out = detail::fill_n(out, padding, '0');
+                return detail::copy<char>(data.data() + prefix_size, data.data() + data.size(),
+                                          out);
+            });
     }
 };
 
