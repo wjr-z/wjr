@@ -23,6 +23,51 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Select GitHub Actions workflows
+        id: workflows
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          selected="$RUNNER_TEMP/wjr-workflow-files"
+          paths=('.github/workflows/*.yml' '.github/workflows/*.yaml')
+          zero_sha=0000000000000000000000000000000000000000
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --no-renames --diff-filter=ACMT --name-only -z \
+              "$BASE_SHA" "$HEAD_SHA" -- "${paths[@]}" > "$selected"
+          elif [[ "$EVENT_NAME" == "push" && "$BEFORE_SHA" != "$zero_sha" ]]; then
+            git diff --no-renames --diff-filter=ACMT --name-only -z \
+              "$BEFORE_SHA" "$COMMIT_SHA" -- "${paths[@]}" > "$selected"
+          else
+            git ls-files -z -- "${paths[@]}" > "$selected"
+          fi
+          if [[ -s "$selected" ]]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check GitHub Actions workflows
+        if: steps.workflows.outputs.any == 'true'
+        shell: bash
+        env:
+          SHELLCHECK_OPTS: --severity=warning
+        run: |
+          shellcheck --version
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$archive"
+          printf '%s  %s\n' \
+            8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8 \
+            "$archive" | sha256sum --check --status
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          mapfile -d '' -t workflows < "$RUNNER_TEMP/wjr-workflow-files"
+          "$RUNNER_TEMP/actionlint" -color -shellcheck shellcheck -pyflakes="" "${workflows[@]}"
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:

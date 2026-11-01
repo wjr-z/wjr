@@ -94,3 +94,7 @@ pre-commit run --all-files
 ```
 
 GitHub Actions 会在 push 和 pull request 时检查本次变更的文件；通过 Actions 手动触发时会检查全部文件。
+
+CI 的同一 job 还使用 actionlint 1.7.12 检查变更的 workflow，包括表达式类型、job 依赖和脚本注入；
+内联 Shell 脚本由 ShellCheck 检查 warning/error 级问题。手动触发时检查全部 workflow，
+不额外安装本地 pre-commit hook。
