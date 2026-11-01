@@ -27,6 +27,7 @@
 #include <wjr/json/formatter.hpp>
 #include <wjr/json/visitor.hpp>
 #include <wjr/memory/stack_allocator.hpp>
+#include <wjr/type_traits.hpp>
 
 namespace wjr::json {
 
@@ -2892,7 +2893,8 @@ bool operator==(const basic_document<Traits> &lhs, const basic_document<Traits> 
         return rhs.is_null();
     }
     case value_t::boolean: {
-        return rhs.is_boolean();
+        return rhs.is_boolean() &&
+               lhs.template get_unsafe<boolean_t>() == rhs.template get_unsafe<boolean_t>();
     }
     case value_t::number_unsigned:
     case value_t::number_signed: {
@@ -2901,6 +2903,14 @@ bool operator==(const basic_document<Traits> &lhs, const basic_document<Traits> 
         }
 
         if (!rhs.is_number_float()) {
+            if (lhs.type() != rhs.type()) {
+                if (lhs.is_number_signed()) {
+                    return wjr::cmp_equal(lhs.template get_unsafe<number_signed_t>(),
+                                          rhs.template get_unsafe<number_unsigned_t>());
+                }
+                return wjr::cmp_equal(lhs.template get_unsafe<number_unsigned_t>(),
+                                      rhs.template get_unsafe<number_signed_t>());
+            }
             return static_cast<uint64_t>(lhs) == static_cast<uint64_t>(rhs);
         }
 
