@@ -30,7 +30,7 @@ public:
 };
 using allocator = std::pmr::polymorphic_allocator<char>;
 
-template <typename Tree>
+template <typename Tree, bool Reuse = true>
 void check_sizes(bool duplicates = false) {
     for (int count : {0, 1, 2, 3, 17, 80, 1024}) {
         resource first, second;
@@ -50,8 +50,12 @@ void check_sizes(bool duplicates = false) {
             const auto deallocations = second.deallocations;
             const auto bytes = second.live_bytes;
             target = source;
-            EXPECT_EQ(second.allocations, allocations);
-            EXPECT_EQ(second.deallocations, deallocations);
+            if constexpr (Reuse) {
+                EXPECT_EQ(second.allocations, allocations);
+                EXPECT_EQ(second.deallocations, deallocations);
+            } else if (count > 2) {
+                EXPECT_GT(second.allocations, allocations);
+            }
             EXPECT_EQ(second.live_bytes, bytes);
             EXPECT_EQ(target.get_allocator().resource(), &second);
             EXPECT_EQ(source.get_allocator().resource(), &first);
@@ -63,8 +67,9 @@ void check_sizes(bool duplicates = false) {
                     EXPECT_EQ(target.at(i), i * 3);
             }
             auto &alias = target;
+            const auto before_self = second.allocations;
             target = alias;
-            EXPECT_EQ(second.allocations, allocations);
+            EXPECT_EQ(second.allocations, before_self);
             target.clear();
             EXPECT_TRUE(target.empty());
             EXPECT_EQ(second.live_bytes, 0u);
@@ -78,9 +83,9 @@ void check_sizes(bool duplicates = false) {
 
 TEST(BtreeCopyReuse, MatchedShapesReuseAllocationsForAllFamilies) {
     check_sizes<wjr::btree_map<int, int, std::less<>, allocator, 5>>();
-    check_sizes<wjr::experimental::compact_btree_map<int, int, std::less<>, allocator, 5>>();
-    check_sizes<wjr::btree_set<int, std::less<>, allocator, 5>>();
-    check_sizes<wjr::btree_multiset<int, std::less<>, allocator, 5>>(true);
+    check_sizes<wjr::experimental::compact_btree_map<int, int, std::less<>, allocator, 5>, false>();
+    check_sizes<wjr::btree_set<int, std::less<>, allocator, 5>, false>();
+    check_sizes<wjr::btree_multiset<int, std::less<>, allocator, 5>, false>(true);
 }
 
 template <typename Tree>
@@ -236,7 +241,7 @@ struct hooked_allocator {
     }
     bool operator==(const hooked_allocator &other) const noexcept { return state == other.state; }
 };
-template <typename Tree>
+template <typename Tree, bool Reuse = true>
 void check_hooks() {
     for (int count : {1, 2, 3, 80}) {
         hooks first, second;
@@ -250,15 +255,18 @@ void check_hooks() {
             const auto allocations = second.allocations, constructs = second.constructs,
                        destroys = second.destroys;
             const auto copies = counted::copies;
-            second.observe = [&] {
-                EXPECT_TRUE(target.empty());
-                EXPECT_EQ(target.begin(), target.end());
-                EXPECT_EQ(source.size(), count);
-                EXPECT_EQ(source.at(0).number, 0);
-            };
+            if constexpr (Reuse) {
+                second.observe = [&] {
+                    EXPECT_TRUE(target.empty());
+                    EXPECT_EQ(target.begin(), target.end());
+                    EXPECT_EQ(source.size(), count);
+                    EXPECT_EQ(source.at(0).number, 0);
+                };
+            }
             target = source;
             second.observe = {};
-            EXPECT_EQ(second.allocations, allocations);
+            if constexpr (Reuse)
+                EXPECT_EQ(second.allocations, allocations);
             EXPECT_EQ(second.constructs - constructs, count);
             EXPECT_EQ(second.destroys - destroys, count);
             EXPECT_EQ(counted::copies - copies, count);
@@ -272,7 +280,44 @@ void check_hooks() {
 }
 TEST(BtreeCopyReuse, TypedHooksObserveEmptyDestinationAndBalancedOveralignedLifetimes) {
     check_hooks<wjr::btree_map<int, counted, std::less<>, hooked_allocator<char>, 5>>();
-    check_hooks<wjr::experimental::compact_btree_map<int, counted, std::less<>,
-                                                     hooked_allocator<char>, 5>>();
+    check_hooks<
+        wjr::experimental::compact_btree_map<int, counted, std::less<>, hooked_allocator<char>, 5>,
+        false>();
+}
+
+struct owned_key {
+    int number;
+    explicit owned_key(int n) noexcept : number(n) {}
+    ~owned_key() noexcept {}
+    friend bool operator<(const owned_key &a, const owned_key &b) noexcept {
+        return a.number < b.number;
+    }
+    friend bool operator==(const owned_key &, const owned_key &) = default;
+};
+TEST(BtreeCopyReuse, IndirectSetAndMultisetKeysRetainTheirValueAllocations) {
+    resource first, second;
+    {
+        using set = wjr::btree_set<owned_key, std::less<>, allocator, 5>;
+        using multi = wjr::btree_multiset<owned_key, std::less<>, allocator, 5>;
+        set source(std::less<>{}, allocator(&first)), target(std::less<>{}, allocator(&second));
+        multi source_multi(std::less<>{}, allocator(&first)),
+            target_multi(std::less<>{}, allocator(&second));
+        for (int i = 0; i < 80; ++i) {
+            source.emplace(i);
+            target.emplace(i + 1000);
+            source_multi.emplace(i / 2);
+            target_multi.emplace(i / 2 + 1000);
+        }
+        const auto allocations = second.allocations;
+        target = source;
+        target_multi = source_multi;
+        EXPECT_EQ(second.allocations, allocations);
+        EXPECT_TRUE(std::equal(target.begin(), target.end(), source.begin()));
+        EXPECT_TRUE(std::equal(target_multi.begin(), target_multi.end(), source_multi.begin()));
+        for (int i = 0; i < 40; ++i)
+            EXPECT_EQ(target_multi.count(owned_key(i)), 2u);
+    }
+    EXPECT_EQ(first.live_bytes, 0u);
+    EXPECT_EQ(second.live_bytes, 0u);
 }
 } // namespace

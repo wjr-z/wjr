@@ -2140,9 +2140,12 @@ private:
     void _release_before_copy() { clear(); }
 
     void _copy_element(const basic_btree &other) noexcept {
-        if (_get_size() == other._get_size() && _same_copy_shape(_get_root(), other._get_root())) {
-            _copy_reuse_tree(other);
-            return;
+        if constexpr (!Traits::is_inline_value) {
+            if (_get_size() == other._get_size() &&
+                _same_copy_shape(_get_root(), other._get_root())) {
+                _copy_reuse_tree(other);
+                return;
+            }
         }
         clear();
         key_comp() = other.key_comp();
