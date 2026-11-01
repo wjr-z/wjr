@@ -17,8 +17,11 @@ struct lifetime_state {
     int created = 0;
     int hook_destroyed = 0;
 
+    /** @brief Release C++ test allocations retained by a failing regression. */
     ~lifetime_state() {
         for (auto *resource : resources) {
+            // nosemgrep:
+            // apex.lang.performance.ncino.operationsinloops.avoidnativedmlinloops.avoid-native-dml-in-loops
             delete resource;
         }
     }
