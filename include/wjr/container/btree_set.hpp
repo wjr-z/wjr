@@ -48,7 +48,7 @@ public:
     template <btree_detail::allocator_insert_iterator<value_type, allocator_type> Iter,
               std::sentinel_for<Iter> Sentinel>
     btree_set(Iter first, Sentinel last, const key_compare &comp = key_compare()) : Mybase(comp) {
-        this->insert(first, last);
+        this->insert(std::move(first), last);
     }
 
     /// @brief Construct list values using the supplied ordering.
@@ -61,7 +61,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     btree_set(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
         : Mybase(comp, alloc) {
-        this->insert(first, last);
+        this->insert(std::move(first), last);
     }
 
     /// @brief Construct a range with the allocator and default ordering.
@@ -69,7 +69,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     requires btree_detail::default_allocator_order<key_compare, allocator_type>
     btree_set(Iter first, Sentinel last, const allocator_type &alloc)
-        : btree_set(first, last, key_compare(), alloc) {}
+        : btree_set(std::move(first), last, key_compare(), alloc) {}
 
     /// @brief Construct list values using explicit ordering and allocator state.
     btree_set(std::initializer_list<value_type> il, const key_compare &comp,
@@ -174,7 +174,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     btree_multiset(Iter first, Sentinel last, const key_compare &comp = key_compare())
         : Mybase(comp) {
-        this->insert(first, last);
+        this->insert(std::move(first), last);
     }
 
     /// @brief Construct list values using the supplied ordering.
@@ -187,7 +187,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     btree_multiset(Iter first, Sentinel last, const key_compare &comp, const allocator_type &alloc)
         : Mybase(comp, alloc) {
-        this->insert(first, last);
+        this->insert(std::move(first), last);
     }
 
     /// @brief Construct a range with the allocator and default ordering.
@@ -195,7 +195,7 @@ public:
               std::sentinel_for<Iter> Sentinel>
     requires btree_detail::default_allocator_order<key_compare, allocator_type>
     btree_multiset(Iter first, Sentinel last, const allocator_type &alloc)
-        : btree_multiset(first, last, key_compare(), alloc) {}
+        : btree_multiset(std::move(first), last, key_compare(), alloc) {}
 
     /// @brief Construct list values using explicit ordering and allocator state.
     btree_multiset(std::initializer_list<value_type> il, const key_compare &comp,
