@@ -2024,7 +2024,7 @@ private:
 
     /// @brief Clone a branch immediately before the next unconsumed retired leaf.
     std::pair<ikey_type, node_type *> _clone_copy_branch(const node_type *source,
-                                                         list_node_type *&cursor) noexcept {
+                                                         list_node_type *cursor) noexcept {
         const auto size = source->size();
         if (size < 0) {
             auto *const leaf = _create_leaf_node();
