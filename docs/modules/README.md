@@ -50,6 +50,8 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 内存管理和分配器相关组件，包含库内数据结构使用的内存工具。
 
+跨动态库使用临时分配时，见 [stack allocator 的作用域与池所有权](stack-allocator.md)。
+
 实现对分配策略有要求的容器或需要直接使用 WJR 内存组件时使用。普通业务代码通常不需要单独依赖它。
 
 ## `wjr::math`

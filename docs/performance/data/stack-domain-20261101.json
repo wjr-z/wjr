@@ -1,0 +1,455 @@
+{
+  "source_git_blobs": {
+    "include/wjr/memory/stack_allocator.hpp": "7d8ea8a538c96ae386cd7501de7a85454d26ac2e",
+    "src/memory/stack_allocator.cpp": "b077038681af2c5fa0e82b8c3b69b28b9a4324a1"
+  },
+  "windows": {
+    "platform": "Windows-11-10.0.22631-SP0",
+    "affinity_mask": 1,
+    "cpu": "Intel Core i5-13500HX",
+    "base": "e961ba6d",
+    "candidate": "12ed5a53",
+    "timings": [
+      {
+        "case": "bump",
+        "samples_ns": {
+          "old": [
+            30.0206,
+            31.0716,
+            29.3114,
+            29.4099,
+            30.876,
+            29.4723,
+            29.1933
+          ],
+          "new": [
+            29.0692,
+            26.7708,
+            30.7397,
+            27.6668,
+            31.056,
+            28.5318,
+            28.7977
+          ]
+        },
+        "median_ns": {
+          "old": 29.4723,
+          "new": 28.7977
+        },
+        "new_over_old": 0.9771107107351649
+      },
+      {
+        "case": "cached_refill",
+        "samples_ns": {
+          "old": [
+            56.3128,
+            52.5408,
+            51.8512,
+            57.9996,
+            42.0048,
+            53.866,
+            47.1976
+          ],
+          "new": [
+            51.488,
+            22.496,
+            52.412,
+            54.668,
+            49.9444,
+            51.6924,
+            49.8616
+          ]
+        },
+        "median_ns": {
+          "old": 52.5408,
+          "new": 51.488
+        },
+        "new_over_old": 0.9799622388696023
+      },
+      {
+        "case": "grow_trim",
+        "samples_ns": {
+          "old": [
+            294.573,
+            323.556,
+            335.162,
+            319.797,
+            290.009,
+            323.208,
+            312.133
+          ],
+          "new": [
+            318.366,
+            319.95,
+            357.53,
+            313.855,
+            298.941,
+            318.729,
+            348.363
+          ]
+        },
+        "median_ns": {
+          "old": 319.797,
+          "new": 318.729
+        },
+        "new_over_old": 0.9966603814294692
+      },
+      {
+        "case": "large",
+        "samples_ns": {
+          "old": [
+            92.6535,
+            89.9875,
+            84.0985,
+            82.249,
+            84.2375,
+            86.6205,
+            91.53
+          ],
+          "new": [
+            89.132,
+            92.6575,
+            84.4745,
+            82.847,
+            79.0015,
+            85.3735,
+            87.3275
+          ]
+        },
+        "median_ns": {
+          "old": 86.6205,
+          "new": 85.3735
+        },
+        "new_over_old": 0.9856038697536957
+      }
+    ],
+    "compiler": "Clang 18.1.8 clang-cl /O2 /MD /std:c++20, baseline"
+  },
+  "linux": {
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "base": "e961ba6d",
+    "candidate": "e7c32ece99f375e8e2d558cc66c7e7b956d8f640",
+    "cpu": "\t: AMD EPYC 9V45 96-Core Processor",
+    "compilers": {
+      "clang++-18": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+      "g++-13": "g++-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    "checks": [
+      {
+        "name": "clang++-18-release-domain",
+        "result": 0
+      },
+      {
+        "name": "clang++-18-asan-old-uaf",
+        "result": 1,
+        "heap_use_after_free": true
+      },
+      {
+        "name": "clang++-18-asan-domain",
+        "result": 0
+      },
+      {
+        "name": "g++-13-release-domain",
+        "result": 0
+      }
+    ],
+    "timings": [
+      {
+        "compiler": "clang++-18",
+        "case": "bump",
+        "samples_ns": {
+          "old": [
+            14.182548,
+            15.018008,
+            16.512909,
+            15.523216,
+            13.434882,
+            14.799126,
+            14.054353
+          ],
+          "new": [
+            15.586771,
+            15.796981,
+            15.315409,
+            15.094905,
+            13.982244,
+            15.368741,
+            14.11139
+          ]
+        },
+        "median_ns": {
+          "old": 14.799126,
+          "new": 15.315409
+        },
+        "new_over_old": 1.034886046648971,
+        "cpu": "0"
+      },
+      {
+        "compiler": "clang++-18",
+        "case": "cached_refill",
+        "samples_ns": {
+          "old": [
+            32.832724,
+            18.605428,
+            36.550692,
+            27.134428,
+            22.806692,
+            18.98252,
+            24.386372
+          ],
+          "new": [
+            23.537244,
+            19.036684,
+            19.640036,
+            21.488288,
+            28.535996,
+            23.160788,
+            27.96152
+          ]
+        },
+        "median_ns": {
+          "old": 24.386372,
+          "new": 23.160788
+        },
+        "new_over_old": 0.9497430778141168,
+        "cpu": "0"
+      },
+      {
+        "compiler": "clang++-18",
+        "case": "grow_trim",
+        "samples_ns": {
+          "old": [
+            71.78106,
+            73.37428,
+            70.67558,
+            66.64346,
+            72.5316,
+            72.84948,
+            71.11234
+          ],
+          "new": [
+            59.95309,
+            65.12255,
+            62.69045,
+            60.65666,
+            61.02842,
+            60.82511,
+            61.14851
+          ]
+        },
+        "median_ns": {
+          "old": 71.78106,
+          "new": 61.02842
+        },
+        "new_over_old": 0.8502022678405696,
+        "cpu": "0"
+      },
+      {
+        "compiler": "clang++-18",
+        "case": "large",
+        "samples_ns": {
+          "old": [
+            18.517785,
+            19.353655,
+            19.908145,
+            19.06927,
+            20.031435,
+            18.210015,
+            17.83495
+          ],
+          "new": [
+            18.83712,
+            18.74508,
+            19.470435,
+            20.03629,
+            19.566825,
+            18.986595,
+            18.785695
+          ]
+        },
+        "median_ns": {
+          "old": 19.06927,
+          "new": 18.986595
+        },
+        "new_over_old": 0.9956644905651869,
+        "cpu": "0"
+      },
+      {
+        "compiler": "g++-13",
+        "case": "bump",
+        "samples_ns": {
+          "old": [
+            18.138862,
+            19.08752,
+            18.139163,
+            17.871247,
+            18.238534,
+            19.231137,
+            19.257377
+          ],
+          "new": [
+            17.880241,
+            18.100224,
+            17.834281,
+            17.554858,
+            17.627868,
+            18.055125,
+            17.752878
+          ]
+        },
+        "median_ns": {
+          "old": 18.238534,
+          "new": 17.834281
+        },
+        "new_over_old": 0.9778352251337744,
+        "cpu": "0"
+      },
+      {
+        "compiler": "g++-13",
+        "case": "cached_refill",
+        "samples_ns": {
+          "old": [
+            25.432812,
+            28.430432,
+            28.338296,
+            27.803808,
+            29.573248,
+            28.787496,
+            27.647968
+          ],
+          "new": [
+            25.633276,
+            27.44246,
+            26.212716,
+            26.069296,
+            27.698004,
+            28.836488,
+            30.806276
+          ]
+        },
+        "median_ns": {
+          "old": 28.338296,
+          "new": 27.44246
+        },
+        "new_over_old": 0.9683877957940732,
+        "cpu": "0"
+      },
+      {
+        "compiler": "g++-13",
+        "case": "grow_trim",
+        "samples_ns": {
+          "old": [
+            80.63817,
+            78.49873,
+            76.12644,
+            74.71159,
+            77.26948,
+            74.59161,
+            76.66396
+          ],
+          "new": [
+            81.48225,
+            97.53267,
+            78.4754,
+            79.89245,
+            77.97024,
+            75.99785,
+            74.99182
+          ]
+        },
+        "median_ns": {
+          "old": 76.66396,
+          "new": 78.4754
+        },
+        "new_over_old": 1.0236283124430305,
+        "cpu": "0"
+      },
+      {
+        "compiler": "g++-13",
+        "case": "large",
+        "samples_ns": {
+          "old": [
+            17.53046,
+            16.918935,
+            20.99115,
+            18.56638,
+            17.38279,
+            18.05591,
+            18.591415
+          ],
+          "new": [
+            17.41684,
+            19.935305,
+            19.55553,
+            18.765885,
+            18.593925,
+            19.070195,
+            18.996585
+          ]
+        },
+        "median_ns": {
+          "old": 18.05591,
+          "new": 18.996585
+        },
+        "new_over_old": 1.0520979003550637,
+        "cpu": "0"
+      }
+    ]
+  },
+  "windows_codegen": {
+    "warm_allocate": {
+      "old_instructions": 35,
+      "new_instructions": 35,
+      "identical": true
+    },
+    "scoped_allocate": {
+      "old_instructions": 82,
+      "new_instructions": 82,
+      "identical": true
+    }
+  },
+  "linux_run": "https://github.com/wjr-z/wjr/actions/runs/41276175439",
+  "sources": {
+    "linux_driver": "\"\"\"Archived two-module lifetime regression and same-machine performance controls.\"\"\"\nfrom pathlib import Path\nimport subprocess as sp, json, os, platform, statistics, sys\nroot=Path(__file__).resolve().parent\nout=root/'research-output'; out.mkdir(exist_ok=True)\nold=out/'old'; (old/'wjr/memory').mkdir(parents=True,exist_ok=True)\nbase='e961ba6d'\ndef snapshot(path): return sp.check_output(['git','show',base+':'+path],cwd=root)\n(old/'wjr/memory/stack_allocator.hpp').write_bytes(snapshot('include/wjr/memory/stack_allocator.hpp'))\noriginal=snapshot('src/memory/stack_allocator.cpp')\n(old/'host.cpp').write_bytes(original)\n(old/'foreign_memory.cpp').write_bytes(original+b'\\nnamespace wjr { extern \"C\" __attribute__((visibility(\"default\"))) void wjr_foreign_clear_pool() noexcept { _stack_free_pool.clear(); } }\\n')\nforeign=(root/'test/consumer/stack_domain/foreign.cpp').read_text()\nforeign=foreign[:foreign.index('extern \"C\" void wjr_foreign_clear_pool()')].replace('auto local = owner.make_scope();','wjr::unique_stack_allocator local;')\n(old/'foreign.cpp').write_text(foreign)\nbench=out/'bench.cpp'\nbench.write_text(r'''\n#include <wjr/memory/stack_allocator.hpp>\n#include <chrono>\n#include <cstdio>\n#include <cstdlib>\n__attribute__((noinline)) void run_round(size_t count, size_t bytes) {\n    wjr::unique_stack_allocator owner;\n    for (size_t i=0;i<count;++i)\n        *static_cast<volatile unsigned char*>(owner.allocate(bytes))=static_cast<unsigned char>(i);\n}\nint main(int, char** argv) {\n    size_t count=std::strtoull(argv[1],nullptr,10), bytes=std::strtoull(argv[2],nullptr,10);\n    size_t rounds=std::strtoull(argv[3],nullptr,10);\n    for(size_t i=0;i<2000;++i) run_round(count,bytes);\n    auto begin=std::chrono::steady_clock::now();\n    for(size_t i=0;i<rounds;++i) run_round(count,bytes);\n    double ns=std::chrono::duration<double,std::nano>(std::chrono::steady_clock::now()-begin).count()/rounds;\n    std::printf(\"%.9f\\n\",ns);\n    std::fprintf(stderr,\"arena=%zu owner=%zu\\n\",sizeof(wjr::stack_allocator_object),sizeof(wjr::unique_stack_allocator));\n}\n''')\nreport={'platform':platform.platform(),'base':base,'candidate':'e7c32ece99f375e8e2d558cc66c7e7b956d8f640','cpu':Path('/proc/cpuinfo').read_text().split('model name')[1].split('\\n')[0],'compilers':{},'checks':[],'timings':[]}\ndef run(cmd,name,expect=0,env=None):\n    result=sp.run([str(x) for x in cmd],cwd=root,stdout=sp.PIPE,stderr=sp.STDOUT,env=env)\n    (out/(name+'.log')).write_bytes(result.stdout)\n    if expect is not None and result.returncode!=expect:\n        print(result.stdout.decode(errors='replace')[-6000:]); raise RuntimeError((name,result.returncode))\n    return result\nfor cc in (['clang++-18'] if '--asan-only' in sys.argv else ['clang++-18','g++-13']):\n    report['compilers'][cc]=sp.check_output([cc,'--version'],text=True).splitlines()[0]\n    for asan in ([True] if '--asan-only' in sys.argv else [False,True] if cc.startswith('clang') else [False]):\n        tag=cc+('-asan' if asan else '-release')\n        for version in ['old','new']:\n            build=out/(tag+'-'+version); build.mkdir(exist_ok=True)\n            flags=[cc,'-std=c++20','-O2','-g','-DNDEBUG','-DWJR_DEBUG_LEVEL_RELEASE=0','-DFMT_HEADER_ONLY','-fPIC','-fvisibility=hidden','-fvisibility-inlines-hidden']\n            if asan: flags+=['-fsanitize=address,undefined','-fno-omit-frame-pointer']\n            if version=='old': flags+=['-I'+str(old)]\n            flags+=['-I'+str(root/'include'),'-I'+str(root/'third-party/fmt/include'),'-I'+str(root/'test/consumer/stack_domain')]\n            mem=old/'foreign_memory.cpp' if version=='old' else root/'src/memory/stack_allocator.cpp'\n            bridge=old/'foreign.cpp' if version=='old' else root/'test/consumer/stack_domain/foreign.cpp'\n            assertion=root/'src/utility/assert.cpp'\n            run(flags+['-shared','-DWJR_STACK_DOMAIN_EXPORTS=1',bridge,mem,assertion,'-o',build/'libforeign.so'],tag+'-'+version+'-dll-build')\n            host_mem=old/'host.cpp' if version=='old' else mem\n            run(flags+[root/'test/consumer/stack_domain/main.cpp',host_mem,assertion,'-L'+str(build),'-lforeign','-Wl,-rpath,$ORIGIN','-o',build/'domain'],tag+'-'+version+'-host-build')\n            if version=='new':\n                result=run([build/'domain'],tag+'-domain'); report['checks'].append({'name':tag+'-domain','result':result.returncode})\n                if asan:\n                    result=run([build/'domain','--pool-only'],tag+'-domain-heap-shadow',env=dict(os.environ,ASAN_OPTIONS='allow_user_poisoning=0:detect_leaks=1'))\n                    report['checks'].append({'name':tag+'-domain-heap-shadow','result':result.returncode})\n            elif asan:\n                result=run([build/'domain','--pool-only'],tag+'-old-uaf',None,dict(os.environ,ASAN_OPTIONS='allow_user_poisoning=0:detect_leaks=0:halt_on_error=1'))\n                assert result.returncode!=0 and b'heap-use-after-free' in result.stdout\n                report['checks'].append({'name':tag+'-old-uaf','result':result.returncode,'heap_use_after_free':True})\n            if asan:\n                thread_probe=out/'thread_probe.cpp'\n                thread_probe.write_text('#include <wjr/memory/stack_allocator.hpp>\\n#include <thread>\\nint main() {std::thread([] {wjr::unique_stack_allocator owner; *static_cast<volatile unsigned char*>(owner.allocate(1024))=1;}).join();}\\n')\n                run(flags+[thread_probe,host_mem,assertion,'-pthread','-o',build/'thread_probe'],tag+'-'+version+'-thread-build')\n                result=run([build/'thread_probe'],tag+'-'+version+'-thread-leaks',None,dict(os.environ,ASAN_OPTIONS='detect_leaks=1'))\n                assert (result.returncode!=0 and b'LeakSanitizer: detected memory leaks' in result.stdout) if version=='old' else result.returncode==0\n                report['checks'].append({'name':tag+'-'+version+'-thread-leaks','result':result.returncode,'expected':1 if version=='old' else 0})\n            if not asan:\n                run(flags+[bench,host_mem,assertion,'-o',build/'bench'],tag+'-'+version+'-bench-build')\n                (build/'flags.json').write_text(json.dumps(flags))\n        if not asan:\n            cpu=str(min(os.sched_getaffinity(0)))\n            for case,n,b,rounds in [('bump',32,64,1000000),('cached_refill',40,1024,250000),('grow_trim',80,1024,100000),('large',1,32768,200000)]:\n                samples={'old':[],'new':[]}\n                for sample in range(7):\n                    for version in (['old','new'] if sample%2==0 else ['new','old']):\n                        result=run(['taskset','-c',cpu,out/(tag+'-'+version)/'bench',n,b,rounds],tag+f'-{case}-{sample}-{version}')\n                        samples[version].append(float(next(line for line in result.stdout.decode().splitlines() if line[:1].isdigit())))\n                medians={k:statistics.median(v) for k,v in samples.items()}\n                report['timings'].append({'compiler':cc,'case':case,'samples_ns':samples,'median_ns':medians,'new_over_old':medians['new']/medians['old'],'cpu':cpu})\n(out/'result.json').write_text(json.dumps(report,indent=2)+'\\n')\nprint(json.dumps(report,indent=2))\n",
+    "windows_driver": "from pathlib import Path\nimport subprocess as sp, json, statistics, ctypes, platform\nroot=Path('D:/repos/.cache/wjr/worktrees/stack-allocator-domain-20261101')\nout=Path('D:/repos/.cache/wjr/stack-domain-validation-20261101/windows-perf'); out.mkdir(exist_ok=True)\nold=out/'old/wjr/memory'; old.mkdir(parents=True,exist_ok=True)\nfor source,destination in [('include/wjr/memory/stack_allocator.hpp',old/'stack_allocator.hpp'),('src/memory/stack_allocator.cpp',out/'old-memory.cpp')]:\n    destination.write_bytes(sp.check_output(['git','show','e961ba6d:'+source],cwd=root))\nbench=out/'bench.cpp'\nbench.write_text(r'''\n#include <wjr/memory/stack_allocator.hpp>\n#include <chrono>\n#include <cstdio>\n#include <cstdlib>\n__declspec(noinline) void run_round(size_t count, size_t bytes) {\n    wjr::unique_stack_allocator owner;\n    for (size_t i=0;i<count;++i)\n        *static_cast<volatile unsigned char*>(owner.allocate(bytes))=static_cast<unsigned char>(i);\n}\nint main(int, char** argv) {\n    size_t count=std::strtoull(argv[1],nullptr,10), bytes=std::strtoull(argv[2],nullptr,10);\n    size_t rounds=std::strtoull(argv[3],nullptr,10);\n    for(size_t i=0;i<2000;++i) run_round(count,bytes);\n    auto begin=std::chrono::steady_clock::now();\n    for(size_t i=0;i<rounds;++i) run_round(count,bytes);\n    double ns=std::chrono::duration<double,std::nano>(std::chrono::steady_clock::now()-begin).count()/rounds;\n    std::printf(\"%.9f\\n\",ns);\n    std::fprintf(stderr,\"arena=%zu owner=%zu\\n\",sizeof(wjr::stack_allocator_object),sizeof(wjr::unique_stack_allocator));\n}\n''')\nkernel=ctypes.WinDLL('kernel32',use_last_error=True)\nkernel.GetCurrentProcess.restype=ctypes.c_void_p\nhandle=kernel.GetCurrentProcess(); mask=ctypes.c_size_t(); system=ctypes.c_size_t()\nkernel.GetProcessAffinityMask.argtypes=[ctypes.c_void_p,ctypes.POINTER(ctypes.c_size_t),ctypes.POINTER(ctypes.c_size_t)]\nassert kernel.GetProcessAffinityMask(handle,ctypes.byref(mask),ctypes.byref(system))\ncpu_mask=mask.value & -mask.value\nkernel.SetProcessAffinityMask.argtypes=[ctypes.c_void_p,ctypes.c_size_t]\nassert kernel.SetProcessAffinityMask(handle,cpu_mask)\nreport={'platform':platform.platform(),'affinity_mask':cpu_mask,'cpu':platform.processor(),'base':'e961ba6d','candidate':'12ed5a53','timings':[]}\nfor version in ['old','new']:\n    build=out/version; build.mkdir(exist_ok=True)\n    cmd=['python','D:/repos/.cache/wjr/tools/run_with_env.py','D:/LLVM/bin/clang-cl.exe','/nologo','/std:c++20','/O2','/MD','/DNDEBUG','/DWJR_DEBUG_LEVEL_RELEASE=0','/DFMT_HEADER_ONLY']\n    if version=='old': cmd+=['/I'+str(out/'old')]\n    cmd+=['/I'+str(root/'include'),'/ID:/repos/wjr/third-party/fmt/include',str(bench),str(out/'old-memory.cpp' if version=='old' else root/'src/memory/stack_allocator.cpp'),str(root/'src/utility/assert.cpp'),'/Fe:'+str(build/'bench.exe')]\n    result=sp.run(cmd,cwd=build,stdout=sp.PIPE,stderr=sp.STDOUT);(build/'build.log').write_bytes(result.stdout)\n    if result.returncode: print(result.stdout.decode(errors='replace'));raise RuntimeError(version)\n    (build/'flags.json').write_text(json.dumps(cmd))\nfor case,n,b,rounds in [('bump',32,64,1000000),('cached_refill',40,1024,250000),('grow_trim',80,1024,100000),('large',1,32768,200000)]:\n    samples={'old':[],'new':[]}\n    for sample in range(7):\n        for version in (['old','new'] if sample%2==0 else ['new','old']):\n            result=sp.run([str(out/version/'bench.exe'),str(n),str(b),str(rounds)],capture_output=True,check=True)\n            (out/f'{case}-{sample}-{version}.log').write_bytes(result.stdout+result.stderr)\n            samples[version].append(float(result.stdout.decode().strip()))\n    medians={k:statistics.median(v) for k,v in samples.items()}\n    report['timings'].append({'case':case,'samples_ns':samples,'median_ns':medians,'new_over_old':medians['new']/medians['old']})\n(out/'result.json').write_text(json.dumps(report,indent=2)+'\\n');print(json.dumps(report,indent=2))\n",
+    "windows_codegen_driver": "from pathlib import Path\nimport subprocess,re,json\n\nroot=Path('D:/repos/.cache/wjr/worktrees/stack-allocator-domain-20261101')\nout=Path('D:/repos/.cache/wjr/stack-domain-validation-20261101/codegen')\nold=out/'old/wjr/memory'\nold.mkdir(parents=True,exist_ok=True)\n(old/'stack_allocator.hpp').write_bytes(subprocess.check_output(['git','show','e961ba6d:include/wjr/memory/stack_allocator.hpp'],cwd=root))\nunit=out/'probe.cpp'\nunit.write_text('''#include <wjr/memory/stack_allocator.hpp>\nextern \"C\" __declspec(noinline) void* warm_allocate(wjr::unique_stack_allocator& owner, size_t n) noexcept {return owner.allocate(n);}\nextern \"C\" __declspec(noinline) void scoped_allocate(void(*consume)(void*,size_t), size_t n) {wjr::unique_stack_allocator owner;consume(owner.allocate(n),n);}\n''',newline='\\n')\nfor name in ['old','new']:\n include=[str(out/'old')] if name=='old' else []\n include += [str(root/'include'),'D:/repos/wjr/third-party/fmt/include']\n cmd=['python','D:/repos/.cache/wjr/tools/run_with_env.py','D:/LLVM/bin/clang++.exe','-std=c++20','-O2','-DNDEBUG','-DWJR_DEBUG_LEVEL_RELEASE=0']\n cmd+=['-I'+x for x in include]+['-S',str(unit),'-o',str(out/(name+'.s'))]\n subprocess.run(cmd,check=True,capture_output=True)\ndef instructions(name,symbol):\n s=(out/(name+'.s')).read_text();start=s.index('\\n'+symbol+':');end=s.index('\\n\\t.seh_endproc',start)\n return [line.strip() for line in s[start:end].splitlines() if re.match(r'^\\s+[a-z][a-z0-9]*\\s',line)]\nresult={}\nfor symbol in ['warm_allocate','scoped_allocate']:\n a=instructions('old',symbol);b=instructions('new',symbol)\n result[symbol]=dict(old_instructions=len(a),new_instructions=len(b),identical=a==b)\n if a!=b:\n  (out/(symbol+'-diff.txt')).write_text('\\n'.join(__import__('difflib').unified_diff(a,b,fromfile='old',tofile='new'))+'\\n')\n(out/'result.json').write_text(json.dumps(result,indent=2)+'\\n')\nprint(json.dumps(result,indent=2))\n"
+  },
+  "lifetime_checks": {
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "base": "e961ba6d",
+    "candidate": "e7c32ece99f375e8e2d558cc66c7e7b956d8f640",
+    "cpu": "\t: AMD EPYC 7763 64-Core Processor",
+    "compilers": {
+      "clang++-18": "Ubuntu clang version 18.1.3 (1ubuntu1)"
+    },
+    "checks": [
+      {
+        "name": "clang++-18-asan-old-uaf",
+        "result": 1,
+        "heap_use_after_free": true
+      },
+      {
+        "name": "clang++-18-asan-old-thread-leaks",
+        "result": 1,
+        "expected": 1
+      },
+      {
+        "name": "clang++-18-asan-domain",
+        "result": 0
+      },
+      {
+        "name": "clang++-18-asan-domain-heap-shadow",
+        "result": 0
+      },
+      {
+        "name": "clang++-18-asan-new-thread-leaks",
+        "result": 0,
+        "expected": 0
+      }
+    ],
+    "timings": []
+  },
+  "lifetime_run": "https://github.com/wjr-z/wjr/actions/runs/41276629663",
+  "old_uaf_report": "=================================================================\n==2356==ERROR: AddressSanitizer: heap-use-after-free on address 0x52d000000410 at pc 0x56347a7b768d bp 0x7ffe4f726fd0 sp 0x7ffe4f726fc8\nWRITE of size 1 at 0x52d000000410 thread T0\n    #0 0x56347a7b768c in (anonymous namespace)::check_pool_ownership() /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:15:18\n    #1 0x56347a7b6fc5 in main /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:26:16\n    #2 0x7fd96502a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)\n    #3 0x7fd96502a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)\n    #4 0x56347a6db734 in _start (/home/runner/work/wjr/wjr/research-output/clang++-18-asan-old/domain+0x2d734) (BuildId: 4d869ac91d1e77387f13994ae4c36ff2f2b6c7b5)\n\n0x52d000000410 is located 16 bytes inside of 32784-byte region [0x52d000000400,0x52d000008410)\nfreed by thread T0 here:\n    #0 0x56347a7b5721 in operator delete[](void*, std::nothrow_t const&) (/home/runner/work/wjr/wjr/research-output/clang++-18-asan-old/domain+0x107721) (BuildId: 4d869ac91d1e77387f13994ae4c36ff2f2b6c7b5)\n    #1 0x7fd9657e11ab in void wjr::mem::_default_deallocate<16ul>(void*, std::nothrow_t) /home/runner/work/wjr/wjr/include/wjr/memory/aligned_alloc.hpp:76:9\n    #2 0x7fd9657e11ab in wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)::operator()(wjr::automatic_free_pool::chunk*) const /home/runner/work/wjr/wjr/include/wjr/memory/automatic_free_pool.hpp:58:46\n    #3 0x7fd9657e11ab in void std::__invoke_impl<void, wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*>(std::__invoke_other, wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/invoke.h:61:14\n    #4 0x7fd9657e11ab in std::__invoke_result<wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*>::type std::__invoke<wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*>(wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/invoke.h:96:14\n    #5 0x7fd9657e11ab in std::invoke_result<wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*>::type std::invoke<wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*>(wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&, wjr::automatic_free_pool::chunk*&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/functional:120:14\n    #6 0x7fd9657e11ab in void wjr::intrusive::detail::dispose_nodes<wjr::intrusive::list_node<wjr::automatic_free_pool::chunk, void>, wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&>(wjr::intrusive::list_node<wjr::automatic_free_pool::chunk, void>*, std::type_identity<wjr::intrusive::list_node<wjr::automatic_free_pool::chunk, void>>::type*, wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)&) /home/runner/work/wjr/wjr/include/wjr/container/intrusive_algorithms.hpp:21:9\n    #7 0x7fd9657e08b3 in void wjr::intrusive::clear_and_dispose<wjr::automatic_free_pool::chunk, void, wjr::automatic_free_pool::clear()::'lambda'(wjr::automatic_free_pool::chunk*)>(wjr::intrusive::list_node<T, void>&, T1) /home/runner/work/wjr/wjr/include/wjr/container/intrusive_algorithms.hpp:42:5\n    #8 0x7fd9657e08b3 in wjr::automatic_free_pool::clear() /home/runner/work/wjr/wjr/include/wjr/memory/automatic_free_pool.hpp:57:9\n    #9 0x7fd9657e08b3 in wjr_foreign_clear_pool /home/runner/work/wjr/wjr/research-output/old/foreign_memory.cpp:109:125\n    #10 0x56347a7b73ed in (anonymous namespace)::check_pool_ownership() /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:11:5\n    #11 0x56347a7b6fc5 in main /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:26:16\n    #12 0x7fd96502a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)\n    #13 0x7fd96502a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)\n    #14 0x56347a6db734 in _start (/home/runner/work/wjr/wjr/research-output/clang++-18-asan-old/domain+0x2d734) (BuildId: 4d869ac91d1e77387f13994ae4c36ff2f2b6c7b5)\n\npreviously allocated by thread T0 here:\n    #0 0x56347a7b4ee1 in operator new[](unsigned long, std::nothrow_t const&) (/home/runner/work/wjr/wjr/research-output/clang++-18-asan-old/domain+0x106ee1) (BuildId: 4d869ac91d1e77387f13994ae4c36ff2f2b6c7b5)\n    #1 0x7fd9657e0a49 in void* wjr::mem::_default_allocate<16ul>(unsigned long, std::nothrow_t) /home/runner/work/wjr/wjr/include/wjr/memory/aligned_alloc.hpp:55:16\n    #2 0x7fd9657e0a49 in wjr::automatic_free_pool::allocate(unsigned long) /home/runner/work/wjr/wjr/include/wjr/memory/automatic_free_pool.hpp:64:27\n    #3 0x7fd9657e04c7 in wjr::stack_allocator_object::_small_reallocate() /home/runner/work/wjr/wjr/research-output/old/foreign_memory.cpp:100:72\n    #4 0x7fd9657df178 in void* wjr::stack_allocator_object::_allocate_impl<wjr::stack_allocator_object::large_memory*&>(unsigned long, wjr::stack_allocator_object::large_memory*&) /home/runner/work/wjr/wjr/research-output/old/wjr/memory/stack_allocator.hpp:111:13\n    #5 0x7fd9657df178 in wjr::stack_allocator_object::allocate(unsigned long, wjr::stack_allocator_object::stack_context&) /home/runner/work/wjr/wjr/research-output/old/wjr/memory/stack_allocator.hpp:169:16\n    #6 0x7fd9657def8f in wjr_foreign_refill /home/runner/work/wjr/wjr/research-output/old/foreign.cpp:26:27\n    #7 0x56347a7b73e8 in (anonymous namespace)::check_pool_ownership() /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:10:5\n    #8 0x56347a7b6fc5 in main /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:26:16\n    #9 0x7fd96502a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)\n    #10 0x7fd96502a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)\n    #11 0x56347a6db734 in _start (/home/runner/work/wjr/wjr/research-output/clang++-18-asan-old/domain+0x2d734) (BuildId: 4d869ac91d1e77387f13994ae4c36ff2f2b6c7b5)\n\nSUMMARY: AddressSanitizer: heap-use-after-free /home/runner/work/wjr/wjr/test/consumer/stack_domain/main.cpp:15:18 in (anonymous namespace)::check_pool_ownership()\nShadow bytes around the buggy address:\n  0x52d000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x52d000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x52d000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x52d000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x52d000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n=>0x52d000000400: fd fd[fd]fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x52d000000480: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x52d000000500: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x52d000000580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x52d000000600: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x52d000000680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\nShadow byte legend (one shadow byte represents 8 application bytes):\n  Addressable:           00\n  Partially addressable: 01 02 03 04 05 06 07 \n  Heap left redzone:       fa\n  Freed heap region:       fd\n  Stack left redzone:      f1\n  Stack mid redzone:       f2\n  Stack right redzone:     f3\n  Stack after return:      f5\n  Stack use after scope:   f8\n  Global redzone:          f9\n  Global init order:       f6\n  Poisoned by user:        f7\n  Container overflow:      fc\n  Array cookie:            ac\n  Intra object redzone:    bb\n  ASan internal:           fe\n  Left alloca redzone:     ca\n  Right alloca redzone:    cb\n==2356==ABORTING\n",
+  "old_thread_leak_report": "\n=================================================================\n==2394==ERROR: LeakSanitizer: detected memory leaks\n\nDirect leak of 256 byte(s) in 1 object(s) allocated from:\n    #0 0x5593e28b9b91 in operator new(unsigned long) (/home/runner/work/wjr/wjr/research-output/clang++-18-asan-old/thread_probe+0x106b91) (BuildId: 4085d59d9cd2433382f365c61261b6c01c86dfa3)\n    #1 0x5593e28bd91b in std::__new_allocator<wjr::stack_allocator_object::alloc_node>::allocate(unsigned long, void const*) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/new_allocator.h:151:27\n    #2 0x5593e28bd91b in std::allocator<wjr::stack_allocator_object::alloc_node>::allocate(unsigned long) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/allocator.h:196:32\n    #3 0x5593e28bd91b in wjr::stack_allocator_object::_small_reallocate() /home/runner/work/wjr/wjr/research-output/old/host.cpp:67:26\n    #4 0x5593e28bc788 in void* wjr::stack_allocator_object::_allocate_impl<wjr::stack_allocator_object::large_memory*&>(unsigned long, wjr::stack_allocator_object::large_memory*&) /home/runner/work/wjr/wjr/research-output/old/wjr/memory/stack_allocator.hpp:111:13\n    #5 0x5593e28bc788 in wjr::stack_allocator_object::allocate(unsigned long, wjr::stack_allocator_object::stack_context&) /home/runner/work/wjr/wjr/research-output/old/wjr/memory/stack_allocator.hpp:169:16\n    #6 0x5593e28bc3ed in wjr::unique_stack_allocator::allocate(unsigned long) /home/runner/work/wjr/wjr/research-output/old/wjr/memory/stack_allocator.hpp:250:36\n    #7 0x5593e28bc3ed in main::$_0::operator()() const /home/runner/work/wjr/wjr/research-output/thread_probe.cpp:3:108\n    #8 0x5593e28bc3ed in void std::__invoke_impl<void, main::$_0>(std::__invoke_other, main::$_0&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/invoke.h:61:14\n    #9 0x5593e28bc3ed in std::__invoke_result<main::$_0>::type std::__invoke<main::$_0>(main::$_0&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/invoke.h:96:14\n    #10 0x5593e28bc3ed in void std::thread::_Invoker<std::tuple<main::$_0>>::_M_invoke<0ul>(std::_Index_tuple<0ul>) /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/std_thread.h:301:13\n    #11 0x5593e28bc3ed in std::thread::_Invoker<std::tuple<main::$_0>>::operator()() /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/std_thread.h:308:11\n    #12 0x5593e28bc3ed in std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::$_0>>>::_M_run() /usr/bin/../lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/bits/std_thread.h:253:13\n    #13 0x7f61dc0ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)\n    #14 0x5593e287905c in asan_thread_start(void*) asan_interceptors.cpp.o\n\nSUMMARY: AddressSanitizer: 256 byte(s) leaked in 1 allocation(s).\n"
+}

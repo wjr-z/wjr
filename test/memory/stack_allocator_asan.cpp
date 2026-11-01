@@ -4,6 +4,7 @@
 
     #include <array>
     #include <cstddef>
+    #include <thread>
 
     #include <gtest/gtest.h>
 
@@ -12,6 +13,16 @@
 namespace {
 bool poisoned(const void *address) { return WJR_ASAN_ADDRESS_IS_POISONED(address) != 0; }
 } // namespace
+
+TEST(stack_allocator_asan, worker_exit_reclaims_backing_storage) {
+    /// @note LSan checks the slab table after this worker's TLS roots disappear.
+    std::thread worker([] {
+        wjr::unique_stack_allocator owner;
+        auto *payload = static_cast<volatile unsigned char *>(owner.allocate(1024));
+        *payload = 0x2a;
+    });
+    worker.join();
+}
 
 TEST(stack_allocator_asan, rewind_poisons_inner_payload_and_preserves_outer) {
     std::byte *outer = nullptr;

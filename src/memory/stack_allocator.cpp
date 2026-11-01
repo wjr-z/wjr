@@ -8,8 +8,14 @@ namespace {
 inline constexpr size_t stack_allocator_cache_size =
     align_up(std::max<size_t>(16_KB, stack_allocator_threshold), mem::default_new_alignment);
 
-static thread_local automatic_free_pool _stack_free_pool;
 } // namespace
+
+namespace mem {
+automatic_free_pool &_get_stack_free_pool() noexcept {
+    static thread_local automatic_free_pool pool;
+    return pool;
+}
+} // namespace mem
 
 #if defined(WJR_HAS_ADDRESS_SANITIZER)
 void stack_allocator_object::_poison_small(const stack_context &context) noexcept {
@@ -41,7 +47,7 @@ void stack_allocator_object::_poison_small(const stack_context &context) noexcep
 void stack_allocator_object::_small_redeallocate() noexcept {
     const uint_fast32_t new_size = m_idx + bufsize - 1;
     for (uint_fast32_t i = new_size; i < m_size; ++i) {
-        _stack_free_pool.deallocate(m_ptr[i].ptr);
+        automatic_free_pool::deallocate(m_ptr[i].ptr);
     }
 
     m_size = new_size;
@@ -61,17 +67,17 @@ void stack_allocator_object::_small_reallocate() noexcept {
 
     // This is the initial state
     if (WJR_UNLIKELY(m_capacity == 0)) {
+        auto &pool = m_pool_provider();
         {
             const uint_fast32_t new_capacity = capacity_grow;
-            std::allocator<alloc_node> pool;
-            m_ptr = pool.allocate(new_capacity);
+            m_ptr = static_cast<alloc_node *>(pool.allocate(new_capacity * sizeof(alloc_node)));
             m_size = 1;
             m_capacity = new_capacity;
         }
 
         {
             const size_t capacity = stack_allocator_cache_size;
-            auto *const buffer = static_cast<std::byte *>(_stack_free_pool.allocate(capacity));
+            auto *const buffer = static_cast<std::byte *>(pool.allocate(capacity));
             m_cache = m_ptr[0] = {buffer, buffer + capacity};
             WJR_ASAN_POISON_MEMORY_REGION(buffer, capacity);
         }
@@ -82,13 +88,14 @@ void stack_allocator_object::_small_reallocate() noexcept {
 
     ++m_idx;
     if (WJR_UNLIKELY(m_idx == m_size)) {
+        auto &pool = m_pool_provider();
         if (WJR_UNLIKELY(m_size == m_capacity)) {
             const uint_fast32_t new_capacity = m_capacity + capacity_grow;
-            std::allocator<alloc_node> pool;
-            auto *const new_ptr = pool.allocate(new_capacity);
+            auto *const new_ptr =
+                static_cast<alloc_node *>(pool.allocate(new_capacity * sizeof(alloc_node)));
 
             std::copy_n(m_ptr, m_idx, new_ptr);
-            pool.deallocate(m_ptr, m_capacity);
+            automatic_free_pool::deallocate(m_ptr);
 
             m_ptr = new_ptr;
             m_capacity = new_capacity;
@@ -97,7 +104,7 @@ void stack_allocator_object::_small_reallocate() noexcept {
         ++m_size;
 
         const size_t capacity = stack_allocator_cache_size << ((2 * m_idx + 3) / 5);
-        auto *const buffer = static_cast<std::byte *>(_stack_free_pool.allocate(capacity));
+        auto *const buffer = static_cast<std::byte *>(pool.allocate(capacity));
         m_ptr[m_idx] = {buffer, buffer + capacity};
         WJR_ASAN_POISON_MEMORY_REGION(buffer, capacity);
     }

@@ -283,4 +283,6 @@ if(WJR_ENABLE_TBB)
    set_tests_properties(wjr_tbb_tests PROPERTIES LABELS unit)
 endif()
 
+add_subdirectory(consumer/stack_domain)
+
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
