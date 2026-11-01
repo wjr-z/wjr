@@ -319,6 +319,19 @@ struct tp_concat<T, U, Args3...> {
     using type = typename tp_concat<typename tp_concat<T, U>::type, Args3...>::type;
 };
 
+/// @brief Join eight packs per step to avoid repeatedly rebuilding every prefix.
+template <template <typename...> typename C0, typename... A0, template <typename...> typename C1,
+          typename... A1, template <typename...> typename C2, typename... A2,
+          template <typename...> typename C3, typename... A3, template <typename...> typename C4,
+          typename... A4, template <typename...> typename C5, typename... A5,
+          template <typename...> typename C6, typename... A6, template <typename...> typename C7,
+          typename... A7, typename... Rest>
+struct tp_concat<C0<A0...>, C1<A1...>, C2<A2...>, C3<A3...>, C4<A4...>, C5<A5...>, C6<A6...>,
+                 C7<A7...>, Rest...> {
+    using type = typename tp_concat<C0<A0..., A1..., A2..., A3..., A4..., A5..., A6..., A7...>,
+                                    Rest...>::type;
+};
+
 /// @brief f(L1<Args...>, L2<Args2...>, ... Ln<Argsn...>) -> L1<Args...,
 /// Args2..., Argsn...>
 template <typename... Args>
@@ -528,9 +541,46 @@ struct tp_unwrap<C<T>> {
 template <typename T>
 using tp_unwrap_t = typename tp_unwrap<T>::type;
 
+/// @private
+template <typename T, size_t N>
+struct _tp_repeat_helper {
+    using half = typename _tp_repeat_helper<T, N / 2>::type;
+    using type = tp_concat_t<half, half, typename _tp_repeat_helper<T, N % 2>::type>;
+};
+
+/// @private
+template <typename T>
+struct _tp_repeat_helper<T, 0> {
+    using type = tp_list<>;
+};
+
+/// @private
+template <template <typename...> typename C, typename... Args>
+struct _tp_repeat_helper<C<Args...>, 1> {
+    using type = tp_list<Args...>;
+};
+
+/// @private
+template <typename T, typename Repeated, typename Tail>
+struct _tp_repeat_result;
+
+/// @private
+template <template <typename...> typename C, typename... Args, typename... Repeated,
+          template <typename...> typename Tail, typename... Last>
+struct _tp_repeat_result<C<Args...>, tp_list<Repeated...>, Tail<Last...>> {
+    using type = C<Repeated..., Last...>;
+};
+
 template <typename T, size_t N>
 struct tp_repeat {
-    using type = tp_concat_t<T, typename tp_repeat<T, N - 1>::type>;
+    /// @details Retain the clear-container tail, which can contain default arguments.
+    using type =
+        typename _tp_repeat_result<T, typename _tp_repeat_helper<T, N>::type, tp_clear_t<T>>::type;
+};
+
+template <typename T>
+struct tp_repeat<T, 1> {
+    using type = tp_concat_t<T, tp_clear_t<T>>;
 };
 
 template <typename T>
