@@ -16,8 +16,10 @@
 #define WJR_JSON_DOCUMENT_HPP__
 
 #include <concepts>
+#include <limits>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -299,6 +301,41 @@ WJR_REGISTER_HAS_TYPE(construct_to_document,
                           std::declval<T>(), in_place_document_serializer_to),
                       Document, T);
 
+namespace detail {
+
+template <typename T, typename Document>
+concept document_value_constructible =
+    is_document_v<remove_cvref_t<Document>> && !std::is_reference_v<T> &&
+    has_construct_from_document_v<T, Document>;
+
+/** @brief Types whose converting constructors would bypass their document serializer. */
+template <typename T>
+inline constexpr bool needs_document_value_conversion = false;
+
+} // namespace detail
+
+/** @brief Construct T through its serializer, preserving the document's value category. */
+template <typename T, typename Document>
+requires detail::document_value_constructible<T, Document &&>
+constexpr T value_to(Document &&doc) {
+    return document_serializer<T>::construct(std::forward<Document>(doc),
+                                             in_place_document_serializer_from);
+}
+
+namespace detail {
+
+/** @brief Keep ordinary constructors unchanged; explicitly dispatch opted-in element types. */
+template <typename T, typename Document>
+constexpr decltype(auto) document_conversion_source(Document &&doc) {
+    if constexpr (needs_document_value_conversion<T>) {
+        return value_to<T>(std::forward<Document>(doc));
+    } else {
+        return std::forward<Document>(doc);
+    }
+}
+
+} // namespace detail
+
 // from_document
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_ENABLER_CALLER(var)        \
@@ -306,7 +343,8 @@ WJR_REGISTER_HAS_TYPE(construct_to_document,
                                              const ::wjr::json::basic_document<Traits> &>
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_CONSTRUCTOR_CALLER(var)                \
-    var(::wjr::json::detail::document_field_at(__wjr_obj, #var))
+    var(::wjr::json::detail::document_conversion_source<decltype(var)>(                            \
+        ::wjr::json::detail::document_field_at(__wjr_obj, #var)))
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_ENABLER_CALLER(var)        \
     ::wjr::json::has_construct_from_document<decltype(TT::var),                                    \
@@ -317,7 +355,8 @@ WJR_REGISTER_HAS_TYPE(construct_to_document,
                                              const ::wjr::json::basic_document<Traits> &&>
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_MOVE_CONSTRUCTOR_CALLER(var)                \
-    var(std::move(::wjr::json::detail::document_field_at(__wjr_obj, #var)))
+    var(::wjr::json::detail::document_conversion_source<decltype(var)>(                            \
+        std::move(::wjr::json::detail::document_field_at(__wjr_obj, #var))))
 
 #define __WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER_COPY_ASSIGN_ENABLER_CALLER(var)             \
     ::wjr::json::has_assign_from_document<decltype(TT::var),                                       \
@@ -1722,7 +1761,29 @@ private:
     constexpr static void assign(Iter first, Iter last, value_type &val) {
         using element_reference = decltype(*val.begin());
 
-        if constexpr (std::is_assignable_v<element_reference, iterator_reference_t<Iter>>) {
+        if constexpr (detail::needs_document_value_conversion<typename value_type::value_type>) {
+            using size_type = typename value_type::size_type;
+            if (std::cmp_greater(last - first, std::numeric_limits<size_type>::max())) {
+                WJR_THROW(std::length_error("JSON array projection size"));
+            }
+            const auto n = static_cast<size_type>(last - first);
+            if (n > val.capacity()) {
+                val.clear();
+                val.reserve(n);
+            } else if (n < val.size()) {
+                val.resize(n);
+            }
+
+            auto output = val.begin();
+            const auto output_end = val.end();
+            for (; output != output_end; ++first, ++output) {
+                (*first).get_to(*output);
+            }
+            for (; first != last; ++first) {
+                val.emplace_back(
+                    detail::document_conversion_source<typename value_type::value_type>(*first));
+            }
+        } else if constexpr (std::is_assignable_v<element_reference, iterator_reference_t<Iter>>) {
             val.assign(first, last);
         } else {
             using size_type = typename value_type::size_type;
@@ -1763,6 +1824,36 @@ private:
                     (*first).get_to(*val_first);
                 }
             }
+        }
+    }
+
+    template <typename Iter>
+    constexpr static value_type construct(Iter first, Iter last) {
+        if constexpr (detail::needs_document_value_conversion<typename value_type::value_type>) {
+            using size_type = typename value_type::size_type;
+            if (std::cmp_greater(last - first, std::numeric_limits<size_type>::max())) {
+                WJR_THROW(std::length_error("JSON array projection size"));
+            }
+            const auto n = static_cast<size_type>(last - first);
+            constexpr bool has_reserved_constructor =
+                std::is_constructible_v<value_type, size_type, in_place_reserve_t>;
+            auto value = [n] {
+                if constexpr (has_reserved_constructor) {
+                    return value_type(n, in_place_reserve);
+                } else {
+                    return value_type();
+                }
+            }();
+            if constexpr (!has_reserved_constructor) {
+                value.reserve(n);
+            }
+            for (; first != last; ++first) {
+                value.emplace_back(
+                    detail::document_conversion_source<typename value_type::value_type>(*first));
+            }
+            return value;
+        } else {
+            return value_type(first, last);
         }
     }
 
@@ -1836,7 +1927,7 @@ public:
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         auto &arr = doc.template get<array_t>();
-        return value_type(arr.begin(), arr.end());
+        return construct(arr.begin(), arr.end());
     }
 
     template <typename Document,
@@ -1854,7 +1945,7 @@ public:
                                Document &&>)>
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         auto &arr = doc.template get<array_t>();
-        return value_type(std::make_move_iterator(arr.begin()), std::make_move_iterator(arr.end()));
+        return construct(std::make_move_iterator(arr.begin()), std::make_move_iterator(arr.end()));
     }
 
     /// to_document
@@ -1973,17 +2064,54 @@ private:
     template <typename Document>
     static constexpr bool _can_move_elements = [] {
         if constexpr (requires(Document &doc) { doc.template get<object_t>().begin(); }) {
-            return std::is_constructible_v<
-                       typename value_type::value_type,
-                       decltype(std::move(
-                           *std::declval<Document &>().template get<object_t>().begin()))> &&
-                   (!has_construct_from_document_v<typename value_type::mapped_type,
-                                                   const Document &> ||
-                    has_construct_from_document_v<typename value_type::mapped_type, Document &&>);
+            if constexpr (detail::needs_document_value_conversion<
+                              typename value_type::mapped_type>) {
+                return std::is_constructible_v<typename value_type::key_type,
+                                               decltype(std::move(std::declval<Document &>()
+                                                                      .template get<object_t>()
+                                                                      .begin()
+                                                                      ->first))> &&
+                       has_construct_from_document_v<typename value_type::mapped_type, Document &&>;
+            } else {
+                return std::is_constructible_v<
+                           typename value_type::value_type,
+                           decltype(std::move(
+                               *std::declval<Document &>().template get<object_t>().begin()))> &&
+                       (!has_construct_from_document_v<typename value_type::mapped_type,
+                                                       const Document &> ||
+                        has_construct_from_document_v<typename value_type::mapped_type,
+                                                      Document &&>);
+            }
         } else {
             return false;
         }
     }();
+
+    template <typename Iter>
+    constexpr static void insert(Iter first, Iter last, value_type &value) {
+        for (; first != last; ++first) {
+            if constexpr (detail::needs_document_value_conversion<
+                              typename value_type::mapped_type>) {
+                auto &&element = *first;
+                value.emplace(std::forward<decltype(element)>(element).first,
+                              detail::document_conversion_source<typename value_type::mapped_type>(
+                                  std::forward<decltype(element)>(element).second));
+            } else {
+                value.emplace(*first);
+            }
+        }
+    }
+
+    template <typename Iter>
+    constexpr static value_type construct(Iter first, Iter last) {
+        if constexpr (detail::needs_document_value_conversion<typename value_type::mapped_type>) {
+            value_type value;
+            insert(first, last, value);
+            return value;
+        } else {
+            return value_type(first, last);
+        }
+    }
 
 public:
     template <typename Document,
@@ -2009,15 +2137,17 @@ public:
         val = doc.template get<object_t>();
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
+    template <
+        typename Document,
+        WJR_REQUIRES(
+            !std::is_same_v<typename Document::object_type, value_type> &&
+            (!detail::needs_document_value_conversion<typename value_type::mapped_type> ||
+             has_construct_from_document_v<typename value_type::mapped_type, const Document &>))>
     constexpr static void assign(const Document &doc, value_type &val,
                                  in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
         val.clear();
-        for (const auto &elem : obj) {
-            val.emplace(elem);
-        }
+        insert(obj.begin(), obj.end(), val);
     }
 
     template <typename Document,
@@ -2036,9 +2166,7 @@ public:
                                  in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
         val.clear();
-        for (auto &elem : obj) {
-            val.emplace(std::move(elem));
-        }
+        insert(std::make_move_iterator(obj.begin()), std::make_move_iterator(obj.end()), val);
     }
 
     template <typename Document,
@@ -2048,12 +2176,16 @@ public:
         return doc.template get<object_t>();
     }
 
-    template <typename Document,
-              WJR_REQUIRES(!std::is_same_v<typename Document::object_type, value_type>)>
+    template <
+        typename Document,
+        WJR_REQUIRES(
+            !std::is_same_v<typename Document::object_type, value_type> &&
+            (!detail::needs_document_value_conversion<typename value_type::mapped_type> ||
+             has_construct_from_document_v<typename value_type::mapped_type, const Document &>))>
     constexpr static value_type construct(const Document &doc,
                                           in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
-        return value_type(obj.begin(), obj.end());
+        return construct(obj.begin(), obj.end());
     }
 
     template <typename Document,
@@ -2069,7 +2201,7 @@ public:
                            _can_move_elements<Document>)>
     constexpr static value_type construct(Document &&doc, in_place_document_serializer_from_t) {
         auto &obj = doc.template get<object_t>();
-        return value_type(std::make_move_iterator(obj.begin()), std::make_move_iterator(obj.end()));
+        return construct(std::make_move_iterator(obj.begin()), std::make_move_iterator(obj.end()));
     }
 
     /// to_document

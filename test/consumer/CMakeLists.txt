@@ -85,6 +85,10 @@ add_executable(wjr_vector_ranges_consumer vector_ranges.cpp)
 target_link_libraries(wjr_vector_ranges_consumer PRIVATE wjr::assert)
 add_test(NAME wjr_vector_ranges_consumer COMMAND wjr_vector_ranges_consumer)
 
+add_executable(wjr_json_optional_consumer json_optional.cpp)
+target_link_libraries(wjr_json_optional_consumer PRIVATE wjr::json)
+add_test(NAME wjr_json_optional_consumer COMMAND wjr_json_optional_consumer)
+
 file(GENERATE
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/portable-options-$<CONFIG>-$<COMPILE_LANGUAGE>.cmake"
     CONTENT "set(WJR_OPTIONS [==[$<TARGET_PROPERTY:wjr_portable_consumer,COMPILE_OPTIONS>]==])
