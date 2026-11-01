@@ -14,6 +14,8 @@
 #endif
 #ifndef WJR_MERGE_MEMORY
     #include <benchmark/benchmark.h>
+#else
+    #include "btree_probe_memory.hpp"
 #endif
 
 namespace {
@@ -83,41 +85,13 @@ void validate(const Tree &destination, specification spec) {
 #endif
 
 #ifdef WJR_MERGE_MEMORY
-struct counts {
-    size_t live = 0;
-    size_t peak = 0;
-    size_t allocations = 0;
-    size_t deallocations = 0;
-};
-inline counts *active;
+using btree_probe::counts;
 template <typename T>
-struct allocator {
-    using value_type = T;
-    using is_always_equal = std::true_type;
-    allocator() = default;
-    template <typename U>
-    allocator(const allocator<U> &) noexcept {}
-    T *allocate(size_t n) {
-        auto *ptr = std::allocator<T>{}.allocate(n);
-        active->live += n * sizeof(T);
-        active->peak = std::max(active->peak, active->live);
-        ++active->allocations;
-        return ptr;
-    }
-    void deallocate(T *ptr, size_t n) noexcept {
-        active->live -= n * sizeof(T);
-        ++active->deallocations;
-        std::allocator<T>{}.deallocate(ptr, n);
-    }
-    template <typename U>
-    bool operator==(const allocator<U> &) const noexcept {
-        return true;
-    }
-};
+using allocator = btree_probe::allocator<T>;
 template <typename Tree>
 void measure(const std::string &label, specification spec) {
     counts stats;
-    active = &stats;
+    btree_probe::pass current(stats);
     size_t before, after, peak, allocations, deallocations;
     {
         Tree source, destination;
@@ -140,7 +114,6 @@ void measure(const std::string &label, specification spec) {
     }
     if (stats.live != 0 || stats.allocations != stats.deallocations)
         std::abort();
-    active = nullptr;
     std::cout << label << '/' << spec.name << ',' << before << ',' << after << ',' << peak << ','
               << allocations << ',' << deallocations << ',' << stats.live << '\n';
 }
