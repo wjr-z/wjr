@@ -848,6 +848,12 @@ public:
         return assign(il);
     }
 
+    /**
+     * @brief Replace the elements with n copies of val.
+     * @pre val does not refer to an element of this vector.
+     * @details Allocation or element construction failure during growth preserves the old
+     * storage and values. Assignment within existing storage may modify its prefix on failure.
+     */
     WJR_CONSTEXPR20 basic_vector &assign(size_type n, const value_type &val) {
         _fill_assign(n, val);
         return *this;
@@ -1909,12 +1915,25 @@ private:
 
         if (WJR_UNLIKELY(n > capacity())) {
             if constexpr (is_reallocatable::value) {
-                _destroy_and_deallocate();
-
-                storage_type new_storage;
+                _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, n, n);
 
-                wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
+                if constexpr (std::is_nothrow_copy_constructible_v<value_type> &&
+                              is_trivially_allocator_construct_v<_Alty, value_type,
+                                                                 const value_type &> &&
+                              is_trivially_allocator_destroy_v<_Alty, value_type>) {
+                    wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
+                } else {
+                    const auto deallocate = [&al](_grow_storage_type *storage) {
+                        storage->deallocate(al);
+                    };
+                    std::unique_ptr<_grow_storage_type, decltype(deallocate)> rollback(&new_storage,
+                                                                                       deallocate);
+                    wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
+                    rollback.release();
+                }
+
+                _destroy_and_deallocate();
                 _take_storage(new_storage);
                 return;
             } else {
