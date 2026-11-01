@@ -1,12 +1,11 @@
 # Profiler：离线证据与可解释对比设计
 
-状态：P01 离线 Benchmark CLI 已实现，2026-10-30；MCA、cProfile 和采集服务尚未交付。
-使用方式与当前支持边界见 [工具 README](../../devtools/profiler/README.md)。
-实施顺序与验收见 [profiler 实施计划](profiler-implementation.md)。
-目标是让已有汇编、静态模型、C++/Python 实测和后续网络证据可追溯地比较，
-先交付一个无需安装采集工具的离线 CLI，再按真实需求增加 provider。
+本文保留 profiler 的数据合同、比较边界与设计时取舍，不作为当前支持版本清单。
+当前 provider、版本及已验证限制以[工具 README](../../devtools/profiler/README.md)
+和对应 provider guide 为准；交付状态与未完成工作见[实施状态](profiler-implementation.md)。
+本文初次审查于 2026-10-30，后续实现已超出当时的 P01 状态。
 
-## 交付决定
+## 初始交付决定
 
 先做一个 Python 标准库实现的离线 CLI，读入 LLVM-MCA JSON、仓库现用的
 Google Benchmark v1.9.0 JSON 和一种 cProfile 导出 JSON，输出 Markdown 与 JSON 对比报告。
@@ -16,8 +15,9 @@ Google Benchmark v1.9.0 JSON 和一种 cProfile 导出 JSON，输出 Markdown �
 优先 x86-64 的 Linux GCC/Clang、Windows MSVC/Clang 和 CPython。对敏感的共用热路径，
 在两平台分别进行同环境、同合同的 candidate/reference 对比，再观察方向是否一致；
 不同 CPU、编译器或 STL 的绝对时间不能归因于 OS。离线 CLI 在 Windows/Linux 读取同一数据合同。
-已有 Google Benchmark 两平台实测不等于本工具的 importer 已实现；ETW/WPA 则尚未验收。
-Python 采样和网络是后续能力；不增加 Windows CI 矩阵。ARM/iOS 暂后置，
+Google Benchmark 的两平台性能数据与本工具的 importer 是不同证据；当前 README 中的
+真实 fixture 输入哈希未知，因此默认比较仍为 inconclusive。curl HTTP/1.1 离线导入已实现；
+Python 采样、网络 tracing/throughput 与 ETW/WPA 尚未验收。不增加 Windows CI 矩阵。ARM/iOS 暂后置，
 有真实 workload、原生设备和工具链后再分开验收，不以交叉编译或 Linux ARM 代替设备测量。
 
 用户实际工作流固定为：
@@ -31,8 +31,9 @@ flowchart LR
     E --> F[指标变化 原始位置 限制与下一步]
 ```
 
-首个可用任务是 **P01：Google Benchmark 离线导入与合同对比**，无需等待运行采集或其他模块。
-P02 加 MCA，P03 加 cProfile 后才称为此设计的 MVP；后续 provider 不阻塞这三项。
+本设计定义的离线 MVP 由 P01（Google Benchmark）、P02（MCA）和 P03（cProfile）组成；
+三者的当前交付状态以[provider 索引](../../devtools/profiler/README.md)为准。后续 provider
+不阻塞这三项；本页的 MVP 指设计范围，不是当前剩余任务。
 
 ## 分开回答的问题
 
@@ -53,19 +54,19 @@ P02 加 MCA，P03 加 cProfile 后才称为此设计的 MVP；后续 provider �
 所有权与地址稳定性，不能根据 profiler 建议盲目声明 relocatable/noexcept。
 不把 trait 审计扩展成全部普通代码的固定流程。
 
-## 最小工具集合与复用决策
+## 设计时的工具候选与复用依据
 
-以下是 2026-10-30 已核对的固定参考，不是最新版本声明，也不自动新增依赖。
-源码活动只能说明仓库仍有更新，不能保证版本兼容性。未执行的工具不列为已支持 provider；
-正式接入前必须补该版本真实 fixture 和平台 smoke test。MVP 的固定格式与后续候选分开验收。
+以下记录 2026-10-30 的设计评估和候选版本，不是当前支持矩阵，也不自动新增依赖。
+实际支持版本、fixture 与验收边界见[provider README](../../devtools/profiler/README.md)。
+源码活动不保证版本兼容；新版本须单独验证。
 
 | 工具与固定参考 | 格式/权限/成本 | 决定 |
 | --- | --- | --- |
 | [LLVM 18.1.8](https://github.com/llvm/llvm-project/tree/llvmorg-18.1.8/llvm/tools/llvm-mca)；另核对 [20.1.0 文档](https://releases.llvm.org/20.1.0/docs/CommandGuide/llvm-mca.html) | 原生 `-json`，无需 root；Apache-2.0 WITH LLVM-exception；安装 LLVM 较大，但仅 producer 需要 | MVP 用 18.1.8 已验证格式，20.x 仅候选，fixture 通过再扩大支持 |
 | [Google Benchmark v1.9.0](https://github.com/google/benchmark/tree/v1.9.0) | 原生 JSON，普通进程权限；Apache-2.0；仓库已有构建依赖 | MVP 沿用现有版本，不为 profiler 升级库或另建 benchmark 框架 |
 | [CPython v3.12.7](https://github.com/python/cpython/tree/v3.12.7/Lib) | cProfile/pstats，原始 `.prof` 含版本相关 marshal；解释器许可证及 pstats 的 Apache notice | MVP 自有 JSON exporter，producer 上用匹配解释器转换；分析器只读 JSON |
-| [Linux perf v6.12](https://github.com/torvalds/linux/tree/v6.12/tools/perf) | stat JSON / perf.data；依赖内核权限与 PMU，GPL 条款按组件保留；不链接进 WJR | 第一批扩展，先 stat，后 record/script；无权限时仍可分析既有导出 |
-| [curl 8.10.1](https://github.com/curl/curl/tree/curl-8_10_1) | write-out JSON，curl permissive license；普通授权 HTTP 请求 | 网络首个 provider，只支持简单请求阶段，首版不装 iperf/OTel |
+| [Linux perf v6.12](https://github.com/torvalds/linux/tree/v6.12/tools/perf) | stat JSON / perf.data；依赖内核权限与 PMU，GPL 条款按组件保留；不链接进 WJR | 当时评估的版本候选；当前 perf-stat 格式依据及采集限制见 [perf stat guide](../../devtools/profiler/PERF_STAT.md) |
+| [curl 8.10.1](https://github.com/curl/curl/tree/curl-8_10_1) | write-out JSON，curl permissive license；普通授权 HTTP 请求 | 当时评估的版本候选；当前离线 provider 验证的是 8.11.1，见 [curl guide](../../devtools/profiler/CURL.md) |
 | [iperf3 3.17.1](https://github.com/esnet/iperf/tree/3.17.1) | `-J`，BSD 及组件 notice；需要自己控制两端，不扫描发现服务器 | 有传输吞吐需求再导入；不从 HTTP 请求延迟推导链路吞吐 |
 | [OTel specification v1.37.0](https://github.com/open-telemetry/opentelemetry-specification/tree/v1.37.0) | trace/span ID、时间戳；Apache-2.0；具体 SDK、OTLP proto/文件格式需另外固定 | 未来导入既有 spans；不先部署 collector，不把本规范版本当 SDK/协议版本 |
 | [py-spy v0.4.0](https://github.com/benfred/py-spy/tree/v0.4.0) | speedscope/raw，MIT；外部读目标内存，受 ptrace/容器/OS 权限影响 | Python 采样首选候选，优先导入 speedscope；不自动提权 |
@@ -82,24 +83,25 @@ perf 以 [Linux 根 COPYING](https://github.com/torvalds/linux/blob/v6.12/COPYIN
 与逐文件 SPDX 为准，组件许可/分发审计仍是正式接入条件；不存在可据以概括所有组件的
 `tools/perf/COPYING`。ETW 未固定 ADK 和分发条款，不捆绑工具。
 
-## 已验证与未验证
+## 设计快照的证据边界
 
-| 证据 | 实际结果 | 尚未证明 |
-| --- | --- | --- |
-| Windows LLVM-MCA 18.1.8 格式探针 | 明确 Linux triple、Skylake model 和 100 次模拟迭代，原生 JSON 退出 0；读取到 Summary、InstructionInfo、ResourcePressure | 不是 Linux runtime 测量；未验收 LLVM 20.x、正式 importer 或各平台采集器 |
-| CPython 3.12.7 的同名函数探针 | 两个文件的 `(file,line,name)` 有两项，`get_stats_profile()` 的按名结果只剩一项 | 未实现 exporter；未验收其他 Python 版本、递归/线程覆盖和生产 fixture 全集 |
-| 仓库 Google Benchmark v1.9.0 实测 | [B+ tree 基线](../performance/btree-baseline.md) 已在 Windows Clang/MSVC 和 Linux GCC/Clang 生成真实 JSON；[Linux 运行](https://github.com/wjr-z/wjr/actions/runs/41041208599)提供原始重复与环境信息 | 尚未实现本设计的通用导入器、semantic manifest、跨 provider 对比或回归门禁 |
-| 其他 provider | 上表固定版本源码/格式/许可证参考已核对；本机 curl 版本探针是 8.11.1 | 没有 perf/PMU、curl 8.10.1 网络请求、py-spy、Scalene、Tracy、OTel 或 ETW/WPA 采集验收 |
+本节保留 2026-10-30 的原始探针事实，不作为当前 provider 状态。当前版本、fixture 和验证
+边界以[工具 README](../../devtools/profiler/README.md)及 provider guides 为准。
 
-MCA 探针的两条指令为 `addq %rbx, %rax` 与 `imulq $3, %rax, %rax`，
-region 名为 `dependency_probe`。`SummaryView` 给出 `Iterations=100`、
-`Instructions=200`、`TotalCycles=403`、`BlockRThroughput=1`。
-这同时验证两个容易混淆的字段：只有 **2 条静态指令**；总模拟周期除迭代数的 4.03
-与块吞吐估计 1 是不同量。资源记录的 `InstructionIndex=2` 是块汇总，不能计作第三条指令。
-汇编 UTF-8 字节的 SHA-256 为
-`f92246ff6854398ad9ce8acddb65e6533816db3d74e74ed8c501a67782a327c1`。
-原探针保存的是 subprocess 换行归一化后的 stdout 摘要，不冒充生产 raw-byte artifact；
-P00/P02 仍需建立可分发、逐字节保留的正式 fixtures。
+| 早期证据 | 结论与当前边界 |
+| --- | --- |
+| Google Benchmark | [B+ tree 基线](../performance/btree-baseline.md)在 Windows 与 Linux 产生真实 JSON；[Linux 运行](https://github.com/wjr-z/wjr/actions/runs/41041208599)保留重复与环境。当前 importer 和 fixture 限制见 [provider README](../../devtools/profiler/README.md) |
+| Windows LLVM-MCA 格式探针 | 明确 Linux triple、Skylake model、100 次模拟及 Summary/InstructionInfo/ResourcePressure。它是 model simulation，不是 Linux runtime；后续实现证据见 [MCA guide](../../devtools/profiler/LLVM_MCA.md) |
+| CPython 同名函数探针 | 两个文件的 `(file,line,name)` 有两项，按名归并会丢数据；后续 exporter 的版本和行为证据见 [cProfile guide](../../devtools/profiler/CPROFILE.md) |
+| perf stat 与 curl | 设计后补充了被拒绝的 PMU capture 和 owned-localhost fixture；来源及当前验证范围见 [perf guide](../../devtools/profiler/PERF_STAT.md) 与 [curl guide](../../devtools/profiler/CURL.md) |
+
+早期 MCA 探针仅含 `addq %rbx, %rax` 和 `imulq $3, %rax, %rax`，region 为
+`dependency_probe`：100 次模拟、200 条模拟指令、`TotalCycles=403`、
+`BlockRThroughput=1`。只有 **2 条静态指令**；4.03 cycles/iteration 与块吞吐 1 是不同
+指标，`InstructionIndex=2` 是块汇总而非第三条指令。探针汇编 UTF-8 字节的 SHA-256 为
+`f92246ff6854398ad9ce8acddb65e6533816db3d74e74ed8c501a67782a327c1`。该早期记录是
+subprocess 换行归一化后的 stdout 摘要，不是 raw-byte fixture；正式 fixture 的来源和字节
+保留方式见 [MCA guide](../../devtools/profiler/LLVM_MCA.md)。
 
 ## Artifact 与最小数据合同 v1
 
@@ -128,7 +130,7 @@ ops/items/bytes 的归一化必须来自显式工作量，不把名字里出现�
 
 薄适配器是内部函数 `import_artifact(raw, manifest) -> observations + diagnostics`。
 只实现实际使用字段；原始扩展字段仍可回查，不全量重新导出上游 API。
-集中注册三个 importer 即可，不建动态插件 ABI。schema major 不支持时报错；未知 optional 字段保留来源。
+集中注册实际需要的 importer，不建动态插件 ABI。schema major 不支持时报错；未知 optional 字段保留来源。
 未知工具版本只能进入 exploratory 结果，不能静默假设格式和指标语义未变。
 
 ## 三个 MVP importer 的具体边界
@@ -151,8 +153,8 @@ ResourcePressureInfo 中 InstructionIndex 等于该块指令数的记录是块�
 timeline/bottleneck 文本作为原始附件，后续仅在真实需求时增加版本化解析。
 带 call/unsupported instruction、忽略错误或不完整 region 的数据必须标记限制，不能给出整体零开销结论。
 
-**Python：**v1 使用 `wjr.cprofile-json/1`，producer exporter 针对 CPython 3.12.x 核对，
-当前仅 3.12.7 执行通过。在 producer 上从 `pstats.Stats.stats` 的版本相关 tuple 导出
+**Python：**v1 使用 `wjr.cprofile-json/1`。在匹配的 producer 上从 `pstats.Stats.stats` 的
+版本相关 tuple 导出
 `(file,line,name)`、primitive_calls/total_calls、self_s/cumulative_s 与 caller edges；
 该内部映射是有版本边界的薄适配，不能假装稳定的跨版本 `.prof` 协议。
 默认只接收 JSON；用户自有 `.prof` 的显式转换留在匹配 producer，不分析任意不可信 marshal。

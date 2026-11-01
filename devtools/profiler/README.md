@@ -1,19 +1,27 @@
 <!-- markdownlint-disable MD043 -->
 <!-- This tool guide uses CLI-oriented sections, not the fixed document template. -->
 
-# WJR offline profiler - P01
+# WJR offline profiler
 
-Python 3.10+, standard library only. The analysis machine needs no compiler,
-benchmark executable, LLVM, network connection or collector. This implements P01
-from [the profiler plan](../../docs/design/profiler-implementation.md).
-[LLVM-MCA estimates](LLVM_MCA.md) and cProfile JSON are supported; collection
-services and regression gates are not implemented. P03's JSON
-import, explicit local export and single-run hotspots are in [cProfile](CPROFILE.md).
-[P05 curl request stages](CURL.md) adds offline curl 8.11.1 JSONL import and
-request summaries from independently started HTTP/1.1 GET processes.
-[P04 perf stat counters](PERF_STAT.md) imports source-checked Linux perf
-JSONL and reports whole-process counts or explicit unavailable diagnostics;
-positive hardware collection was blocked on the fixture worker.
+Python 3.10+, standard library only. Import and report generation are offline;
+the analysis machine needs no compiler, benchmark executable, LLVM, network
+connection or collector. This page is the current provider/version index;
+design contracts are in the [design record](../../docs/design/profiler.md),
+and remaining acceptance work is in the [implementation status](../../docs/design/profiler-implementation.md).
+
+| Provider | Verified input/version | Available operation | Limit |
+| --- | --- | --- | --- |
+| Google Benchmark | v1.9.0, `context.json_schema_version=1` | Import and compare benchmark JSON | The bundled B+ tree fixture has an unknown input-data hash; its default comparison is inconclusive |
+| LLVM-MCA | 18.1.8 JSON | Import and compare model estimates | Fixture is a Windows-produced simulation with an explicit Linux target; other versions are exploratory, not Linux runtime evidence |
+| cProfile | `wjr.cprofile-json/1`; exporter verified on CPython 3.12.7 | Import JSON, explicitly export a local `.prof` on its matching producer, summarize one profile | `.prof` is version-specific; exporter support outside the verified producer is untested |
+| Linux perf stat | JSON source-checked against Linux v6.8.12 | Import and summarize whole-process counters or unavailable diagnostics | The fixture worker denied both hardware and tool-event collection; no positive PMU capture is claimed. Other perf versions are exploratory |
+| curl | 8.11.1 native `%{json}` JSONL | Import and summarize independent HTTP/1.1 request processes | Verified with an owned localhost server; unknown curl versions are exploratory |
+
+Provider guides document exact contracts, fixtures, and reproduction steps:
+[Google Benchmark](#supported-input-and-provenance), [LLVM-MCA](LLVM_MCA.md),
+[cProfile](CPROFILE.md), [perf stat](PERF_STAT.md), and [curl](CURL.md).
+Collection services, py-spy/Scalene/Tracy, iperf3/OTel, ETW/WPA and performance
+regression gates are not implemented.
 
 From the repository root:
 
