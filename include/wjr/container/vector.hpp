@@ -70,6 +70,7 @@
 #ifndef WJR_CONTAINER_VECTOR_HPP__
 #define WJR_CONTAINER_VECTOR_HPP__
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 
@@ -85,6 +86,13 @@
 #include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace wjr {
+
+namespace vector_detail {
+template <typename Range, typename T>
+concept insertable_range = detail::_container_compatible_range<Range, T> &&
+                           std::is_move_constructible_v<T> && std::is_move_assignable_v<T> &&
+                           std::is_assignable_v<T &, std::ranges::range_reference_t<Range>>;
+} // namespace vector_detail
 
 template <typename T, typename Alloc>
 class vector_storage_traits {
@@ -711,6 +719,12 @@ private:
         basic_vector *m_owner;
     };
 
+    struct _no_storage_rollback {
+        template <typename Deleter>
+        constexpr _no_storage_rollback(_grow_storage_type *, const Deleter &) noexcept {}
+        constexpr void release() noexcept {}
+    };
+
     template <typename Ty>
     WJR_CONSTEXPR20 void _construct_n(const size_type n, Ty &&val) {
         if (WJR_LIKELY(n != 0)) {
@@ -1215,6 +1229,52 @@ public:
         return begin() + old_pos;
     }
 
+    /**
+     * @brief Insert a C++20 range before pos and return its first element's position.
+     * @pre pos belongs to this vector and the source does not overlap its live elements.
+     * @details Sized/forward sources grow at most once. Unsized input is consumed once,
+     * appending before rotating the suffix. On failure all live elements remain owned;
+     * throwing moves/assignment may change values, and input failure may leave an appended prefix.
+     */
+    template <vector_detail::insertable_range<value_type> Range>
+    WJR_CONSTEXPR20 iterator insert_range(const_iterator pos, Range &&range) {
+        const auto offset = static_cast<size_type>(pos - cbegin());
+        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
+            const auto count = [&] {
+                if constexpr (std::ranges::sized_range<Range>)
+                    return std::ranges::size(range);
+                else
+                    return std::ranges::distance(range);
+            }();
+            if (count > max_size() - size()) {
+                WJR_THROW(std::length_error("vector::insert_range: size overflow"));
+            }
+            if (count != 0) {
+                auto first = [&] {
+                    if constexpr (std::copy_constructible<std::ranges::iterator_t<Range>>)
+                        return wjr::_iter_base(std::ranges::begin(range));
+                    else
+                        return std::ranges::begin(range);
+                }();
+                _range_insert_n<decltype(first)>(data() + offset, first,
+                                                 static_cast<size_type>(count));
+            }
+        } else {
+            const auto original_size = size();
+            auto first = std::ranges::begin(range);
+            const auto last = std::ranges::end(range);
+            for (; first != last;) {
+                if (size() == max_size()) {
+                    WJR_THROW(std::length_error("vector::insert_range: size overflow"));
+                }
+                _range_insert_n<decltype(first)>(end_unsafe(), first, 1);
+            }
+            if (offset != original_size && size() != original_size)
+                std::rotate(data() + offset, data() + original_size, end_unsafe());
+        }
+        return begin() + offset;
+    }
+
     WJR_CONSTEXPR20 iterator erase(const_iterator pos) noexcept(
         std::is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
         return _erase(_get_pointer(pos));
@@ -1612,29 +1672,85 @@ private:
             return;
         }
 
+        const auto n = static_cast<size_type>(std::distance(first, last));
+        _range_insert_n<Iter>(pos, first, n);
+    }
+
+    template <typename Iter>
+    WJR_CONSTEXPR20 pointer _construct_range_n(Iter &first, size_type n, pointer output) noexcept(
+        std::is_pointer_v<Iter> && std::is_pointer_v<pointer> &&
+        std::is_nothrow_constructible_v<value_type, iterator_reference_t<Iter>> &&
+        is_trivially_allocator_construct_v<_Alty, value_type, iterator_reference_t<Iter>> &&
+        is_trivially_allocator_destroy_v<_Alty, value_type>) {
+        auto &al = _get_allocator();
+        if constexpr (std::is_pointer_v<Iter>) {
+            const auto result =
+                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, output, al);
+            first += n;
+            return result;
+        } else {
+            _uninitialized_rollback<pointer, _Alty> rollback(output, &al);
+            auto &current = rollback.current();
+            for (; n != 0; --n, (void)++current, (void)++first)
+                wjr::uninitialized_construct_using_allocator(current, al, *first);
+            rollback.release();
+            return current;
+        }
+    }
+
+    template <typename Iter>
+    WJR_CONSTEXPR20 static void _assign_range_n(Iter &first, size_type n, pointer output) noexcept(
+        std::is_pointer_v<Iter> && std::is_pointer_v<pointer> &&
+        std::is_nothrow_assignable_v<value_type &, iterator_reference_t<Iter>>) {
+        if constexpr (std::is_pointer_v<Iter>) {
+            std::copy_n(first, n, output);
+            first += n;
+        } else {
+            for (; n != 0; --n, (void)++output, (void)++first)
+                *output = *first;
+        }
+    }
+
+    WJR_CONSTEXPR20 pointer _move_range_n(pointer first, size_type n, pointer output) noexcept(
+        std::is_pointer_v<pointer> && std::is_nothrow_move_constructible_v<value_type> &&
+        is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+        is_trivially_allocator_destroy_v<_Alty, value_type>) {
+        return wjr::uninitialized_move_n_restrict_using_allocator(first, n, output,
+                                                                  _get_allocator());
+    }
+
+    template <typename Iter>
+    using _insertion_cursor = std::conditional_t<std::is_pointer_v<Iter>, Iter, Iter &>;
+
+    template <typename Iter>
+    WJR_CONSTEXPR20 void _range_insert_n(pointer pos, _insertion_cursor<Iter> first, size_type n) {
+
         auto &al = _get_allocator();
         const pointer _begin = data();
         const pointer _end = end_unsafe();
         const pointer _buf_end = buf_end_unsafe();
 
-        const auto n = static_cast<size_type>(std::distance(first, last));
         const auto _rest = static_cast<size_type>(_buf_end - _end);
 
         if (WJR_LIKELY(_rest >= n)) {
             const auto _elements_after = static_cast<size_type>(_end - pos);
-            if (_elements_after > n) {
-                wjr::uninitialized_move_n_restrict_using_allocator(_end - n, n, _end, al);
+            if (_elements_after >= n) {
+                _uninitialized_rollback<pointer, _Alty> rollback(_end, &al);
+                _move_range_n(_end - n, n, _end);
+                rollback.current() = _end + n;
                 std::move_backward(pos, _end - n, _end);
-                wjr::copy_restrict(first, last, pos);
+                _assign_range_n(first, n, pos);
+                _get_size() += n;
+                rollback.release();
             } else {
-                const auto mid = std::next(first, _elements_after);
-
-                wjr::uninitialized_copy_restrict_using_allocator(mid, last, _end, al);
-                wjr::uninitialized_move_restrict_using_allocator(pos, _end, pos + n, al);
-                wjr::copy_restrict(first, mid, pos);
+                _uninitialized_rollback<pointer, _Alty> rollback(pos + n, &al);
+                _move_range_n(pos, _elements_after, pos + n);
+                rollback.current() = _end + n;
+                _assign_range_n(first, _elements_after, pos);
+                _construct_range_n(first, n - _elements_after, _end);
+                _get_size() += n;
+                rollback.release();
             }
-
-            _get_size() += n;
         } else {
             if constexpr (is_reallocatable::value) {
                 const auto old_size = static_cast<size_type>(_end - _begin);
@@ -1645,17 +1761,31 @@ private:
                 uninitialized_construct(new_storage, old_size + n, new_capacity);
 
                 const pointer _new_begin = new_storage.data();
-
-                /// @todo this can be optimize by using relocate.
-
-                wjr::uninitialized_copy_restrict_using_allocator(first, last, _new_begin + old_pos,
-                                                                 al);
-                wjr::uninitialized_move_restrict_using_allocator(_begin, pos, _new_begin, al);
-                wjr::uninitialized_move_restrict_using_allocator(pos, _end,
-                                                                 _new_begin + old_pos + n, al);
+                const auto deallocate = [&al](_grow_storage_type *storage) {
+                    storage->deallocate(al);
+                };
+                constexpr bool needs_rollback =
+                    !noexcept(_construct_range_n(first, n, _new_begin)) ||
+                    !noexcept(_move_range_n(_begin, old_pos, _new_begin)) ||
+                    !std::is_nothrow_destructible_v<value_type> ||
+                    !_is_nothrow_take_storage_impl<_grow_storage_type>;
+                using allocation_guard =
+                    std::conditional_t<needs_rollback,
+                                       std::unique_ptr<_grow_storage_type, decltype(deallocate)>,
+                                       _no_storage_rollback>;
+                allocation_guard allocation(&new_storage, deallocate);
+                _uninitialized_rollback<pointer, _Alty> inserted(_new_begin + old_pos, &al);
+                _uninitialized_rollback<pointer, _Alty> prefix(_new_begin, &al);
+                inserted.current() = _construct_range_n(first, n, _new_begin + old_pos);
+                _move_range_n(_begin, old_pos, _new_begin);
+                prefix.current() = _new_begin + old_pos;
+                _move_range_n(pos, old_size - old_pos, _new_begin + old_pos + n);
 
                 _destroy_and_deallocate();
                 _take_storage(new_storage);
+                prefix.release();
+                inserted.release();
+                allocation.release();
             } else {
                 _unreallocatable_unreachable(size() + n);
             }
