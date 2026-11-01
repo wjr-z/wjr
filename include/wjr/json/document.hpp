@@ -1155,9 +1155,15 @@ public:
 
     void _emplace_null() noexcept { m_value.set(null_t()); }
     void _emplace_boolean(bool value) noexcept { m_value.set(boolean_t(), value); }
-    void _emplace_number_unsigned(bool value) noexcept { m_value.set(number_unsigned_t(), value); }
-    void _emplace_number_signed(bool value) noexcept { m_value.set(number_signed_t(), value); }
-    void _emplace_number_float(bool value) noexcept { m_value.set(number_float_t(), value); }
+    void _emplace_number_unsigned(number_unsigned_type value) noexcept {
+        m_value.set(number_unsigned_t(), value);
+    }
+    void _emplace_number_signed(number_signed_type value) noexcept {
+        m_value.set(number_signed_t(), value);
+    }
+    void _emplace_number_float(number_float_type value) noexcept {
+        m_value.set(number_float_t(), value);
+    }
 
     template <typename... Args>
     void _emplace_string(Args &&...args) {
@@ -1179,24 +1185,28 @@ public:
         _emplace_null();
     }
 
+    /// @brief Destroy the current value and construct a boolean initialized to false.
     void emplace_boolean() noexcept {
         reset();
-        _emplace_boolean();
+        _emplace_boolean(false);
     }
 
+    /// @brief Destroy the current value and construct an unsigned integer initialized to zero.
     void emplace_number_unsigned() noexcept {
         reset();
-        _emplace_number_unsigned();
+        _emplace_number_unsigned(number_unsigned_type{});
     }
 
+    /// @brief Destroy the current value and construct a signed integer initialized to zero.
     void emplace_number_signed() noexcept {
         reset();
-        _emplace_number_signed();
+        _emplace_number_signed(number_signed_type{});
     }
 
+    /// @brief Destroy the current value and construct a floating-point number initialized to zero.
     void emplace_number_float() noexcept {
         reset();
-        _emplace_number_float();
+        _emplace_number_float(number_float_type{});
     }
 
     void emplace_string() {
