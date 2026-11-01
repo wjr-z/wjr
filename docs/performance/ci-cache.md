@@ -104,6 +104,57 @@ Local Windows Clang 18 validation passed all 19 tests with two workers; a pair
 of fresh configuration directories took 29.24 s serial and 15.22 s with two
 workers. This local result does not establish the same saving on every runner.
 
+The main unit executable can also use GoogleTest's built-in sharding protocol.
+`WJR_ENABLE_TEST_SHARDING` defaults to `OFF`, preserving the single `wjr_tests`
+CTest entry. Linux and Windows CI enable it and register `wjr_tests_shard_0`
+and `wjr_tests_shard_1`, both running the same executable in the existing test
+working directory. GoogleTest assigns each enabled test case to exactly one
+process through `GTEST_TOTAL_SHARDS=2` and `GTEST_SHARD_INDEX`; no source-path or
+case-name lists are maintained. The existing `ctest --parallel 2` runs the two
+shards within the same job. Compiler objects, linking, the Windows matrix and
+the other CTest entries retain their current coverage.
+
+For a local run:
+
+```sh
+cmake -S . -B build -DWJR_BUILD_TESTS=ON -DWJR_ENABLE_TEST_SHARDING=ON
+cmake --build build --target tests
+ctest --test-dir build --parallel 2 --output-on-failure
+```
+
+Filtering with `ctest -R wjr_tests` includes both shards. A single externally supplied
+`GTEST_OUTPUT` file is unsuitable for parallel shards; leave it unset and use
+CTest's `--output-junit` (CTest 3.21 or newer) for an aggregated CTest report.
+If coverage and sharding are both enabled, each CTest shard writes a separate
+`LLVM_PROFILE_FILE` containing
+its shard index and process ID. The `coverage` target still directly runs the
+complete executable once and generates its existing combined report.
+
+This reduces the unit executable's elapsed time, rather than selecting or
+skipping tests. Build, tool installation, configuration fixtures and runner
+queue time remain separate costs; a percentage improvement of the unit
+executable does not imply the same improvement for the complete CI job.
+
+Bounded controls ran the same compiled executable three times in each mode,
+interleaving single-process and two-shard runs. Every run's case names were
+checked for missing or duplicated cases. Windows used an otherwise idle local
+Core i5-13500HX with Clang 18.1.8, C++20 baseline, without ASan or GMP. The
+[Linux controls](https://github.com/wjr-z/wjr/actions/runs/41279745425) used
+C++20 native, assertion level 3, ASan and GMP on the same host within each job.
+
+| Profile | Cases | One process median | Two shards median | Peak sampled aggregate RSS, one/two |
+| --- | ---: | ---: | ---: | ---: |
+| Windows Clang 18 | 676 | 4.79 s | 3.43 s | 208 / 211 MB |
+| Linux Clang 18 | 704 | 32.83 s | 15.66 s | 1.10 / 1.53 GB |
+| Linux GCC 13 | 704 | 40.51 s | 20.41 s | 1.05 / 1.48 GB |
+
+RSS was sampled every 5 ms on Windows and 10 ms on Linux, so these are observed
+peaks rather than allocation bounds. In particular, concurrent ASan processes
+use more memory. These measurements do not include build or provider-fixture
+time and are not whole-job speedup guarantees.
+
+Reference: [GoogleTest sharding protocol](https://google.github.io/googletest/advanced.html#distributing-test-functions-to-multiple-machines).
+
 Linux, Windows and pre-commit cancel superseded workflow runs for the same PR.
 Different PRs, main pushes and manual runs have separate concurrency groups.
 This releases capacity when a PR is revised; it does not reduce the matrix or

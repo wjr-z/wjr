@@ -190,7 +190,7 @@ jobs:
           if [[ "${{matrix.sys.compiler}}" == "clang" && "${{matrix.sys.version}}" == "20" && "${{matrix.sys.standard}}" == "20" ]]; then
             benchmark_args+=(-DWJR_BUILD_BENCHMARKS=ON -DWJR_BENCHMARK_PROFILE=simd -DWJR_BENCHMARK_XSIMD=ON -DWJR_ENABLE_XSIMD=ON -DWJR_ENABLE_NP_CBLAS=ON -DWJR_ENABLE_TBB=ON)
           fi
-          cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON \
+          cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release -DWJR_BUILD_TESTS=ON -DWJR_ENABLE_TEST_SHARDING=ON \
             -DWJR_DEBUG_LEVEL_RELEASE=3 -DWJR_ENABLE_ASAN=ON \
             -DWJR_CXX_STANDARD=${{matrix.sys.standard}} -DWJR_CPU_TARGET=${{matrix.sys.cpu}} \
             -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/wjr-fetchcontent" \
