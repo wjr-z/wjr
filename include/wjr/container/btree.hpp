@@ -168,8 +168,12 @@ struct is_inline_key {
     static constexpr bool value = false;
 };
 
+/// @brief Preserve the library's customizable completeness test before inspecting key storage.
 template <typename Key>
-struct is_inline_key<Key, std::enable_if_t<is_complete_v<Key>>> {
+concept complete_btree_key = is_complete_v<Key>;
+
+template <complete_btree_key Key>
+struct is_inline_key<Key, void> {
     static constexpr bool value = std::is_trivial_v<Key> && sizeof(Key) <= 8;
 };
 
@@ -771,139 +775,52 @@ WJR_INTRINSIC_INLINE unsigned int linear_search_step2(unsigned int size, unsigne
 } // namespace btree_detail
 
 /**
- * @brief Search implementation for small node sizes (N <= 8)
- *
- * Uses simple linear search with step=2 optimization.
- * Best performance for node sizes in range [4, 8].
- *
- * Performance characteristics:
- * - Average case: ~3.5 comparisons for node_size=8
- * - Best case: 1-2 comparisons
- * - Worst case: ~4 comparisons
- * - Excellent cache behavior
+ * @brief Select the existing node-local search algorithm at compile time.
+ * @details Up to eight slots use the step-two scan; nine through sixteen use
+ * the midpoint hybrid; larger capacities use binary search. Keep the public
+ * defaulted Enable parameter through the void specialization for compatibility.
  */
 template <size_t N>
-struct basic_btree_searcher_impl<N, std::enable_if_t<(N <= 8)>> {
+struct basic_btree_searcher_impl<N, void> {
     static constexpr size_t node_size = N;
 
-public:
     template <size_t Min, typename Compare>
     WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
                                                     const Compare &comp) noexcept {
         static_assert(Min == 1, "Minimum search size must be 1");
 
-        WJR_ASSERT_ASSUME_L2(size >= Min);
-        WJR_ASSERT_ASSUME_L2(size <= node_size);
-
-        return btree_detail::linear_search_step2(size, 0, comp);
-    }
-};
-
-/**
- * @brief Search implementation for medium node sizes (8 < N <= 16)
- *
- * Hybrid approach combining mid-point check with linear search:
- * 1. Check mid-point to determine which half to search
- * 2. Use linear search (step=2) within selected half
- *
- * This balances:
- * - Reducing average comparisons (via mid-point check)
- * - Maintaining good branch prediction (via linear search)
- * - Excellent cache locality
- *
- * Best performance for node sizes in range [9, 16].
- *
- * Performance characteristics:
- * - Average case: ~4.5 comparisons for node_size=16
- * - Better than pure linear (would be ~8)
- * - Similar to binary search but better branch prediction
- */
-template <size_t N>
-struct basic_btree_searcher_impl<N, std::enable_if_t<(N > 8 && N <= 16)>> {
-    static constexpr size_t node_size = N;
-
-private:
-    template <typename Compare>
-    WJR_INTRINSIC_INLINE static unsigned int hybrid_search_impl(unsigned int size,
-                                                                const Compare &comp) noexcept {
-        constexpr unsigned int mid = node_size / 2;
-
-        // Determine which half to search based on mid-point comparison
-        unsigned int offset;
-        if (size <= mid || comp(mid)) {
-            offset = 0; // Search lower half [0, mid)
+        /// Small/medium search retains its original level-two assumptions.
+        if constexpr (node_size <= 16) {
+            WJR_ASSERT_ASSUME_L2(size >= Min);
+            WJR_ASSERT_ASSUME_L2(size <= node_size);
         } else {
-            offset = mid; // Search upper half [mid, size)
+            WJR_ASSERT_ASSUME(size >= Min);
+            WJR_ASSERT_ASSUME(size <= node_size);
         }
 
-        // Use linear search within selected half
-        return btree_detail::linear_search_step2(size, offset, comp);
-    }
-
-public:
-    template <size_t Min, typename Compare>
-    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
-                                                    const Compare &comp) noexcept {
-        static_assert(Min == 1, "Minimum search size must be 1");
-
-        WJR_ASSERT_ASSUME_L2(size >= Min);
-        WJR_ASSERT_ASSUME_L2(size <= node_size);
-
-        return hybrid_search_impl(size, comp);
-    }
-};
-
-/**
- * @brief Search implementation for large node sizes (N > 16)
- *
- * Uses standard binary search for optimal O(log N) performance.
- * For large node sizes, the logarithmic advantage outweighs
- * the slightly worse branch prediction.
- *
- * Best performance for node sizes >= 17.
- *
- * Performance characteristics:
- * - Average case: ~log2(N) comparisons
- * - For node_size=32: ~5 comparisons
- * - For node_size=64: ~6 comparisons
- * - Predictable worst case
- *
- * @note For very large node sizes (> 32), cache miss cost may dominate
- */
-template <size_t N>
-struct basic_btree_searcher_impl<N, std::enable_if_t<(N > 16)>> {
-    static constexpr size_t node_size = N;
-
-private:
-    template <typename Compare>
-    WJR_INTRINSIC_INLINE static unsigned int binary_search_impl(unsigned int size,
-                                                                const Compare &comp) noexcept {
-        unsigned int L = 0, R = size;
-
-        // Standard binary search: find first position where comp(mid) is true
-        while (L < R) {
-            unsigned int mid = (L + R) >> 1; // Equivalent to (L + R) / 2
-
-            if (comp(mid)) {
-                R = mid; // Key < element[mid], search left half
+        if constexpr (node_size <= 8) {
+            return btree_detail::linear_search_step2(size, 0, comp);
+        } else if constexpr (node_size <= 16) {
+            constexpr unsigned int mid = node_size / 2;
+            unsigned int offset;
+            if (size <= mid || comp(mid)) {
+                offset = 0;
             } else {
-                L = mid + 1; // Key >= element[mid], search right half
+                offset = mid;
             }
+            return btree_detail::linear_search_step2(size, offset, comp);
+        } else {
+            unsigned int L = 0, R = size;
+            while (L < R) {
+                unsigned int mid = (L + R) >> 1;
+                if (comp(mid)) {
+                    R = mid;
+                } else {
+                    L = mid + 1;
+                }
+            }
+            return R;
         }
-
-        return R; // Returns insertion position
-    }
-
-public:
-    template <size_t Min, typename Compare>
-    WJR_INTRINSIC_INLINE static unsigned int search(unsigned int size,
-                                                    const Compare &comp) noexcept {
-        static_assert(Min == 1, "Minimum search size must be 1");
-
-        WJR_ASSERT_ASSUME(size >= Min);
-        WJR_ASSERT_ASSUME(size <= node_size);
-
-        return binary_search_impl(size, comp);
     }
 };
 

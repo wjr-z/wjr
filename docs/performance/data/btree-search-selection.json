@@ -1,0 +1,55 @@
+{
+  "base": "3be197c1507655c5ee73418c37fcdbb52a991279",
+  "compiler": "WindowsClang18.1.8/MSVCSTL143.202408",
+  "native_cpu": "i5-13500HX",
+  "codegen": {
+    "base": "3be197c1507655c5ee73418c37fcdbb52a991279",
+    "scope": "searchN4/5/8/9/16/17/32/64;real map/set/string/compact bounds and layouts",
+    "normalization": "comments and blank lines only",
+    "profiles": {
+      "baseline": {
+        "identical": true,
+        "normalized_sha256": [
+          "cc01876f0132e6a318e63c817c7d8f2af17e53259de91fb04a70f3078d09f4a2",
+          "cc01876f0132e6a318e63c817c7d8f2af17e53259de91fb04a70f3078d09f4a2"
+        ]
+      },
+      "native": {
+        "identical": true,
+        "normalized_sha256": [
+          "70de4d585e8e84071057b8f02e6fd71b39b8c3beb55982375ddec8e278ce9ae5",
+          "70de4d585e8e84071057b8f02e6fd71b39b8c3beb55982375ddec8e278ce9ae5"
+        ]
+      }
+    }
+  },
+  "instantiation_trace": {
+    "compiler": "WindowsClang18.1.8",
+    "trace_granularity_us": 0,
+    "scope": "one probe TU;8 direct capacity searches+real map/set/string/compact bounds",
+    "wall_time_claim": false,
+    "counts": {
+      "old": {
+        "search_member_function_instantiations": 29,
+        "all_function_instantiations": 572,
+        "search_class_instantiations": 11,
+        "private_helper_instantiations": 13
+      },
+      "new": {
+        "search_member_function_instantiations": 16,
+        "all_function_instantiations": 559,
+        "search_class_instantiations": 11,
+        "private_helper_instantiations": 0
+      }
+    }
+  },
+  "asm_flags": "-std=c++20 -O3 -DNDEBUG -DWJR_DEBUG_LEVEL=0 -DFMT_HEADER_ONLY -S -masm=intel -fno-ident -Wno-return-type-c-linkage;baseline -march=x86-64;native -march=native",
+  "trace_flags": "-std=c++20 -O0 -DNDEBUG -DWJR_DEBUG_LEVEL=0 -DFMT_HEADER_ONLY -c -ftime-trace -ftime-trace-granularity=0",
+  "throughput_or_build_walltime_claim": false,
+  "source_sha256": {
+    "reference_header": "e7695743611ed43c19498c53ce4718be283c6e020fc87c3e562ae9f3f859ac5d",
+    "candidate_header": "8a48ffbc46473407a059082999ba2cb72a13f6e391c5a292c3f76b231947a4ae",
+    "probe": "4eebc8fdbb7783de380230ad9a7600e4e961bb8499d42657e40d70f5088cbbfd"
+  },
+  "probe_source": "#include <string>\n#include <wjr/container/btree_map.hpp>\n#include <wjr/container/btree_set.hpp>\n#include <wjr/container/experimental/compact_btree_map.hpp>\n\n#define SEARCH(N) \\\nextern \"C\" unsigned search##N(const int *values, unsigned size, int key) { \\\n    return wjr::basic_btree_searcher_impl<N>::search<1>(size, [=](unsigned i) { return values[i] >= key; }); \\\n}\nSEARCH(4)\nSEARCH(5)\nSEARCH(8)\nSEARCH(9)\nSEARCH(16)\nSEARCH(17)\nSEARCH(32)\nSEARCH(64)\n\nusing map16 = wjr::btree_map<int, int>;\nusing strings = wjr::btree_map<std::string, int, std::less<>>;\nusing set32 = wjr::btree_set<unsigned long long, std::less<>, std::allocator<char>, 32>;\nusing compact64 = wjr::experimental::compact_btree_map<int, int, std::less<>, std::allocator<char>, 64>;\nextern \"C\" auto map_bound(const map16 &tree, int key) { return tree.lower_bound(key); }\nextern \"C\" auto map_upper(const map16 &tree, int key) { return tree.upper_bound(key); }\nextern \"C\" auto string_bound(const strings &tree, std::string_view key) { return tree.lower_bound(key); }\nextern \"C\" auto set_bound(const set32 &tree, unsigned long long key) { return tree.lower_bound(key); }\nextern \"C\" auto compact_bound(const compact64 &tree, int key) { return tree.lower_bound(key); }\nextern \"C\" const size_t layouts[] = { sizeof(map16), alignof(map16), sizeof(map16::iterator),\n    sizeof(strings), sizeof(set32), sizeof(compact64), alignof(compact64),\n    sizeof(wjr::basic_btree_searcher_impl<16>), sizeof(wjr::basic_btree_searcher_impl<64>) };\n"
+}
