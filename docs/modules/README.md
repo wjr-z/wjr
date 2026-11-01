@@ -80,6 +80,12 @@ compact representation and its consumer are not implemented.
 资源并传播到嵌套值、字符串和容器；默认 `document` 保持原表示及分配路径。
 参见[池复用示例](../../examples/json/README.md)及[性能取舍](../performance/json-pmr.md)。
 
+`document` 与 `pmr_document` 的无参 `emplace_boolean()`、`emplace_number_unsigned()`、
+`emplace_number_signed()`、`emplace_number_float()` 销毁旧值后构造 false 或对应类型的零。
+这些函数返回 `void`、保持 `noexcept`，不返回未初始化写入槽；PMR 资源身份不变，
+旧字符串、对象或数组的分配按原资源释放。需要非零标量时直接使用既有的数值构造/赋值，
+不必先调用默认 emplace。解析、数值转换及输入所有权合同不受影响。
+
 ## `wjr::ring_buffer`
 
 环形缓冲区容器，适合先进先出、固定容量或连续生产消费场景。
