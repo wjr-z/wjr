@@ -2070,6 +2070,160 @@ private:
         _assign_tree<const value_type &>(other);
     }
 
+    /// @brief Release retired storage, advancing before any cursor leaf is unlinked or freed.
+    void _destroy_copy_branch(node_type *current, list_node_type *&cursor) noexcept {
+        const auto size = current->size();
+        if (size < 0) {
+            auto *const leaf = current->as_leaf();
+            if (cursor == static_cast<list_node_type *>(leaf))
+                cursor = leaf->next();
+            leaf->remove();
+            for (slot_usize_type i = 0; i < static_cast<slot_usize_type>(-size); ++i)
+                _destroy_slot(leaf->m_values[i]);
+            _drop_leaf_node(leaf);
+        } else {
+            auto *const inner = current->as_inner();
+            for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i)
+                _destroy_copy_branch(inner->m_sons[i], cursor);
+            _drop_inner_node(inner);
+        }
+    }
+
+    /// @brief Clone a branch immediately before the next unconsumed retired leaf.
+    std::pair<ikey_type, node_type *> _clone_copy_branch(const node_type *source,
+                                                         list_node_type *cursor) noexcept {
+        const auto size = source->size();
+        if (size < 0) {
+            auto *const leaf = _create_leaf_node();
+            leaf->size() = size;
+            for (slot_usize_type i = 0; i < static_cast<slot_usize_type>(-size); ++i)
+                _construct_leaf_value(leaf, i, from_ivalue(source->as_leaf()->m_values[i]));
+            cursor->push_back(leaf);
+            return {to_ikey(leaf->get_key(0)), leaf};
+        }
+        auto *const inner = _create_inner_node();
+        inner->size() = size;
+        ikey_type first_key;
+        for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
+            auto [key, child] = _clone_copy_branch(source->as_inner()->m_sons[i], cursor);
+            inner->m_sons[i] = child;
+            child->m_parent = inner;
+            child->pos() = i;
+            if (i == 0)
+                first_key = key;
+            else
+                inner->m_keys[i - 1] = key;
+        }
+        return {first_key, inner};
+    }
+
+    /// @brief Copy every value while reusing existing allocation prefixes, never comparing values.
+    void _reuse_copy_slots(leaf_node_type *destination, const leaf_node_type *source,
+                           slot_usize_type old_count, slot_usize_type count) noexcept {
+        for (slot_usize_type i = count; i < old_count; ++i)
+            _destroy_slot(destination->m_values[i]);
+        auto &alloc = _get_allocator();
+        const auto shared = std::min(old_count, count);
+        for (slot_usize_type i = 0; i < shared; ++i) {
+            auto *const value = std::addressof(from_ivalue(destination->m_values[i]));
+            destroy_at_using_allocator(value, alloc);
+            uninitialized_construct_using_allocator(value, alloc, from_ivalue(source->m_values[i]));
+        }
+        for (slot_usize_type i = shared; i < count; ++i)
+            _construct_leaf_value(destination, i, from_ivalue(source->m_values[i]));
+    }
+
+    /// @brief Reuse a leaf in its existing chain position; every stored value is still copied.
+    WJR_INTRINSIC_INLINE ikey_type _reuse_copy_leaf(leaf_node_type *leaf,
+                                                    const leaf_node_type *source,
+                                                    list_node_type *&cursor) noexcept {
+        WJR_ASSERT_L2(cursor == static_cast<list_node_type *>(leaf));
+        const auto size = source->size();
+        _reuse_copy_slots(leaf, source, static_cast<slot_usize_type>(-leaf->size()),
+                          static_cast<slot_usize_type>(-size));
+        leaf->size() = size;
+        cursor = leaf->next();
+        return to_ikey(leaf->get_key(0));
+    }
+
+    /// @brief Preserve compatible ownership links; only replacement storage needs new links.
+    WJR_INTRINSIC_INLINE ikey_type _reuse_copy_branch(node_type *&owned, const node_type *source,
+                                                      list_node_type *&cursor, node_type *parent,
+                                                      slot_usize_type position) noexcept {
+        if (owned != nullptr) {
+            const bool old_leaf = owned->size() < 0;
+            const bool source_leaf = source->size() < 0;
+            if (old_leaf && source_leaf)
+                return _reuse_copy_leaf(owned->as_leaf(), source->as_leaf(), cursor);
+            if (!old_leaf && !source_leaf)
+                return _reuse_copy_inner(owned->as_inner(), source->as_inner(), cursor);
+            _destroy_copy_branch(owned, cursor);
+        }
+        auto [key, copied] = _clone_copy_branch(source, cursor);
+        owned = copied;
+        copied->m_parent = parent;
+        if (parent != nullptr)
+            copied->pos() = position;
+        return key;
+    }
+
+    /// @brief Reuse each corresponding child once, connecting only newly created branches.
+    ikey_type _reuse_copy_inner(inner_node_type *inner, const inner_node_type *source,
+                                list_node_type *&cursor) noexcept {
+        const auto old_size = inner->size();
+        const auto size = source->size();
+        for (slot_usize_type i = static_cast<slot_usize_type>(size) + 1;
+             i <= static_cast<slot_usize_type>(old_size); ++i)
+            _destroy_copy_branch(inner->m_sons[i], cursor);
+        ikey_type first_key;
+        for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
+            if (i > static_cast<slot_usize_type>(old_size))
+                inner->m_sons[i] = nullptr;
+            const auto key =
+                _reuse_copy_branch(inner->m_sons[i], source->m_sons[i], cursor, inner, i);
+            if (i == 0)
+                first_key = key;
+            else
+                inner->m_keys[i - 1] = key;
+        }
+        inner->size() = size;
+        return first_key;
+    }
+
+    /// @brief Publish an empty destination until all copied values and graph links are complete.
+    /// @note All value/hook failures retain the existing copy engine's noexcept boundary.
+    /// @invariant cursor skips copied old leaves and excludes newly inserted leaves.
+    void _copy_reuse_tree(const basic_btree &other) noexcept {
+        auto *root = std::exchange(_get_root(), nullptr);
+        const auto old_count = std::exchange(_get_size(), 0);
+        list_node_type retired;
+        retired.init_self();
+        if (root != nullptr) {
+            replace(_get_sentry(), std::addressof(retired));
+            _get_sentry()->init_self();
+        }
+        auto *cursor = retired.next();
+        key_comp() = other.key_comp();
+        const auto *const source = other._get_root();
+        if (source == nullptr) {
+            const auto old_small_count = root == nullptr ? old_count : 0;
+            if (root != nullptr)
+                _destroy_copy_branch(root, cursor);
+            _reuse_copy_slots(_get_base(), other._get_base(), old_small_count,
+                              static_cast<slot_usize_type>(other.size()));
+        } else {
+            if (root == nullptr) {
+                for (slot_usize_type i = 0; i < old_count; ++i)
+                    _destroy_slot(_get_base()->m_values[i]);
+            }
+            static_cast<void>(_reuse_copy_branch(root, source, cursor, nullptr, 0));
+            replace(std::addressof(retired), _get_sentry());
+            _get_root() = root;
+        }
+        WJR_ASSERT_L2(cursor == std::addressof(retired));
+        _get_size() = other.size();
+    }
+
     /// @brief Rebuild a detached ownership graph without searching its retired keys.
     /// @pre current is owned by source's allocator, but is no longer in source's active tree.
     std::pair<ikey_type, node_type *> _rec_move_detached_tree(node_type *current,
@@ -2152,6 +2306,10 @@ private:
     void _release_before_copy() { clear(); }
 
     void _copy_element(const basic_btree &other) noexcept {
+        if constexpr (!Traits::is_inline_value) {
+            _copy_reuse_tree(other);
+            return;
+        }
         clear();
         key_comp() = other.key_comp();
         _copy_assign_tree(other);
