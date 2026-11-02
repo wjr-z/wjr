@@ -1410,8 +1410,13 @@ public:
     }
 
 private:
+    /** @note Expose the tag load to Clang's constant test; retain other compilers' heuristics. */
     void _destroy() noexcept {
+#if defined(WJR_COMPILER_CLANG)
+        if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(m_value.m_type)) {
+#else
         if WJR_BUILTIN_CONSTANT_CONSTEXPR (WJR_BUILTIN_CONSTANT_P(type())) {
+#endif
             switch (type()) {
             case value_t::null:
             case value_t::boolean:
