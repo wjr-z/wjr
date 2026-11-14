@@ -2531,7 +2531,9 @@ private:
         if (common != 0)
             _assign_range_n(first, common, old_first);
         if (count < removed) {
-            _erase(old_first + count, old_last);
+            const auto tail_size = static_cast<size_type>(end_unsafe() - old_last);
+            std::move(old_last, end_unsafe(), old_first + count);
+            _erase_at_end(old_first + count + tail_size);
         } else if (count > removed) {
             _range_insert_n<Iter>(old_last, first, count - removed);
         }
