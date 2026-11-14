@@ -14,10 +14,10 @@ namespace wjr::json {
 result<value_view> array_view::at(uint32_t index) const noexcept {
     if (index >= size())
         return unexpected(error_code::INDEX_OUT_OF_BOUNDS);
-    auto iterator = begin();
+    auto current = begin();
     for (uint32_t i = 0; i != index; ++i)
-        ++iterator;
-    return *iterator;
+        ++current;
+    return *current;
 }
 
 result<value_view> object_view::find(std::string_view key) const noexcept {
@@ -99,7 +99,7 @@ public:
                                  static_cast<uint32_t>(sizes.bytes));
         output_position position;
         pack(0, owner, position);
-        return std::move(owner);
+        return owner;
     }
 
 private:
@@ -204,7 +204,7 @@ private:
         return append_node(
             where, {decoded->offset, decoded->length, static_cast<uint32_t>(value_t::string)});
     }
-    result<void> begin(location where, value_t kind) {
+    result<void> start_container(location where, value_t kind) {
         const auto index = static_cast<uint32_t>(m_nodes.size());
         WJR_EXPECTED_TRY(append_node(where, {0, 0, static_cast<uint32_t>(kind)}));
         m_frames.push_back({index, m_scratch.size()});
@@ -265,6 +265,7 @@ private:
                    ? static_cast<uint32_t>(value.payload >> 32)
                    : index + 1;
     }
+    /// @note The shared visitor validates nesting depth before this bounded tree walk.
     totals measure(uint32_t index) const noexcept {
         totals result;
         const auto &value = m_nodes[index];
@@ -275,6 +276,7 @@ private:
             const auto begin = static_cast<uint32_t>(value.payload);
             for (uint32_t i = 0; i != value.count; ++i) {
                 const auto &field = m_members[begin + i];
+                // cppcheck-suppress misra-c2012-17.2
                 const auto child = measure(field.value_index);
                 result.nodes += child.nodes;
                 result.members += child.members;
@@ -283,6 +285,7 @@ private:
         } else if (value.kind == static_cast<uint32_t>(value_t::array)) {
             uint32_t child_index = index + 1;
             for (uint32_t i = 0; i != value.count; ++i) {
+                // cppcheck-suppress misra-c2012-17.2
                 const auto child = measure(child_index);
                 result.nodes += child.nodes;
                 result.members += child.members;
@@ -298,12 +301,18 @@ private:
     }
     uint32_t copy_bytes(immutable_document &owner, output_position &position, uint32_t first,
                         uint32_t length) const noexcept {
-        const uint32_t offset = position.byte;
-        auto *destination = member_position(owner, owner.m_member_count) + offset;
-        if (length != 0)
+        const uint32_t destination_offset = position.byte;
+        auto *destination = member_position(owner, owner.m_member_count) + destination_offset;
+        WJR_ASSERT(first <= m_bytes.size() && length <= m_bytes.size() - first);
+        WJR_ASSERT(destination_offset <= owner.m_byte_count &&
+                   length <= owner.m_byte_count - destination_offset);
+        if (length != 0) {
+            /// @note measure() reserves all reachable bytes before pack() copies those same ranges.
+            // Flawfinder: ignore
             std::memcpy(destination, m_bytes.data() + first, length);
+        }
         position.byte += length;
-        return offset;
+        return destination_offset;
     }
     uint32_t pack(uint32_t index, immutable_document &owner,
                   output_position &position) const noexcept {
@@ -320,6 +329,7 @@ private:
                 const member &field = m_members[source_begin + i];
                 const uint32_t key_offset =
                     copy_bytes(owner, position, field.key_offset, field.key_length);
+                // cppcheck-suppress misra-c2012-17.2
                 const uint32_t child = pack(field.value_index, owner, position);
                 wjr::construct_at(reinterpret_cast<member *>(member_position(owner, begin + i)),
                                   member{key_offset, field.key_length, child});
@@ -329,6 +339,7 @@ private:
             const uint32_t begin = position.node;
             uint32_t child = index + 1;
             for (uint32_t i = 0; i != value.count; ++i) {
+                // cppcheck-suppress misra-c2012-17.2
                 pack(child, owner, position);
                 child = next_node(child);
             }
@@ -355,10 +366,10 @@ private:
         return string(location::place, first, last);                                               \
     }                                                                                              \
     result<void> visit_##place##_start_object(uint32_t) {                                          \
-        return begin(location::place, value_t::object);                                            \
+        return start_container(location::place, value_t::object);                                  \
     }                                                                                              \
     result<void> visit_##place##_start_array(uint32_t) {                                           \
-        return begin(location::place, value_t::array);                                             \
+        return start_container(location::place, value_t::array);                                   \
     }
     WJR_JSON_IMMUTABLE_CALLBACKS(root)
     WJR_JSON_IMMUTABLE_CALLBACKS(object)

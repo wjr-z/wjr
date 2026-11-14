@@ -148,7 +148,7 @@ private:
 };
 
 struct object_member_view {
-    std::string_view key;
+    [[maybe_unused]] std::string_view key;
     value_view value;
 };
 

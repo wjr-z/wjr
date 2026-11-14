@@ -121,3 +121,8 @@ An earlier test/benchmark traversal dereferenced temporary getter results in
 C++20 range-for initializers. GCC ASan identified the resulting dangling range.
 All earlier timings were discarded. The reported trials retain named checked
 results throughout traversal, and the guide and example demonstrate this lifetime.
+
+Subsequent static-analysis cleanup adds local bounds assertions and annotations,
+uses implicit return move and removes name shadowing. The normal-CMake Clang
+Release object retains identical raw bytes and relocation counts in all 40 code
+sections, totaling 20,911 bytes, across this cleanup.

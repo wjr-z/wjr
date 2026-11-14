@@ -55,8 +55,8 @@ using result_error = compressed_value<error_code, error_code::SUCCESS>;
 
 /// @brief JSON/type failure and its source byte offset.
 struct parse_error {
-    error_code code;
-    uint32_t offset;
+    [[maybe_unused]] error_code code;
+    [[maybe_unused]] uint32_t offset;
     friend constexpr bool operator==(const parse_error &, const parse_error &) = default;
 };
 
