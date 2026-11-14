@@ -93,13 +93,15 @@ uint64_t consume(value_view value) {
         return hash(*value.get_string());
     case value_t::array: {
         uint64_t sum = 23;
-        for (auto child : *value.get_array())
+        const auto array = value.get_array();
+        for (auto child : *array)
             sum = sum * 31 + consume(child);
         return sum;
     }
     case value_t::object: {
         uint64_t sum = 29;
-        for (auto field : *value.get_object())
+        const auto object = value.get_object();
+        for (auto field : *object)
             sum += hash(field.key) ^ consume(field.value);
         return sum;
     }
@@ -234,7 +236,8 @@ std::vector<fixture> fixtures(const char *twitter) {
 uint64_t query(value_view root, bool twitter, unsigned width) {
     if (twitter) {
         uint64_t sum = 0;
-        for (auto status : *root.get_object()->find("statuses")->get_array()) {
+        const auto statuses = root.get_object()->find("statuses")->get_array();
+        for (auto status : *statuses) {
             auto object = status.get_object();
             sum += hash(*object->find("text")->get_string());
             sum += hash(*object->find("user")->get_object()->find("screen_name")->get_string());
