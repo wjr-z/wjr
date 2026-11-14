@@ -443,24 +443,26 @@ TEST(BtreeMerge, DisjointInlineAndDuplicateGroupsKeepTheirExistingLifetimes) {
 
 TEST(BtreeMerge, DisjointIndirectKeysKeepTheirOwnedValuesAndSeparators) {
     for (bool prepend : {false, true}) {
-        using tree = wjr::btree_map<std::string, immovable>;
-        tree target, source;
-        std::map<std::string, const immovable *> addresses;
-        for (int i = 0; i < 150; ++i) {
-            target.try_emplace(std::string(80, prepend ? 'z' : 'a') + std::to_string(i), i);
-            source.try_emplace(std::string(80, prepend ? 'a' : 'z') + std::to_string(i), i);
+        for (auto counts : {std::pair{150, 150}, std::pair{4096, 64}, std::pair{64, 4096}}) {
+            using tree = wjr::btree_map<std::string, immovable>;
+            tree target, source;
+            std::map<std::string, const immovable *> addresses;
+            for (int i = 0; i < counts.first; ++i)
+                target.try_emplace(std::string(80, prepend ? 'z' : 'a') + std::to_string(i), i);
+            for (int i = 0; i < counts.second; ++i)
+                source.try_emplace(std::string(80, prepend ? 'a' : 'z') + std::to_string(i), i);
+            for (const auto &[key, value] : target)
+                addresses.emplace(key, &value);
+            for (const auto &[key, value] : source)
+                addresses.emplace(key, &value);
+            target.merge(source);
+            EXPECT_TRUE(source.empty());
+            EXPECT_EQ(target.size(), static_cast<size_t>(counts.first + counts.second));
+            for (const auto &[key, address] : addresses)
+                EXPECT_EQ(&target.at(key), address);
+            source.try_emplace("reused", 7);
+            EXPECT_EQ(source.at("reused").value, 7);
         }
-        for (const auto &[key, value] : target)
-            addresses.emplace(key, &value);
-        for (const auto &[key, value] : source)
-            addresses.emplace(key, &value);
-        target.merge(source);
-        EXPECT_TRUE(source.empty());
-        EXPECT_EQ(target.size(), 300u);
-        for (const auto &[key, address] : addresses)
-            EXPECT_EQ(&target.at(key), address);
-        source.try_emplace("reused", 7);
-        EXPECT_EQ(source.at("reused").value, 7);
     }
 }
 
