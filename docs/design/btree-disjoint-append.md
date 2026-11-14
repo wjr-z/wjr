@@ -1,8 +1,10 @@
 # 追加有序且不重叠的 B+ tree 分片
 
-索引分片已按键区间排序时，普通 `merge` 仍按元素执行查找、来源重平衡和目标插入。
-`experimental/btree_join.hpp` 提供显式的 `append_btree_disjoint(destination, source)`，
-在节点形态适合时直接拼接图；普通 merge 的代码和选择策略不变。
+普通 `btree_map/set/multimap/multiset` 的 `merge` 对相同 traits、标准排序且区间严格不相交的
+heap tree 自动尝试节点图拼接。
+等高且占用适合的节点通过共享内核转移，其他输入沿用逐元素查找、来源重平衡和目标插入。
+`experimental/btree_join.hpp` 的 `append_btree_disjoint(destination, source)` 提供已知有序分片的
+显式入口，使用同一个图拼接内核。
 
 ```cpp
 #include <wjr/container/btree_map.hpp>
@@ -33,7 +35,22 @@ wjr::experimental::append_btree_disjoint(index, later_partition);
 - 比较、node/value 操作沿用普通 tree 的不抛出域。公开入口没有额外的 `noexcept`；节点分配/销毁
   继续调用原有 `noexcept` helper，没有可恢复 OOM 或新的强异常保证。hook 不可重入修改任一 tree。
 
-该接口适合已经按区间分开的分片归并。任意交叠或未知区间继续使用普通 `merge`。
+该接口适合已经按区间分开的分片归并。普通 `merge` 会自行检查区间，并保留 unique 冲突键。
+
+## 普通 merge 的自动选择
+
+自动路径复用普通 merge 既有的标准 comparator 和相同 traits 限制，包括透明及非透明的
+`std::less`、`std::greater`。allocator 相等的既有前提保持，两个 allocator 实例分别保留。
+自定义 comparator、不同 traits 和 SSO 输入沿用既有 merge 路径。
+experimental compact 的普通 merge 延续现有选择策略，其显式 append 使用共享图拼接内核。
+
+两个 heap root 及其首 child 的 leaf/inner 类型先用于排除必然不同高度的输入，再读取叶链端点。
+两树的首键决定拼接方向，只检查对应的末键与另一树首键之间的严格边界。完整高度和节点占用条件
+由共享内核验证。source 可以位于 destination 之前或之后，multiset 内部的重复键仍保留原顺序。
+共享边界等价键的输入继续执行普通 merge 的冲突策略。
+
+这覆盖按时间或键区间生成的相近大小分片导入。大型不等高分片累加仍使用逐元素路径。
+节点图拼接的工作量与两树的高度和 root 容量有关，现有叶节点和值对象直接归 destination 所有。
 
 ## 拼接协议
 
@@ -54,7 +71,7 @@ SSO、不同高度及不适合的叶根回退普通 merge。以下两种形态�
 
 graph 路径没有 value construction/destruction、move 或单值 allocation；最多分配/释放各一个 inner node。
 它使用固定 typed 栈工作区，N16/u64 separator 时为 536B，N64 时为 2072B；实际函数栈帧由编译器决定。
-它不是零空间操作，但不分配动态工作区。不改变 tree 大小、节点容量或正常路径。
+工作区使用自动存储期，不分配动态存储。tree 大小、节点容量和叶存储格式沿用现有表示。
 
 等高 inner 图的工作量为 O(height + N)，不会逐元素访问。
 不同高度仍是普通 merge 的复杂度和代价，因此大量大小不等分片的累加不能据此假定获得相同收益。
