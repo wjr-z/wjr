@@ -218,14 +218,20 @@ static_assert(std::is_standard_layout_v<hlist_node<>>);
 #define WJR_HLIST_FOR_EACH_SAFE(pos, n, head)                                                      \
     for (pos = (head)->next(); (pos) && ((n) = (pos)->next(), true); (pos) = (n))
 
+/// @brief Traverse payloads through head's selected hook, excluding the sentinel.
 #define WJR_HLIST_FOR_EACH_ENTRY(pos, head)                                                        \
-    for ((pos) = static_cast<std::remove_reference_t<decltype(pos)>>((head)->next()); (pos);       \
-         (pos) = static_cast<std::remove_reference_t<decltype(pos)>>((pos)->next()))
+    for (auto *wjr_list_cursor = ((pos) = nullptr, (head)->next());                                \
+         wjr_list_cursor != nullptr && ((pos) = wjr_list_cursor->self(), true);                    \
+         wjr_list_cursor = wjr_list_cursor->next(), (pos) = nullptr)
 
+/// @brief Save the next hook before exposing the current payload for removal or destruction.
 #define WJR_HLIST_FOR_EACH_ENTRY_SAFE(pos, n, head)                                                \
-    for ((pos) = static_cast<std::remove_reference_t<decltype(pos)>>((head)->next());              \
-         (pos) && ((n) = static_cast<std::remove_reference_t<decltype(n)>>((pos)->next()), true);  \
-         (pos) = (n))
+    for (auto *wjr_list_cursor = ((pos) = nullptr, (n) = nullptr, (head)->next()),                 \
+              *wjr_list_next = wjr_list_cursor;                                                    \
+         wjr_list_cursor != nullptr &&                                                             \
+         (wjr_list_next = wjr_list_cursor->next(), (pos) = wjr_list_cursor->self(),                \
+         (n) = wjr_list_next == nullptr ? nullptr : wjr_list_next->self(), true);                  \
+         wjr_list_cursor = wjr_list_next, (pos) = nullptr)
 
 } // namespace wjr::intrusive
 

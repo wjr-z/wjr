@@ -29,6 +29,14 @@ static_assert(std::sentinel_for<list_const_iterator, list_iterator>);
 static_assert(sizeof(list_iterator) == sizeof(void *));
 static_assert(sizeof(list_const_iterator) == sizeof(void *));
 static_assert(sizeof(intrusive::list_node<list_value>) == 2 * sizeof(void *));
+constexpr bool empty_entry_macros() {
+    intrusive::list_node<list_value> head;
+    list_value *entry = nullptr, *next = nullptr;
+    WJR_LIST_FOR_EACH_ENTRY(entry, &head) { return false; }
+    WJR_LIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) { return false; }
+    return entry == nullptr && next == nullptr;
+}
+static_assert(empty_entry_macros());
 } // namespace
 
 TEST(intrusive_list, standard_iteration) {
@@ -64,4 +72,42 @@ TEST(intrusive_list, empty_iteration) {
     EXPECT_EQ(head.begin(), head.end());
     EXPECT_EQ(head.rbegin(), head.rend());
     EXPECT_EQ(std::ranges::distance(std::as_const(head)), 0);
+}
+TEST(intrusive_list, entry_macros_handle_empty_final_and_const_links) {
+    for (int count : {0, 1, 3}) {
+        intrusive::list_node<list_value> head;
+        list_value first(1), second(2), third(3);
+        list_value *values[] = {&first, &second, &third};
+        for (int i = 0; i < count; ++i)
+            head.push_back(values[i]);
+        int visited = 0;
+        list_value *entry, *next;
+        WJR_LIST_FOR_EACH_ENTRY(entry, &head) { EXPECT_EQ(entry, values[visited++]); }
+        EXPECT_EQ(visited, count);
+        EXPECT_EQ(entry, nullptr);
+        visited = 0;
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+            EXPECT_EQ(entry, values[visited++]);
+            EXPECT_EQ(next, visited == count ? nullptr : values[visited]);
+        }
+        EXPECT_EQ(visited, count);
+        EXPECT_EQ(entry, nullptr);
+        EXPECT_EQ(next, nullptr);
+        const auto &const_head = head;
+        const list_value *const_entry, *const_next;
+        visited = 0;
+        WJR_LIST_FOR_EACH_ENTRY(const_entry, &const_head) {
+            EXPECT_EQ(const_entry, values[visited++]);
+        }
+        EXPECT_EQ(visited, count);
+        visited = 0;
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(const_entry, const_next, &const_head) {
+            EXPECT_EQ(const_entry, values[visited++]);
+            EXPECT_EQ(const_next, visited == count ? nullptr : values[visited]);
+        }
+        EXPECT_EQ(visited, count);
+        visited = 0;
+        WJR_LIST_FOR_EACH_ENTRY(const_entry, &head) { EXPECT_EQ(const_entry, values[visited++]); }
+        EXPECT_EQ(visited, count);
+    }
 }
