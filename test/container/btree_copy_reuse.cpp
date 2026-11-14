@@ -214,6 +214,7 @@ struct hooks {
     };
     size_t allocations = 0, blocks = 0, constructs = 0, destroys = 0;
     size_t bytes = 0, peak = 0;
+    size_t const_copies = 0, mutable_copies = 0, moves = 0;
     std::map<void *, node_record> nodes;
     std::function<void()> observe;
 };
@@ -242,6 +243,15 @@ struct hooked_allocator {
         EXPECT_EQ(reinterpret_cast<std::uintptr_t>(p) % alignof(U), 0u);
         if constexpr (std::same_as<U, std::pair<const int, counted>>) {
             ++state->constructs;
+            if constexpr (sizeof...(Args) == 1 &&
+                          (std::same_as<std::remove_cvref_t<Args>, U> && ...)) {
+                if constexpr ((std::same_as<Args, const U &> && ...))
+                    ++state->const_copies;
+                else if constexpr ((std::is_lvalue_reference_v<Args> && ...))
+                    ++state->mutable_copies;
+                else
+                    ++state->moves;
+            }
             if (state->observe)
                 state->observe();
         }
@@ -515,7 +525,8 @@ TEST(BtreeCopyReuse, RecursiveDifferentSizesKindsAndSsoPublishACompleteOwnedGrap
                     source.try_emplace(i * 4, i);
                 for (int i = 0; i < target_size; ++i)
                     target.try_emplace(10000 + i * 3, -i);
-                const auto constructs = second.constructs, destroys = second.destroys;
+                const auto constructs = second.constructs, destroys = second.destroys,
+                           const_copies = second.const_copies;
                 second.observe = [&] {
                     EXPECT_TRUE(target.empty());
                     EXPECT_EQ(target.begin(), target.end());
@@ -525,6 +536,9 @@ TEST(BtreeCopyReuse, RecursiveDifferentSizesKindsAndSsoPublishACompleteOwnedGrap
                 second.observe = {};
                 EXPECT_EQ(second.constructs - constructs, source_size);
                 EXPECT_EQ(second.destroys - destroys, target_size);
+                EXPECT_EQ(second.const_copies - const_copies, source_size);
+                EXPECT_EQ(second.mutable_copies, 0u);
+                EXPECT_EQ(second.moves, 0u);
                 EXPECT_EQ(second.bytes, first.bytes);
                 EXPECT_EQ(inspect_graph(second).slots, inspect_graph(first).slots);
                 ASSERT_EQ(target.size(), source_size);
@@ -537,6 +551,58 @@ TEST(BtreeCopyReuse, RecursiveDifferentSizesKindsAndSsoPublishACompleteOwnedGrap
             EXPECT_EQ(second.blocks, 0u);
             EXPECT_EQ(counted::live, 0);
         }
+    }
+}
+TEST(BtreeCopyReuse, FreshBranchesPreserveConstCopyAndMoveConstructionArguments) {
+    using tree = wjr::btree_map<int, counted, std::less<>, hooked_allocator<char>, 5>;
+    for (int count : {0, 1, 2, 3, 17, 80}) {
+        hooks first, second;
+        {
+            tree source(std::less<>{}, hooked_allocator<char>(first));
+            for (int i = 0; i < count; ++i)
+                source.try_emplace(i, i);
+            second.observe = [&] {
+                EXPECT_EQ(source.size(), count);
+                for (int i = 0; i < count; ++i)
+                    EXPECT_EQ(source.at(i).number, i);
+            };
+            {
+                tree copy(source, hooked_allocator<char>(second));
+                EXPECT_EQ(second.const_copies, count);
+                EXPECT_EQ(second.mutable_copies, 0u);
+                EXPECT_EQ(second.moves, 0u);
+                EXPECT_EQ(inspect_graph(second).slots, inspect_graph(first).slots);
+                for (int i = 0; i < count; ++i)
+                    EXPECT_EQ(copy.at(i).number, i);
+            }
+            second.observe = {};
+            EXPECT_EQ(second.blocks, 0u);
+            tree target(std::less<>{}, hooked_allocator<char>(second));
+            for (int i = 0; i < 3; ++i)
+                target.try_emplace(1000 + i, -i);
+            const auto copies = second.const_copies;
+            second.observe = [&] {
+                EXPECT_TRUE(target.empty());
+                EXPECT_EQ(target.begin(), target.end());
+                EXPECT_EQ(source.size(), count);
+            };
+            target = source;
+            second.observe = {};
+            EXPECT_EQ(second.const_copies - copies, count);
+            EXPECT_EQ(second.mutable_copies, 0u);
+            EXPECT_EQ(second.moves, 0u);
+            EXPECT_EQ(inspect_graph(second).slots, inspect_graph(first).slots);
+            target.clear();
+            target = std::move(source);
+            EXPECT_TRUE(source.empty());
+            EXPECT_EQ(second.moves, count);
+            EXPECT_EQ(second.mutable_copies, 0u);
+            for (int i = 0; i < count; ++i)
+                EXPECT_EQ(target.at(i).number, i);
+        }
+        EXPECT_EQ(first.blocks, 0u);
+        EXPECT_EQ(second.blocks, 0u);
+        EXPECT_EQ(counted::live, 0);
     }
 }
 } // namespace
