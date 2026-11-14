@@ -16,37 +16,6 @@ if(WJR_BENCHMARK_PROFILE STREQUAL "btree")
     return()
 endif()
 
-set(WJR_USE_GMP_DEFAULT ON)
-
-if(WJR_USE_GMP)
-    set(WJR_USE_GMP_DEFAULT ${WJR_USE_GMP})
-else()
-    find_package(GMP QUIET)
-
-    if(NOT GMP_FOUND)
-        find_package(PkgConfig)
-        pkg_check_modules(GMP QUIET gmp)
-
-        if(NOT GMP_FOUND)
-            set(WJR_USE_GMP_DEFAULT OFF)
-        else()
-            set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIRS})
-            set(GMP_LIBRARIES ${GMP_LIBRARIES})
-        endif()
-    else()
-        set(GMP_INCLUDE_DIRS)
-        set(GMP_LIBRARIES gmp libgmp)
-    endif()
-endif()
-
-option(WJR_USE_GMP_TESTS "Use GMP library for tests" ${WJR_USE_GMP_DEFAULT})
-
-if(WJR_USE_GMP_TESTS)
-    add_compile_definitions(WJR_USE_GMP)
-else()
-    message(STATUS "GMP library not found, tests will be built without GMP support.")
-endif()
-
 include(wjrBenchmark)
 wjr_load_benchmark()
 
@@ -150,11 +119,11 @@ endif()
 
 target_include_directories(benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_include_directories(benchmarks PRIVATE ${GMP_INCLUDE_DIRS})
-
 target_link_libraries(benchmarks
     PRIVATE
     wjr::wjr
     benchmark::benchmark
-    ${GMP_LIBRARIES}
 )
+
+include(wjrGMP)
+wjr_link_gmp(benchmarks)
