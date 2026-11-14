@@ -889,7 +889,7 @@ INTEGER:
                     (uval < max_quot ||
                      (uval == max_quot && static_cast<uint32_t>(*p - '0') <= max_rem))) {
                     uint64_t &u64_v = wr.get_u64();
-                    u64_v = uval;
+                    u64_v = uval * 10 + static_cast<uint32_t>(*p - '0');
                     return answer;
                 }
             }
