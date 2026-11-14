@@ -108,6 +108,15 @@ class SampledStackTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             import_artifact(raw, manifest)
 
+    def test_fractional_weights_keep_full_profile_attribution(self):
+        raw, manifest = synthetic()
+        raw["profiles"][0].update(samples=[[0, 1]] * 199, weights=[.01] * 199, endValue=1.99)
+        observations, _ = import_artifact(raw, manifest)
+        rows = {row["frame_index"]: row for row in observations[0]["metadata"]["functions"]}
+        self.assertEqual(rows[0]["inclusive_fraction"], 1)
+        self.assertEqual(rows[1]["self_fraction"], 1)
+        self.assertEqual(rows[1]["inclusive_weight"], observations[0]["samples"][0])
+
     def test_actual_py_spy_capture_and_offline_cli(self):
         raw_path = FIXTURE / "profile.json"
         raw = json.loads(raw_path.read_bytes())

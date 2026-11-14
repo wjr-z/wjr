@@ -54,17 +54,28 @@ def _validate_profile(profile, frame_count):
     require(is_finite_number(total), "sample weight total overflow")
 
 
+def _add_weight(values, corrections, index, weight):
+    """Compensate rounding while retaining constant storage per shared frame."""
+    adjusted = weight - corrections[index]
+    previous = values[index]
+    updated = previous + adjusted
+    corrections[index] = (updated - previous) - adjusted
+    values[index] = updated
+
+
 def _hotspots(profile, frames):
     inclusive = [0.0] * len(frames)
     exclusive = [0.0] * len(frames)
+    inclusive_corrections = [0.0] * len(frames)
+    exclusive_corrections = [0.0] * len(frames)
     empty = []
     for stack, weight in zip(profile["samples"], profile["weights"]):
         if not stack:
             empty.append(weight)
             continue
-        exclusive[stack[-1]] += weight
+        _add_weight(exclusive, exclusive_corrections, stack[-1], weight)
         for index in set(stack):
-            inclusive[index] += weight
+            _add_weight(inclusive, inclusive_corrections, index, weight)
     total = math.fsum(profile["weights"])
     rows = [dict(frame_index=index, frame=frame, self_weight=exclusive[index],
                  inclusive_weight=inclusive[index],
