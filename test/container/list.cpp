@@ -81,7 +81,7 @@ TEST(intrusive_list, entry_macros_handle_empty_final_and_const_links) {
         for (int i = 0; i < count; ++i)
             head.push_back(values[i]);
         int visited = 0;
-        list_value *entry, *next;
+        list_value *entry = nullptr, *next = nullptr;
         WJR_LIST_FOR_EACH_ENTRY(entry, &head) { EXPECT_EQ(entry, values[visited++]); }
         EXPECT_EQ(visited, count);
         EXPECT_EQ(entry, nullptr);
@@ -94,7 +94,7 @@ TEST(intrusive_list, entry_macros_handle_empty_final_and_const_links) {
         EXPECT_EQ(entry, nullptr);
         EXPECT_EQ(next, nullptr);
         const auto &const_head = head;
-        const list_value *const_entry, *const_next;
+        const list_value *const_entry = nullptr, *const_next = nullptr;
         visited = 0;
         WJR_LIST_FOR_EACH_ENTRY(const_entry, &const_head) {
             EXPECT_EQ(const_entry, values[visited++]);

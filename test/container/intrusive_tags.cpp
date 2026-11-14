@@ -110,7 +110,7 @@ void entry_macros_select_tagged_hook() {
             for (int i = count; i > 0; --i)
                 head.push_front(static_cast<Hook *>(values[i - 1]));
         }
-        item *entry, *next;
+        item *entry = nullptr, *next = nullptr;
         int visited = 0;
         if constexpr (requires { head.prev(); }) {
             WJR_LIST_FOR_EACH_ENTRY(entry, &head) { EXPECT_EQ(entry, values[visited++]); }
@@ -121,7 +121,7 @@ void entry_macros_select_tagged_hook() {
         EXPECT_EQ(entry, nullptr);
         visited = 0;
         const auto &const_head = head;
-        const item *const_entry, *const_next;
+        const item *const_entry = nullptr, *const_next = nullptr;
         if constexpr (requires { head.prev(); }) {
             WJR_LIST_FOR_EACH_ENTRY_SAFE(const_entry, const_next, &const_head) {
                 EXPECT_EQ(const_entry, values[visited++]);
@@ -158,7 +158,7 @@ void safe_entry_macro_destroys_current_payload() {
     Hook head;
     for (int i = 3; i > 0; --i)
         head.push_front(static_cast<Hook *>(new item(i)));
-    item *entry, *next;
+    item *entry = nullptr, *next = nullptr;
     int visited = 0;
     if constexpr (requires { head.prev(); }) {
         WJR_LIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
@@ -204,7 +204,7 @@ TEST(intrusive_tags, nested_entry_macros_preserve_break_and_continue) {
         ring.push_back(static_cast<ready_ring *>(value));
     for (auto *value : {&third, &second, &first})
         chain.push_front(static_cast<timer_chain *>(value));
-    item *outer, *entry, *next;
+    item *outer = nullptr, *entry = nullptr, *next = nullptr;
     int sum = 0;
     WJR_LIST_FOR_EACH_ENTRY(outer, &ring) {
         WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &chain) {
