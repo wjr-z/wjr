@@ -14,6 +14,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           submodules: recursive
+          fetch-depth: 0
       - run: sudo apt-get update && sudo apt-get install -y ninja-build libgmp-dev libgtest-dev g++-14 clang-18
       - name: Configure candidate
         run: |
@@ -55,7 +56,7 @@ jobs:
           git rev-parse HEAD >> machine.txt
           for variant in original observer research; do
             ./$variant-build/json_direct_allocations > "$variant-allocations.csv" 2> "$variant-allocation-metadata.txt"
-            ./$variant-build/json_direct_timing > "$variant-timing.csv" 2> "$variant-timing-metadata.txt"
+            ./$variant-build/json_direct_timing corpus > "$variant-timing.csv" 2> "$variant-timing-metadata.txt"
             cp "$variant-build/compile_commands.json" "$variant-compile-commands.json"
           done
           ./research-build/json_direct_strong_allocations > strong-allocations.csv 2> strong-allocation-metadata.txt
