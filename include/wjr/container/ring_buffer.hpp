@@ -474,6 +474,12 @@ private:
         _Alty *m_alloc;
     };
 
+    struct _no_assignment_rollback {
+        constexpr _no_assignment_rollback(pointer, _Alty *) noexcept {}
+        constexpr _no_assignment_rollback(storage_type &, _Alty &) noexcept {}
+        constexpr void release() noexcept {}
+    };
+
     class _input_construction_rollback {
     public:
         constexpr explicit _input_construction_rollback(basic_ring_buffer &owner) noexcept
@@ -1366,6 +1372,11 @@ private:
 
     template <typename Iter>
     WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::forward_iterator_tag) {
+        constexpr bool nothrow_construction =
+            std::is_pointer_v<Iter> &&
+            std::is_nothrow_constructible_v<value_type, iterator_reference_t<Iter>> &&
+            is_trivially_allocator_construct_v<_Alty, value_type, iterator_reference_t<Iter>> &&
+            is_trivially_allocator_destroy_v<_Alty, value_type>;
         const auto n = static_cast<size_type>(std::distance(first, last));
         if (n == 0) {
             clear();
@@ -1411,11 +1422,16 @@ private:
             if (old_size <= _one) {
                 // All existing elements are in first segment
                 // Construct new elements in first segment
+                using tail_guard = std::conditional_t<nothrow_construction, _no_assignment_rollback,
+                                                      _uninitialized_rollback<pointer, _Alty>>;
+                tail_guard rollback(_head + old_size, &al);
                 const auto new_in_first = n <= _one ? (n - old_size) : (_one - old_size);
                 if (new_in_first > 0) {
                     next = std::next(iter, new_in_first);
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, next, _head + old_size,
-                                                                     al);
+                    const auto end = wjr::uninitialized_copy_restrict_using_allocator(
+                        iter, next, _head + old_size, al);
+                    if constexpr (!nothrow_construction)
+                        rollback.current() = end;
                     iter = next;
                 }
 
@@ -1427,6 +1443,7 @@ private:
                 } else {
                     _get_tail() = n == _one ? data() : _head + n;
                 }
+                rollback.release();
             } else {
                 // Existing elements span both segments
                 const auto old_size_two = old_size - old_size_one;
@@ -1467,12 +1484,17 @@ private:
 
                 storage_type new_storage;
                 uninitialized_construct(new_storage, n, new_capacity);
+                using allocation_guard =
+                    std::conditional_t<nothrow_construction, _no_assignment_rollback,
+                                       _allocation_rollback>;
+                allocation_guard allocation(new_storage, al);
 
                 const pointer _new_begin = new_storage.data();
                 wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
 
                 _destroy_and_deallocate();
                 _take_storage(new_storage);
+                allocation.release();
             } else {
                 _unreallocatable_unreachable(n);
             }
