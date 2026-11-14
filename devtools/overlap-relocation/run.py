@@ -9,7 +9,7 @@ rows=[]
 for round in range(3):
     for mode in (['main','candidate'] if round%2==0 else ['candidate','main']):
         for operation in ['erase','insert']:
-            output=subprocess.check_output([str(Path('build-'+mode)/'modifiers'),operation],text=True)
+            output=subprocess.check_output([str(Path('build-'+('baseline' if mode=='main' else mode))/'modifiers'),operation],text=True)
             (r/f'linux-{round}-{mode}-{operation}.csv').write_text(output)
             for row in csv.DictReader(output.splitlines()):
                 rows.append(dict(row,round=round,source=mode,operation=operation))

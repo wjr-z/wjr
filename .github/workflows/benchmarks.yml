@@ -41,7 +41,7 @@ jobs:
           git rev-parse HEAD > overlap-results/source.txt
           git -C baseline rev-parse HEAD >> overlap-results/source.txt
           cp build-baseline/compile_commands.json overlap-results/baseline-compile-commands.json
-          cp build-candidate/compile_commands.json overlap-results/growing-compile-commands.json
+          cp build-candidate/compile_commands.json overlap-results/candidate-compile-commands.json
           size build-baseline/modifiers build-candidate/modifiers > overlap-results/size.txt
           python3 devtools/overlap-relocation/run.py
       - uses: actions/upload-artifact@v4
