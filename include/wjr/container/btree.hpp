@@ -2005,8 +2005,10 @@ private:
         swap_with(_get_sentry(), other._get_sentry());
     }
 
+    /// @brief Build a fresh branch, inserting its leaves before marker.
     template <typename TV>
-    std::pair<ikey_type, node_type *> _rec_assign_tree(node_type *current) noexcept {
+    std::pair<ikey_type, node_type *> _rec_assign_tree(node_type *current,
+                                                       list_node_type *marker) noexcept {
         slot_size_type cur_size = current->size();
 
         if (cur_size < 0) {
@@ -2020,7 +2022,7 @@ private:
                                       static_cast<TV>(from_ivalue(leaf->m_values[i])));
             }
 
-            _get_sentry()->push_back(this_leaf);
+            marker->push_back(this_leaf);
             return {to_ikey(this_leaf->get_key(0)), this_leaf};
         }
 
@@ -2030,7 +2032,7 @@ private:
         const slot_usize_type cur_usize = cur_size;
 
         for (slot_usize_type i = 0; i <= cur_usize; ++i) {
-            auto [key, son] = _rec_assign_tree<TV>(current->as_inner()->m_sons[i]);
+            auto [key, son] = _rec_assign_tree<TV>(current->as_inner()->m_sons[i], marker);
             son->m_parent = this_inner;
             son->pos() = i;
 
@@ -2061,7 +2063,7 @@ private:
             return;
         }
 
-        auto [key, root] = _rec_assign_tree<TV>(current);
+        auto [key, root] = _rec_assign_tree<TV>(current, _get_sentry());
         _get_root() = root;
         root->m_parent = nullptr;
     }
@@ -2087,34 +2089,6 @@ private:
                 _destroy_copy_branch(inner->m_sons[i], cursor);
             _drop_inner_node(inner);
         }
-    }
-
-    /// @brief Clone a branch immediately before the next unconsumed retired leaf.
-    std::pair<ikey_type, node_type *> _clone_copy_branch(const node_type *source,
-                                                         list_node_type *cursor) noexcept {
-        const auto size = source->size();
-        if (size < 0) {
-            auto *const leaf = _create_leaf_node();
-            leaf->size() = size;
-            for (slot_usize_type i = 0; i < static_cast<slot_usize_type>(-size); ++i)
-                _construct_leaf_value(leaf, i, from_ivalue(source->as_leaf()->m_values[i]));
-            cursor->push_back(leaf);
-            return {to_ikey(leaf->get_key(0)), leaf};
-        }
-        auto *const inner = _create_inner_node();
-        inner->size() = size;
-        ikey_type first_key;
-        for (slot_usize_type i = 0; i <= static_cast<slot_usize_type>(size); ++i) {
-            auto [key, child] = _clone_copy_branch(source->as_inner()->m_sons[i], cursor);
-            inner->m_sons[i] = child;
-            child->m_parent = inner;
-            child->pos() = i;
-            if (i == 0)
-                first_key = key;
-            else
-                inner->m_keys[i - 1] = key;
-        }
-        return {first_key, inner};
     }
 
     /// @brief Copy every value while reusing existing allocation prefixes, never comparing values.
@@ -2159,7 +2133,8 @@ private:
                 return _reuse_copy_inner(owned->as_inner(), source->as_inner(), cursor);
             _destroy_copy_branch(owned, cursor);
         }
-        auto [key, copied] = _clone_copy_branch(source, cursor);
+        auto [key, copied] =
+            _rec_assign_tree<const value_type &>(const_cast<node_type *>(source), cursor);
         owned = copied;
         copied->m_parent = parent;
         if (parent != nullptr)
