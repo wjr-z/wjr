@@ -89,3 +89,6 @@ member selection. The number of comparisons grows linearly with the registered
 field count. Scratch frames and required-field bits have inline capacity and grow
 for deeper inputs. Scratch references use offsets across growth, and array elements
 remain borrowed only until their child frame is removed.
+
+[Complete-path measurements](../performance/json-direct-parser.md) compare the
+record workload with document projection and hand-written owned-value references.
