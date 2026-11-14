@@ -2870,7 +2870,7 @@ void format_impl(Formatter fmt, const basic_document<Traits> &doc, unsigned dept
 template <typename Traits, typename DocumentTraits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
                                              const basic_document<DocumentTraits> &doc) {
-    if (const std::ostream::sentry ok(os); ok) {
+    if (const typename std::basic_ostream<char, Traits>::sentry ok(os); ok) {
         unique_stack_allocator stkal;
         std::basic_string<char, Traits, weak_stack_allocator<char>> buffer(stkal);
         buffer.reserve(256);
@@ -2880,8 +2880,6 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
         doc.dump_impl(buffer, indents);
         _ostream_write_unchecked(os, buffer.data(), buffer.size());
         os.width(0);
-    } else {
-        os.setstate(std::ios::badbit);
     }
 
     return os;
@@ -2899,8 +2897,6 @@ std::ostream &operator<<(std::ostream &os, const basic_document<DocumentTraits> 
         doc.dump_impl(buffer, indents);
         _ostream_write_unchecked(os, buffer.data(), buffer.size());
         os.width(0);
-    } else {
-        os.setstate(std::ios::badbit);
     }
 
     return os;

@@ -11,13 +11,32 @@
 
 #include <ostream>
 
+#include <wjr/macros/exceptions.hpp>
+
 namespace wjr {
+
+/// @private Called only while handling an exception from stream output.
+template <typename CharT, typename Traits>
+void _ostream_handle_exception(std::basic_ostream<CharT, Traits> &os) {
+    WJR_TRY { os.setstate(std::ios_base::badbit); }
+    WJR_CATCH(...) {
+        // Preserve the original output exception when badbit is enabled.
+    }
+    if (os.exceptions() & std::ios_base::badbit) {
+        WJR_XTHROW;
+    }
+}
 
 /// @private
 template <typename CharT, typename Traits>
 void _ostream_write_unchecked(std::basic_ostream<CharT, Traits> &os, const CharT *str,
-                              std::streamsize n) noexcept {
-    const auto _put = os.rdbuf()->sputn(str, n);
+                              std::streamsize n) {
+    std::streamsize _put;
+    WJR_TRY { _put = os.rdbuf()->sputn(str, n); }
+    WJR_CATCH(...) {
+        _ostream_handle_exception(os);
+        return;
+    }
     if (_put != n) {
         os.setstate(std::ios_base::badbit);
     }
@@ -25,21 +44,30 @@ void _ostream_write_unchecked(std::basic_ostream<CharT, Traits> &os, const CharT
 
 /// @private
 template <typename CharT, typename Traits>
-void _ostream_fill_unchecked(std::basic_ostream<CharT, Traits> &os, std::streamsize n) noexcept {
-    const auto ch = os.fill();
-    while (n--) {
-        const auto _put = os.rdbuf()->sputc(ch);
-        if (Traits::eq_int_type(_put, Traits::eof())) {
-            os.setstate(std::ios_base::badbit);
-            break;
+void _ostream_fill_unchecked(std::basic_ostream<CharT, Traits> &os, std::streamsize n) {
+    WJR_TRY {
+        const auto ch = os.fill();
+        while (n != 0) {
+            const auto _put = os.rdbuf()->sputc(ch);
+            if (Traits::eq_int_type(_put, Traits::eof())) {
+                break;
+            }
+            --n;
         }
+    }
+    WJR_CATCH(...) {
+        _ostream_handle_exception(os);
+        return;
+    }
+    if (n != 0) {
+        os.setstate(std::ios_base::badbit);
     }
 }
 
 /// @private
 template <typename CharT, typename Traits>
 void _ostream_insert_unchecked(std::basic_ostream<CharT, Traits> &os, const CharT *str,
-                               std::streamsize n) noexcept {
+                               std::streamsize n) {
     const std::streamsize _w = os.width();
     if (_w > n) {
         const std::streamsize _pad = _w - n;
@@ -75,8 +103,8 @@ void _ostream_insert_unchecked(std::basic_ostream<CharT, Traits> &os, const Char
  */
 template <typename CharT, typename Traits>
 std::basic_ostream<CharT, Traits> &_ostream_insert(std::basic_ostream<CharT, Traits> &os,
-                                                   const CharT *str, std::streamsize n) noexcept {
-    const std::ostream::sentry ok(os);
+                                                   const CharT *str, std::streamsize n) {
+    const typename std::basic_ostream<CharT, Traits>::sentry ok(os);
     if (ok) {
         _ostream_insert_unchecked(os, str, n);
     }
