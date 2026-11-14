@@ -2,21 +2,21 @@
 #define WJR_JSON_INPLACE_PARSER_HPP__
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
-#include <span>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
+#include <wjr/json/detail/utf8.hpp>
 #include <wjr/json/fields.hpp>
 #include <wjr/json/visitor.hpp>
 
 namespace wjr::json {
 
-/// @brief JSON/type failure and the byte offset of its token, object end, or EOF.
+/// @brief JSON/type failure and its source byte offset.
 struct parse_error {
     error_code code;
     uint32_t offset;
@@ -40,10 +40,6 @@ struct typed_target {
     void *object = nullptr;
     const typed_operations *operations = nullptr;
 };
-struct typed_field {
-    std::string_view name;
-    typed_target (*select)(void *);
-};
 struct typed_operations {
     typed_kind kind;
     void (*boolean)(void *, bool) = nullptr;
@@ -52,7 +48,8 @@ struct typed_operations {
     result<void> (*string)(void *, const char *, const char *) = nullptr;
     typed_target (*append)(void *) = nullptr;
     void (*clear)(void *) = nullptr;
-    std::span<const typed_field> fields;
+    bool (*select)(void *, std::string_view, typed_target &, size_t &) = nullptr;
+    size_t field_count = 0;
 };
 
 template <typename T>
@@ -77,33 +74,27 @@ struct typed_array<basic_vector<default_vector_storage<T, Allocator>>> : std::tr
 template <typename T>
 const typed_operations &typed_operations_for();
 
-template <typename Owner, auto Member>
-typed_target select_typed_member(void *object) {
-    static_assert(std::is_member_object_pointer_v<decltype(Member)>,
+template <typename T, size_t Index>
+WJR_INTRINSIC_INLINE bool select_typed_field_at(void *object, std::string_view key,
+                                                typed_target &target, size_t &field_index) {
+    constexpr auto field = std::get<Index>(T::template wjr_json_fields<>());
+    if (key != field.name) {
+        return false;
+    }
+    static_assert(std::is_member_object_pointer_v<decltype(field.member)>,
                   "Direct JSON fields must be instance data members");
-    auto &value = static_cast<Owner *>(object)->*Member;
+    auto &value = static_cast<T *>(object)->*field.member;
     using value_type = std::remove_reference_t<decltype(value)>;
     static_assert(!std::is_const_v<value_type>, "Direct JSON fields must be writable");
-    return {std::addressof(value), std::addressof(typed_operations_for<value_type>())};
+    target = {std::addressof(value), std::addressof(typed_operations_for<value_type>())};
+    field_index = Index;
+    return true;
 }
 
-template <typename T>
-inline constexpr auto typed_fields = std::apply(
-    [](auto... fields) {
-        return std::array<typed_field, sizeof...(fields)>{
-            typed_field{fields.name, &select_typed_member<T, decltype(fields)::member>}...};
-    },
-    T::template wjr_json_fields<>());
-
-template <typename String>
-result<void> decode_typed_string(String &output, const char *first, const char *last) {
-    try_uninitialized_resize(output, static_cast<size_t>(last - first));
-    auto parsed = parse_string(output.data(), first, last);
-    if (!parsed) {
-        return unexpected(parsed.error());
-    }
-    output.resize(static_cast<size_t>(*parsed - output.data()));
-    return {};
+template <typename T, size_t... Index>
+bool select_typed_field(void *object, std::string_view key, typed_target &target,
+                        size_t &field_index) {
+    return (select_typed_field_at<T, Index>(object, key, target, field_index) || ...);
 }
 
 template <typename T>
@@ -145,7 +136,7 @@ result<void> parse_typed_float(void *object, const char *first, const char *last
                               ? error_code::NUMBER_OUT_OF_RANGE
                               : error_code::TAPE_ERROR);
     }
-    if (parsed.ptr != last && !charconv_detail::isspace(*parsed.ptr)) {
+    if (parsed.ptr != last && !is_json_space(*parsed.ptr)) {
         return unexpected(error_code::TAPE_ERROR);
     }
     return {};
@@ -185,12 +176,16 @@ constexpr typed_operations make_typed_operations() {
     } else if constexpr (typed_string<T>::value) {
         typed_operations operations{typed_kind::string};
         operations.string = [](void *object, const char *first, const char *last) {
-            return decode_typed_string(*static_cast<T *>(object), first, last);
+            return decode_owned_string(*static_cast<T *>(object), first, last);
         };
         return operations;
     } else if constexpr (registered_json_object<T>) {
         typed_operations operations{typed_kind::object};
-        operations.fields = typed_fields<T>;
+        constexpr auto field_count = std::tuple_size_v<decltype(T::template wjr_json_fields<>())>;
+        operations.select = []<size_t... Index>(std::index_sequence<Index...>) {
+            return &select_typed_field<T, Index...>;
+        }(std::make_index_sequence<field_count>{});
+        operations.field_count = field_count;
         return operations;
     } else {
         static_assert(
@@ -248,6 +243,15 @@ private:
         return static_cast<uint32_t>(pointer - m_reader.data());
     }
 
+    bool value_boundary(const char *position) const noexcept {
+        if (position == m_reader.data() + m_reader.size()) {
+            return true;
+        }
+        const char ch = *position;
+        return is_json_space(ch) || ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == ',' ||
+               ch == ':' || ch == '"';
+    }
+
     result<void> failure(error_code code, uint32_t position) noexcept {
         m_error_offset = position;
         return unexpected(code);
@@ -272,6 +276,9 @@ private:
         if (!checked) {
             return failure(checked.error(), offset(first));
         }
+        if (!value_boundary(first + 4)) {
+            return failure(error_code::TAPE_ERROR, offset(first));
+        }
         if (destination(where).operations) {
             return failure(error_code::INCORRECT_TYPE, offset(first));
         }
@@ -282,6 +289,9 @@ private:
         auto checked = value ? check_true(first) : check_false(first);
         if (!checked) {
             return failure(checked.error(), offset(first));
+        }
+        if (!value_boundary(first + (value ? 4 : 5))) {
+            return failure(error_code::TAPE_ERROR, offset(first));
         }
         const auto target = destination(where);
         if (target.operations) {
@@ -300,9 +310,14 @@ private:
             return parsed ? result<void>{} : failure(parsed.error(), offset(first));
         }
         basic_value value(default_construct);
-        auto parsed = parse_number(first, last, value);
+        auto parsed = number_detail::from_chars_json(first, last, value);
         if (!parsed) {
-            return failure(parsed.error(), offset(first));
+            return failure(parsed.ec == std::errc::result_out_of_range ? error_code::BIGINT_ERROR
+                                                                       : error_code::TAPE_ERROR,
+                           offset(first));
+        }
+        if (parsed.ptr != last && !is_json_space(*parsed.ptr)) {
+            return failure(error_code::TAPE_ERROR, offset(first));
         }
         if (target.operations) {
             if (target.operations->kind != typed_kind::number) {
@@ -325,6 +340,12 @@ private:
     }
 
     result<void> scalar_string(location where, const char *first, const char *last) {
+        if (!value_boundary(last + 1)) {
+            return failure(error_code::TAPE_ERROR, offset(last + 1));
+        }
+        if (contains_unescaped_control(first, last)) {
+            return failure(error_code::UNESCAPED_CHARS, offset(first) - 1);
+        }
         const auto target = destination(where);
         if (!target.operations) {
             auto checked = check_string(first, last);
@@ -346,7 +367,7 @@ private:
         const size_t seen_begin = m_seen.size();
         if (target.operations) {
             if (object) {
-                m_seen.resize(seen_begin + (target.operations->fields.size() + 63) / 64, 0);
+                m_seen.resize(seen_begin + (target.operations->field_count + 63) / 64, 0);
             } else {
                 target.operations->clear(target.object);
             }
@@ -358,7 +379,7 @@ private:
     result<void> end_container(uint32_t position) {
         const auto &current = m_frames.back();
         if (current.object && current.target.operations &&
-            current.seen_count != current.target.operations->fields.size()) {
+            current.seen_count != current.target.operations->field_count) {
             return failure(error_code::NO_SUCH_FIELD, position);
         }
         m_seen.resize(current.seen_begin);
@@ -367,26 +388,29 @@ private:
     }
 
     result<void> visit_object_key_string(const char *first, const char *last) {
+        if (!value_boundary(last + 1)) {
+            return failure(error_code::TAPE_ERROR, offset(last + 1));
+        }
+        if (contains_unescaped_control(first, last)) {
+            return failure(error_code::UNESCAPED_CHARS, offset(first) - 1);
+        }
         auto &current = m_frames.back();
         current.pending = {};
         if (!current.target.operations) {
             auto checked = check_string(first, last);
             return checked ? result<void>{} : failure(checked.error(), offset(first) - 1);
         }
-        auto decoded = decode_typed_string(m_key, first, last);
+        auto decoded = decode_owned_string(m_key, first, last);
         if (!decoded) {
             return failure(decoded.error(), offset(first) - 1);
         }
-        const auto fields = current.target.operations->fields;
-        for (size_t index = 0; index < fields.size(); ++index) {
-            if (fields[index].name == m_key) {
-                current.pending = fields[index].select(current.target.object);
-                auto &bits = m_seen[current.seen_begin + index / 64];
-                const uint64_t mask = uint64_t{1} << (index % 64);
-                current.seen_count += (bits & mask) == 0;
-                bits |= mask;
-                break;
-            }
+        size_t index;
+        if (current.target.operations->select(current.target.object, m_key, current.pending,
+                                              index)) {
+            auto &bits = m_seen[current.seen_begin + index / 64];
+            const uint64_t mask = uint64_t{1} << (index % 64);
+            current.seen_count += (bits & mask) == 0;
+            bits |= mask;
         }
         return {};
     }
@@ -466,6 +490,9 @@ public:
     static result<void> parse(T *target, ondemand_reader &reader) noexcept
     requires detail::typed_destination<T>
     {
+        if (detail::find_invalid_utf8({reader.data(), reader.size()}) != std::string_view::npos) {
+            return unexpected(error_code::UTF8_ERROR);
+        }
         detail::inplace_parser_context parser(
             reader, {target, std::addressof(detail::typed_operations_for<T>())});
         return parser.run();
@@ -514,12 +541,17 @@ protected:
  * the final occurrence supplies the result. Unknown values receive full validation.
  * Integral destinations require integral JSON numbers within range. Float/double
  * destinations parse directly at their target precision, including signed zero.
- * @return A complete value, or a token/object-end/EOF byte offset with its error code.
+ * Raw UTF-8 and literal control bytes in strings are validated before use.
+ * @return A complete value, or an error code and its source byte offset.
  * @throws Propagates allocation and user construction exceptions after local cleanup.
  */
 template <typename T>
 requires detail::typed_parse_target<T>
 expected<T, parse_error> parse(ondemand_reader &reader) {
+    if (const auto offset = detail::find_invalid_utf8({reader.data(), reader.size()});
+        offset != std::string_view::npos) {
+        return unexpected(parse_error{error_code::UTF8_ERROR, static_cast<uint32_t>(offset)});
+    }
     T value{};
     detail::inplace_parser_context parser(
         reader, {std::addressof(value), std::addressof(detail::typed_operations_for<T>())});
