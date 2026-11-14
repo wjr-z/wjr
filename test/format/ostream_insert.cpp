@@ -161,7 +161,7 @@ TEST(ostream_insert, public_inserters_preserve_failed_sentry) {
 TEST(ostream_insert, wide_stream_sentry) {
     std::wostringstream output;
     output.width(5);
-    output.fill(L'.');
+    EXPECT_EQ(output.fill(L'.'), L' ');
     _ostream_insert(output, L"abc", 3);
     EXPECT_EQ(output.str(), L"..abc");
     EXPECT_EQ(output.width(), 0);
@@ -173,7 +173,7 @@ TEST(ostream_insert, public_inserters_reset_width) {
     document = 123;
     std::ostringstream output;
     output.width(5);
-    output.fill('.');
+    EXPECT_EQ(output.fill('.'), ' ');
     output << integer;
     EXPECT_EQ(output.str(), "..123");
     EXPECT_EQ(output.width(), 0);
