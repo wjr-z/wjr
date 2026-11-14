@@ -48,7 +48,16 @@ construct_at(T *ptr, default_construct_t) noexcept(std::is_nothrow_default_const
 
 template <typename Iter, typename Alloc, typename... Args>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
-                                                             Args &&...args) {
+                                                             Args &&...args) noexcept([] {
+    if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>, Args...>) {
+        return noexcept(
+            wjr::construct_at(wjr::to_address(std::declval<Iter &>()), std::declval<Args>()...));
+    } else {
+        return noexcept(std::allocator_traits<Alloc>::construct(
+            std::declval<Alloc &>(), wjr::to_address(std::declval<Iter &>()),
+            std::declval<Args>()...));
+    }
+}()) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>, Args...>) {
         wjr::construct_at(wjr::to_address(iter), std::forward<Args>(args)...);
     } else {
@@ -59,7 +68,15 @@ WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &a
 
 template <typename Iter, typename Alloc>
 WJR_CONSTEXPR20 void uninitialized_construct_using_allocator(Iter iter, Alloc &alloc,
-                                                             default_construct_t) {
+                                                             default_construct_t) noexcept([] {
+    if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>>) {
+        return noexcept(
+            wjr::construct_at(wjr::to_address(std::declval<Iter &>()), default_construct));
+    } else {
+        return noexcept(std::allocator_traits<Alloc>::construct(
+            std::declval<Alloc &>(), wjr::to_address(std::declval<Iter &>())));
+    }
+}()) {
     if constexpr (is_trivially_allocator_construct_v<Alloc, iterator_value_t<Iter>>) {
         wjr::construct_at(wjr::to_address(iter), default_construct);
     } else {
