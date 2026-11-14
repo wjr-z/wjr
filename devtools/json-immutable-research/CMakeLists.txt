@@ -22,5 +22,5 @@ add_executable(json_immutable_sanitized ${WJR_SOURCE}/test/json/immutable_docume
     ${WJR_SOURCE}/src/memory/stack_allocator.cpp)
 target_link_libraries(json_immutable_sanitized PRIVATE wjr::json GTest::gtest_main)
 target_compile_options(json_immutable_sanitized PRIVATE
-    -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
+    -g -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
 target_link_options(json_immutable_sanitized PRIVATE -fsanitize=address,undefined)
