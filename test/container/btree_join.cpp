@@ -102,6 +102,7 @@ TEST(BtreeMerge, DisjointHeapGraphsSupportBothOrientationsAndSubsequentMutations
         check_shapes<legacy, true>(prepend);
         check_shapes<compact, true>(prepend);
         check_shapes<wjr::btree_map<int, int, std::greater<>>, true>(prepend);
+        check_shapes<wjr::btree_map<int, int, std::greater<int>>, true>(prepend);
         check_shapes<
             wjr::experimental::compact_btree_map<int, int, std::less<>, std::allocator<char>, 5>,
             true>(prepend);

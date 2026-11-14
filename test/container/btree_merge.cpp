@@ -386,4 +386,125 @@ TEST(BtreeMerge, EmptyCompatibleOwnerAdoptsHeapGraphWithoutValueHooks) {
     }
     EXPECT_EQ(payload::live, 0);
 }
+TEST(BtreeMerge, DisjointInlineAndDuplicateGroupsKeepTheirExistingLifetimes) {
+    using tree = wjr::btree_set<int, std::less<>, merge_allocator<char>, 16>;
+    using multi = wjr::btree_multiset<int, std::less<>, merge_allocator<char>, 16>;
+    for (bool prepend : {false, true}) {
+        merge_owner owner;
+        {
+            tree target(std::less<>{}, merge_allocator<char>(&owner));
+            tree source(std::less<>{}, merge_allocator<char>(&owner));
+            std::map<int, const int *> addresses;
+            for (int i = 0; i < 80; ++i) {
+                target.insert(i + (prepend ? 1000 : 0));
+                source.insert(i + (prepend ? 0 : 1000));
+            }
+            for (const auto &value : target)
+                addresses.emplace(value, &value);
+            for (const auto &value : source)
+                addresses.emplace(value, &value);
+            const auto constructions = owner.scalar_constructions;
+            const auto destructions = owner.scalar_destructions;
+            target.merge(source);
+            EXPECT_TRUE(source.empty());
+            EXPECT_EQ(owner.scalar_constructions, constructions);
+            EXPECT_EQ(owner.scalar_destructions, destructions);
+            for (const auto &value : target)
+                EXPECT_EQ(&value, addresses.at(value));
+            source.insert(-1);
+            EXPECT_EQ(*source.begin(), -1);
+        }
+        {
+            multi target(std::less<>{}, merge_allocator<char>(&owner));
+            multi source(std::less<>{}, merge_allocator<char>(&owner));
+            std::multiset<int> reference;
+            for (int i = 0; i < 400; ++i) {
+                target.insert(i / 2 + (prepend ? 1000 : 0));
+                source.insert(i / 2 + (prepend ? 0 : 1000));
+                reference.insert(i / 2);
+                reference.insert(i / 2 + 1000);
+            }
+            const auto constructions = owner.scalar_constructions;
+            const auto destructions = owner.scalar_destructions;
+            target.merge(source);
+            EXPECT_TRUE(source.empty());
+            EXPECT_EQ(owner.scalar_constructions, constructions);
+            EXPECT_EQ(owner.scalar_destructions, destructions);
+            EXPECT_TRUE(
+                std::equal(target.begin(), target.end(), reference.begin(), reference.end()));
+            source.insert(-1);
+            EXPECT_EQ(source.size(), 1u);
+            EXPECT_EQ(target.erase(1002), 2u);
+        }
+        EXPECT_TRUE(owner.blocks.empty());
+        EXPECT_EQ(owner.scalar_constructions, owner.scalar_destructions);
+    }
+}
+
+TEST(BtreeMerge, DisjointIndirectKeysKeepTheirOwnedValuesAndSeparators) {
+    for (bool prepend : {false, true}) {
+        using tree = wjr::btree_map<std::string, immovable>;
+        tree target, source;
+        std::map<std::string, const immovable *> addresses;
+        for (int i = 0; i < 150; ++i) {
+            target.try_emplace(std::string(80, prepend ? 'z' : 'a') + std::to_string(i), i);
+            source.try_emplace(std::string(80, prepend ? 'a' : 'z') + std::to_string(i), i);
+        }
+        for (const auto &[key, value] : target)
+            addresses.emplace(key, &value);
+        for (const auto &[key, value] : source)
+            addresses.emplace(key, &value);
+        target.merge(source);
+        EXPECT_TRUE(source.empty());
+        EXPECT_EQ(target.size(), 300u);
+        for (const auto &[key, address] : addresses)
+            EXPECT_EQ(&target.at(key), address);
+        source.try_emplace("reused", 7);
+        EXPECT_EQ(source.at("reused").value, 7);
+    }
+}
+
+TEST(BtreeMerge, DisjointCompactPmrValuesOutliveTheirSourceObject) {
+    for (bool prepend : {false, true}) {
+        std::pmr::unsynchronized_pool_resource resource;
+        using allocator = std::pmr::polymorphic_allocator<char>;
+        using tree =
+            wjr::experimental::compact_btree_map<int, std::pmr::string, std::less<>, allocator>;
+        tree target(std::less<>{}, allocator(&resource));
+        for (int i = 0; i < 150; ++i)
+            target.try_emplace(i + (prepend ? 1000 : 0), 80, 'a');
+        {
+            tree source(std::less<>{}, allocator(&resource));
+            for (int i = 0; i < 150; ++i)
+                source.try_emplace(i + (prepend ? 0 : 1000), 80, 'b');
+            target.merge(source);
+            EXPECT_TRUE(source.empty());
+            source.try_emplace(-1, 8, 'r');
+            EXPECT_EQ(source.at(-1), "rrrrrrrr");
+        }
+        EXPECT_EQ(target.size(), 300u);
+        for (const auto &[key, value] : target) {
+            EXPECT_EQ(value.get_allocator().resource(), &resource);
+            EXPECT_EQ(value.size(), 80u);
+            EXPECT_EQ(value.front(), key < 1000 ? (prepend ? 'b' : 'a') : (prepend ? 'a' : 'b'));
+        }
+    }
+}
+
+TEST(BtreeMerge, SameTraitsStatefulEquivalenceStillChecksEachIncomingValue) {
+    using tree = wjr::btree_map<int, int, group_compare>;
+    tree target(group_compare{10}), source(group_compare{5});
+    std::map<int, int, group_compare> expected(group_compare{10}), incoming(group_compare{5});
+    for (int i = 0; i < 240; ++i) {
+        target.try_emplace(-240 + i, -i);
+        expected.try_emplace(-240 + i, -i);
+        source.try_emplace(1000 + i, i);
+        incoming.try_emplace(1000 + i, i);
+    }
+    target.merge(source);
+    expected.merge(incoming);
+    EXPECT_FALSE(source.empty());
+    EXPECT_TRUE(std::equal(target.begin(), target.end(), expected.begin(), expected.end()));
+    EXPECT_TRUE(std::equal(source.begin(), source.end(), incoming.begin(), incoming.end()));
+}
 } // namespace

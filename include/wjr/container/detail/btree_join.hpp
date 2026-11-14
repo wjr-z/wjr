@@ -49,8 +49,8 @@ struct disjoint_join_access {
     }
 
     template <typename Traits>
-    WJR_NOINLINE static bool join(basic_btree<Traits> &destination, basic_btree<Traits> &source,
-                                  bool prepend = false) {
+    static bool join(basic_btree<Traits> &destination, basic_btree<Traits> &source,
+                     bool prepend = false) {
         constexpr unsigned capacity = Traits::node_size;
         constexpr unsigned minimum = capacity / 2;
         auto *left = prepend ? source._get_root() : destination._get_root();
