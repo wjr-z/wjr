@@ -1778,11 +1778,6 @@ private:
 
     WJR_CONSTEXPR20 iterator
     _erase(pointer pos) noexcept(std::is_nothrow_move_assignable_v<value_type>) {
-        if constexpr (_can_shift_by_relocation) {
-            if (!std::is_constant_evaluated()) {
-                return _erase(pos, pos + 1);
-            }
-        }
         const pointer _end = end_unsafe();
         if (pos + 1 != _end) {
             std::move(pos + 1, _end, pos);
@@ -1797,17 +1792,6 @@ private:
     _erase(pointer first, pointer last) noexcept(std::is_nothrow_move_assignable_v<value_type>) {
         const pointer _end = end_unsafe();
         if (WJR_LIKELY(first != last)) {
-            if constexpr (_can_shift_by_relocation) {
-                if (!std::is_constant_evaluated()) {
-                    destroy_using_allocator(first, last, _get_allocator());
-                    if (last != _end) {
-                        std::memmove(first, last,
-                                     static_cast<size_type>(_end - last) * sizeof(value_type));
-                    }
-                    _get_size() -= static_cast<size_type>(last - first);
-                    return _make_iterator(first);
-                }
-            }
             if (last != _end) {
                 std::move(last, _end, first);
             }
