@@ -1,5 +1,16 @@
 # Pool-backed owning JSON snapshots
 
+## Immutable snapshots
+
+`json_immutable_snapshots` loads the repository Twitter fixture, releases the
+input and reader, then projects status text and user screen names into owning
+records. Build it with the package-consumer commands below and run
+`./build-json-example/json_immutable_snapshots test/data/success/twitter.json`.
+The [immutable document guide](../../docs/modules/json-immutable-document.md)
+describes borrowed-view lifetimes, checked access and compact storage.
+
+## Pool-backed mutable snapshots
+
 `pool_snapshots.cpp` parses successive configuration snapshots with one borrowed
 `std::pmr::unsynchronized_pool_resource`, replaces the active owning document,
 and mutates a string field after parsing. The standard pool can reuse released

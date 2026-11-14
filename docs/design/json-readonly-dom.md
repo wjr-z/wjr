@@ -1,11 +1,18 @@
 # An owning, immutable JSON document
 
-Status: design for review. No immutable document API, compact parser, query
-speedup, or allocation reduction is implemented by this change. The accompanying
-probe measures the existing mutable DOM and checks candidate record sizes.
-The default `json::document` remains a mutable, independently owning 16-byte
-value; the separate [PMR proposal and implementation](https://github.com/wjr-z/wjr/pull/212)
-addresses explicit resource propagation, not this representation.
+Status: implemented by `immutable_document`, with a move-only owner, borrowing
+views, sorted unique object members and input-independent decoded string bytes.
+The [API guide](../modules/json-immutable-document.md) defines lifetime, exact
+scalar access and checked parsing. The [snapshot consumer](../../examples/json/immutable_snapshots.cpp)
+projects real Twitter statuses after destroying its input and reader. The
+[performance report](../performance/json-immutable-document.md) records complete
+consumers, transient build peaks and a simdjson DOM reference.
+
+The sections below preserve the original source audit and design evidence at
+their recorded revisions. Their proposed interfaces and implementation status
+describe that historical review. The current implementation reuses the shared
+visitor, string decoder, numeric parser and UTF-8 validator. Its non-template
+builder and packing implementation live in `src/json/immutable_document.cpp`.
 
 ## Decision and actual consumer boundary
 
