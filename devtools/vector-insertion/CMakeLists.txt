@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(overlap_research LANGUAGES CXX)
+set(WJR_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(WJR_ENABLE_ASSEMBLY OFF CACHE BOOL "" FORCE)
+set(WJR_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(${WJR_SOURCE} wjr EXCLUDE_FROM_ALL)
+add_executable(modifiers modifiers.cpp)
+target_link_libraries(modifiers PRIVATE wjr::json)
