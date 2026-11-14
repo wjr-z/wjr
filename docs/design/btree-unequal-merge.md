@@ -1,6 +1,7 @@
 # 不等高分片的 graph merge
 
-本实现依赖 #309 的普通 disjoint merge，基线为 `03c093b34ace36ec2f2fecc8d542b68019fdc791`。
+本实现基于已合入 #309 的 main `9227a90300247bf4eca560918ca23b5f38dd2cec`。
+原型阶段以 #309 的 `03c093b34ace36ec2f2fecc8d542b68019fdc791` 验证，相关研究记录保留。
 入口沿用普通 `merge` 及显式 `append_btree_disjoint`。普通自动路径继续使用相同 traits、标准
 less/greater、allocator 相等和严格不交叠区间的条件，experimental compact 的普通选择策略保持。
 
