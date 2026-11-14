@@ -449,6 +449,10 @@ private:
     static constexpr bool _is_nothrow_take_storage =
         noexcept(std::declval<storage_type &>().take_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
+    static constexpr bool _can_move_elements =
+        std::is_move_constructible_v<value_type> ||
+        (get_relocate_mode_v<value_type> != relocate_t::trivial &&
+         !is_trivially_allocator_construct_v<_Alty, value_type, value_type &&>);
     static constexpr bool _is_nothrow_swap_storage =
         noexcept(std::declval<storage_type &>().swap_storage(std::declval<storage_type &>(),
                                                              std::declval<_Alty &>()));
@@ -571,10 +575,25 @@ public:
         basic_ring_buffer(std::move(other), std::move(other._get_allocator()), in_place_empty)))
         : basic_ring_buffer(std::move(other), std::move(other._get_allocator()), in_place_empty) {}
 
+    /// @brief Move through the supplied allocator, taking compatible storage directly.
+    /// @pre Allocators compare equal for deleted-move trivial-relocation values, or values with
+    /// neither move construction nor an applicable allocator construction hook.
     WJR_CONSTEXPR20
     basic_ring_buffer(basic_ring_buffer &&other, const allocator_type &al) noexcept(
-        noexcept(basic_ring_buffer(std::move(other), al, in_place_empty)))
-        : basic_ring_buffer(std::move(other), al, in_place_empty) {}
+        std::is_nothrow_constructible_v<_Alty, const allocator_type &> &&
+        (_Alty_traits::is_always_equal::value || !_can_move_elements) && _is_nothrow_take_storage)
+        : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
+        if constexpr (!_Alty_traits::is_always_equal::value) {
+            if constexpr (!_can_move_elements) {
+                WJR_ASSERT(_get_allocator() == other._get_allocator());
+            } else if (_get_allocator() != other._get_allocator()) {
+                _construct_n(other.size(), std::make_move_iterator(other.begin()),
+                             std::make_move_iterator(other.end()));
+                return;
+            }
+        }
+        _take_storage(std::move(other));
+    }
 
     template <legacy_iterator Iter>
     WJR_CONSTEXPR20 basic_ring_buffer(Iter first, Iter last,
