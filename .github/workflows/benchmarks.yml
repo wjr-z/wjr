@@ -34,6 +34,8 @@ jobs:
           git rev-parse HEAD >> machine.txt
           ./research-build/json_direct_allocations > allocations.csv 2> allocation-metadata.txt
           ./research-build/json_direct_timing corpus > timing.csv 2> timing-metadata.txt
+          ./research-build/json_direct_strong_allocations > strong-allocations.csv 2> strong-allocation-metadata.txt
+          ./research-build/json_direct_strong_timing > strong-timing.csv 2> strong-timing-metadata.txt
           sha256sum corpus/*.json > corpus-sha256.txt
       - uses: actions/upload-artifact@v4
         if: always()
