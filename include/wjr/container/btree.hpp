@@ -1657,21 +1657,12 @@ public:
                 _move_tree(std::move(source));
                 return;
             }
-            /// Heap roots own nonempty leaf rings. First keys choose the boundary to test.
             auto *const root = _get_root();
             auto *const source_root = source._get_root();
             if (root != nullptr && source_root != nullptr &&
                 btree_detail::disjoint_join_access::compatible_root_kinds<Traits>(root,
                                                                                   source_root)) {
-                const auto *first = _get_sentry()->next()->self();
-                const auto *source_first = source._get_sentry()->next()->self();
-                const bool prepend = !key_comp()(first->get_key(0), source_first->get_key(0));
-                const auto *last =
-                    prepend ? source._get_sentry()->prev()->self() : _get_sentry()->prev()->self();
-                const auto &lower = last->get_key(static_cast<slot_usize_type>(-last->size() - 1));
-                const auto &upper = prepend ? first->get_key(0) : source_first->get_key(0);
-                if (key_comp()(lower, upper) &&
-                    btree_detail::disjoint_join_access::join(*this, source, prepend))
+                if (btree_detail::disjoint_join_access::join(*this, source, true))
                     return;
             }
         }

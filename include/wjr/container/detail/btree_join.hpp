@@ -62,17 +62,31 @@ struct disjoint_join_access {
 
     template <typename Traits>
     static bool join(basic_btree<Traits> &destination, basic_btree<Traits> &source,
-                     bool prepend = false) {
+                     bool check_boundary = false) {
         constexpr unsigned capacity = Traits::node_size;
         constexpr unsigned minimum = capacity / 2;
-        auto *left = prepend ? source._get_root() : destination._get_root();
-        auto *right = prepend ? destination._get_root() : source._get_root();
-        if (left == nullptr || right == nullptr)
+        auto *destination_root = destination._get_root();
+        auto *source_root = source._get_root();
+        if (destination_root == nullptr || source_root == nullptr ||
+            !compatible_root_kinds<Traits>(destination_root, source_root))
             return false;
+        bool prepend = false;
+        if (check_boundary) {
+            const auto *first = destination._get_sentry()->next()->self();
+            const auto *source_first = source._get_sentry()->next()->self();
+            prepend = !destination.key_comp()(first->get_key(0), source_first->get_key(0));
+            const auto *last = prepend ? source._get_sentry()->prev()->self()
+                                       : destination._get_sentry()->prev()->self();
+            const auto &lower =
+                last->get_key(static_cast<typename Traits::slot_usize_type>(-last->size() - 1));
+            const auto &upper = prepend ? first->get_key(0) : source_first->get_key(0);
+            if (!destination.key_comp()(lower, upper))
+                return false;
+        }
+        auto *left = prepend ? source_root : destination_root;
+        auto *right = prepend ? destination_root : source_root;
         const auto left_size = left->size();
         const auto right_size = right->size();
-        if (!compatible_root_kinds<Traits>(left, right))
-            return false;
         if (left_size < 0) {
             if (-left_size < static_cast<int>(minimum) || -right_size < static_cast<int>(minimum) ||
                 -left_size - right_size <= static_cast<int>(capacity))
