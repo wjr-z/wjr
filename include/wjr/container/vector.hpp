@@ -71,6 +71,7 @@
 #define WJR_CONTAINER_VECTOR_HPP__
 
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 
@@ -737,6 +738,18 @@ private:
 
     static constexpr bool _is_nothrow_relocation =
         vector_detail::is_nothrow_relocation_v<_Alty, value_type>;
+
+    static constexpr bool _can_shift_by_relocation = [] {
+        if constexpr (requires { get_relocate_mode<value_type>::is_replaceable; }) {
+            return get_relocate_mode<value_type>::is_replaceable &&
+                   get_relocate_mode_v<value_type> == relocate_t::trivial &&
+                   std::is_pointer_v<pointer> && std::is_nothrow_destructible_v<value_type> &&
+                   is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+                   is_trivially_allocator_destroy_v<_Alty, value_type>;
+        } else {
+            return false;
+        }
+    }();
 
     class _construction_rollback {
     public:
@@ -1765,6 +1778,11 @@ private:
 
     WJR_CONSTEXPR20 iterator
     _erase(pointer pos) noexcept(std::is_nothrow_move_assignable_v<value_type>) {
+        if constexpr (_can_shift_by_relocation) {
+            if (!std::is_constant_evaluated()) {
+                return _erase(pos, pos + 1);
+            }
+        }
         const pointer _end = end_unsafe();
         if (pos + 1 != _end) {
             std::move(pos + 1, _end, pos);
@@ -1779,6 +1797,17 @@ private:
     _erase(pointer first, pointer last) noexcept(std::is_nothrow_move_assignable_v<value_type>) {
         const pointer _end = end_unsafe();
         if (WJR_LIKELY(first != last)) {
+            if constexpr (_can_shift_by_relocation) {
+                if (!std::is_constant_evaluated()) {
+                    destroy_using_allocator(first, last, _get_allocator());
+                    if (last != _end) {
+                        std::memmove(first, last,
+                                     static_cast<size_type>(_end - last) * sizeof(value_type));
+                    }
+                    _get_size() -= static_cast<size_type>(last - first);
+                    return _make_iterator(first);
+                }
+            }
             if (last != _end) {
                 std::move(last, _end, first);
             }
@@ -1868,6 +1897,19 @@ private:
         const auto _rest = static_cast<size_type>(_buf_end - _end);
 
         if (WJR_LIKELY(_rest >= n)) {
+            if constexpr (_can_shift_by_relocation) {
+                if (!std::is_constant_evaluated() && pos != _end) {
+                    const auto bytes = static_cast<size_type>(_end - pos) * sizeof(value_type);
+                    std::memmove(pos + n, pos, bytes);
+                    WJR_TRY { _construct_range_n(first, n, pos); }
+                    WJR_CATCH(...) {
+                        std::memmove(pos, pos + n, bytes);
+                        WJR_XTHROW;
+                    }
+                    _get_size() += n;
+                    return;
+                }
+            }
             const auto _elements_after = static_cast<size_type>(_end - pos);
             if (_elements_after >= n) {
                 _uninitialized_rollback<pointer, _Alty> rollback(_end, &al);
@@ -2489,9 +2531,7 @@ private:
         if (common != 0)
             _assign_range_n(first, common, old_first);
         if (count < removed) {
-            const auto tail_size = static_cast<size_type>(end_unsafe() - old_last);
-            std::move(old_last, end_unsafe(), old_first + count);
-            _erase_at_end(old_first + count + tail_size);
+            _erase(old_first + count, old_last);
         } else if (count > removed) {
             _range_insert_n<Iter>(old_last, first, count - removed);
         }

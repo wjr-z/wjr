@@ -17,6 +17,22 @@ elements remain owned; size is unchanged and values may have been modified.
 Member `erase` also propagates throwing move assignment, consistent with its
 conditional `noexcept` declaration.
 
+For explicitly replaceable, trivially relocatable values, member `erase` and
+counted insertion can shift an overlapping suffix in one bulk operation.
+`get_relocate_mode<T>` specializations opt in by defining `is_replaceable = true`.
+This permits destruction and relocation to replace assignment, including changes
+to assignment side effects and payload storage reuse. The opt-in promises valid
+lifetimes and equivalent owned values. Allocator construction/destruction hooks
+and potentially throwing destructors retain elementwise shifting.
+
+Default `wjr::json::document` opts in, so editing a parsed JSON array avoids
+dispatching a move assignment for every surviving document. PMR documents and
+custom document traits retain their allocator-aware assignment behavior.
+Insertion reuses existing capacity, and a failed incoming construction or iterator
+increment restores the shifted suffix after destroying the constructed prefix.
+Iterator invalidation and source nonoverlap requirements follow the modifier's
+existing contract.
+
 ```cpp
 wjr::vector<int> values;
 values.append_range(std::views::iota(0, 8));

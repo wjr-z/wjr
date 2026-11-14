@@ -2981,6 +2981,9 @@ namespace wjr {
 template <typename Traits>
 struct get_relocate_mode<json::basic_document<Traits>> {
     static constexpr relocate_t value = relocate_t::trivial;
+    /// @note Default document slots may be rebuilt while preserving their owned values.
+    static constexpr bool is_replaceable =
+        std::is_same_v<Traits, json::detail::default_document_traits>;
 };
 
 } // namespace wjr
