@@ -24,6 +24,7 @@
 #include <string_view>
 
 #include <wjr/format/ostream_insert.hpp>
+#include <wjr/json/fields.hpp>
 #include <wjr/json/formatter.hpp>
 #include <wjr/json/visitor.hpp>
 #include <wjr/memory/stack_allocator.hpp>
@@ -409,6 +410,7 @@ constexpr decltype(auto) document_conversion_source(Document &&doc) {
     std::move(::wjr::json::detail::document_field_at(__wjr_obj, #var)).get_to(var)
 
 #define WJR_REGISTER_FROM_DOCUMENT_OBJECT_SERIALIZER(Type, ...)                                    \
+    WJR_REGISTER_JSON_FIELDS(Type, __VA_ARGS__)                                                    \
 private:                                                                                           \
     template <typename Object>                                                                     \
     explicit Type(const Object &__wjr_obj,                                                         \
@@ -2310,7 +2312,8 @@ namespace detail {
 template <typename Document>
 class basic_document_parser {
     template <typename Parser>
-    friend result<void> visitor_detail::parse(Parser &&par, ondemand_reader &rd) noexcept;
+    friend result<void> visitor_detail::parse(Parser &&par, ondemand_reader &rd) noexcept(
+        ::wjr::json::visitor_detail::parse_is_nothrow<::wjr::remove_cvref_t<Parser>>);
 
     using document_type = Document;
     using string_type = typename document_type::string_type;
@@ -2613,7 +2616,8 @@ private:
 
 class check_parser {
     template <typename Parser>
-    friend result<void> visitor_detail::parse(Parser &&par, ondemand_reader &rd) noexcept;
+    friend result<void> visitor_detail::parse(Parser &&par, ondemand_reader &rd) noexcept(
+        ::wjr::json::visitor_detail::parse_is_nothrow<::wjr::remove_cvref_t<Parser>>);
 
 public:
     WJR_INTRINSIC_INLINE static result<void> parse(ondemand_reader &rd) noexcept {

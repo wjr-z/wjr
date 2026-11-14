@@ -60,8 +60,13 @@ WJR_PURE WJR_INTRINSIC_INLINE result<void> check_false(const char *first) noexce
 
 namespace visitor_detail {
 
+/// @private Existing materializers retain their terminating exception contract.
 template <typename Parser>
-WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
+inline constexpr bool parse_is_nothrow = true;
+
+template <typename Parser>
+WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept(
+    ::wjr::json::visitor_detail::parse_is_nothrow<::wjr::remove_cvref_t<Parser>>) {
     if (WJR_UNLIKELY(!rd.valid())) {
         return unexpected(error_code::EMPTY);
     }
@@ -72,10 +77,17 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
     unsigned int depth = 0;
     uint8_t type;
 
-    // token ondemand_reader
-    auto read = [&rd](uint32_t &token,
-                      error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
-        token = rd.get();
+    auto next = [&]() noexcept {
+        const uint32_t token = rd.get();
+        if constexpr (requires { par.observe_token(token); }) {
+            par.observe_token(token);
+        }
+        return token;
+    };
+
+    auto read = [&next](uint32_t &token,
+                        error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
+        token = next();
         if (WJR_LIKELY(token != ondemand_reader::npos)) {
             return {};
         }
@@ -99,7 +111,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
             }
 
             WJR_EXPECTED_TRY(par.visit_end_object_to_root(token));
-            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
@@ -112,7 +124,7 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept {
 
         if (WJR_UNLIKELY(ptr[token] == ']')) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(token));
-            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
@@ -199,7 +211,7 @@ OBJECT_ELEMENTS: {
 
         if (depth == 0) {
             WJR_EXPECTED_TRY(par.visit_end_object_to_root(next_token));
-            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
@@ -341,7 +353,7 @@ ARRAY_ELEMENTS: {
         if (depth == 0) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(next_token));
 
-            if (WJR_UNLIKELY(rd.get() != ondemand_reader::npos)) {
+            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
