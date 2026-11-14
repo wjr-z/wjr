@@ -52,6 +52,15 @@ TEST(expected_bool_conversion, compressed_results_preserve_payload_and_error_for
     check_boolean_conversions<compact_source, compact_destination>();
 }
 
+TEST(expected_bool_conversion, const_payloads_preserve_payload_and_error_for_all_cvrefs) {
+    using destination = wjr::expected<const bool, long>;
+    using compact = wjr::compressed_expected<const bool, long, -1>;
+    check_boolean_conversions<plain_source, destination>();
+    check_boolean_conversions<compact_source, destination>();
+    check_boolean_conversions<plain_source, compact>();
+    check_boolean_conversions<compact_source, compact>();
+}
+
 struct result_payload {
     bool has_value;
     explicit result_payload(const plain_source &source) noexcept : has_value(source.has_value()) {}
