@@ -77,6 +77,26 @@ struct hook_allocator : std::allocator<T> {
 using replaceable = value<true>;
 using legacy = value<false>;
 
+struct converted_source {
+    static inline int constructed = 0;
+    static inline int assigned = 0;
+    int number;
+};
+
+template <typename T>
+struct lvalue_hook_allocator : std::allocator<T> {
+    using value_type = T;
+    static inline int constructed = 0;
+    template <typename U>
+    struct rebind {
+        using other = lvalue_hook_allocator<U>;
+    };
+    void construct(T *pointer, T &other) {
+        ++constructed;
+        std::construct_at(pointer, other);
+    }
+};
+
 struct move_only : replaceable {
     using replaceable::replaceable;
     move_only(const move_only &) = delete;
@@ -153,6 +173,23 @@ struct get_relocate_mode<vector_relocation_test::move_only> {
     static constexpr bool is_replaceable = true;
 };
 } // namespace wjr
+
+namespace wjr::json {
+template <>
+struct document_serializer_impl<vector_relocation_test::converted_source> {
+    using value_type = vector_relocation_test::converted_source;
+    template <typename Document>
+    static Document construct(value_type source, in_place_document_serializer_to_t) {
+        ++value_type::constructed;
+        return Document(number_signed_t{}, source.number);
+    }
+    template <typename Document>
+    static void assign(value_type source, Document &target, in_place_document_serializer_to_t) {
+        ++value_type::assigned;
+        target = source.number;
+    }
+};
+} // namespace wjr::json
 
 namespace {
 using namespace vector_relocation_test;
@@ -323,5 +360,37 @@ TEST(vector_relocation, pmr_document_assignment_retains_destination_resource) {
     values.insert_range(values.cbegin(), incoming);
     EXPECT_EQ(values[0].get_allocator().resource(), &first);
     EXPECT_EQ(values[0].get<wjr::json::string_t>(), "new");
+}
+
+TEST(vector_relocation, incoming_lvalue_hook_keeps_assignment_path) {
+    using allocator = lvalue_hook_allocator<replaceable>;
+    static_assert(wjr::is_trivially_allocator_construct_v<allocator, replaceable, replaceable &&>);
+    static_assert(!wjr::is_trivially_allocator_construct_v<allocator, replaceable, replaceable &>);
+    allocator::constructed = 0;
+    {
+        wjr::vector<replaceable, allocator> values;
+        values.reserve(16);
+        for (int number = 0; number != 5; ++number)
+            values.emplace_back(number);
+        std::array incoming{replaceable(10), replaceable(11)};
+        replaceable::assignments = 0;
+        values.insert_range(values.cbegin() + 1, incoming);
+        EXPECT_EQ(allocator::constructed, 0);
+        EXPECT_GT(replaceable::assignments, 0);
+        EXPECT_EQ(numbers(values), (std::vector<int>{0, 10, 11, 1, 2, 3, 4}));
+    }
+    EXPECT_EQ(replaceable::resources, 0);
+}
+
+TEST(vector_relocation, converting_iterator_preserves_serializer_assignment) {
+    using document = wjr::json::document;
+    auto values = documents();
+    std::array incoming{converted_source{10}, converted_source{11}};
+    converted_source::constructed = converted_source::assigned = 0;
+    values.insert(values.cbegin() + 1, incoming.begin(), incoming.end());
+    EXPECT_EQ(converted_source::constructed, 0);
+    EXPECT_EQ(converted_source::assigned, 2);
+    EXPECT_EQ(values[1], document(10));
+    EXPECT_EQ(values[2], document(11));
 }
 } // namespace

@@ -1881,7 +1881,10 @@ private:
         const auto _rest = static_cast<size_type>(_buf_end - _end);
 
         if (WJR_LIKELY(_rest >= n)) {
-            if constexpr (_can_shift_by_relocation) {
+            if constexpr (_can_shift_by_relocation &&
+                          std::is_same_v<remove_cvref_t<iterator_reference_t<Iter>>, value_type> &&
+                          is_trivially_allocator_construct_v<_Alty, value_type,
+                                                             iterator_reference_t<Iter>>) {
                 if (!std::is_constant_evaluated() && pos != _end) {
                     const auto bytes = static_cast<size_type>(_end - pos) * sizeof(value_type);
                     std::memmove(pos + n, pos, bytes);

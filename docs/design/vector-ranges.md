@@ -18,12 +18,13 @@ Member `erase` also propagates throwing move assignment, consistent with its
 conditional `noexcept` declaration.
 
 For explicitly replaceable, trivially relocatable values, counted insertion
-can shift an overlapping suffix in one bulk operation.
+from the same value type can shift an overlapping suffix in one bulk operation.
 `get_relocate_mode<T>` specializations opt in by defining `is_replaceable = true`.
 This permits destruction and relocation to replace assignment, including changes
 to assignment side effects and payload storage reuse. The opt-in promises valid
 lifetimes and equivalent owned values. Allocator construction/destruction hooks
-and potentially throwing destructors retain elementwise shifting.
+and potentially throwing destructors retain elementwise shifting. Converting
+sources retain their construction and assignment dispatch.
 
 Default `wjr::json::document` opts in, so inserting into a parsed JSON array
 avoids dispatching a move assignment for every shifted document. PMR documents and

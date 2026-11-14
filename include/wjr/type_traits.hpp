@@ -800,8 +800,8 @@ enum class relocate_t {
 
 /// @brief Customize relocation, optionally permitting replacement of existing slots.
 /// @details A specialization may additionally define `static constexpr bool
-/// is_replaceable = true`. This permits containers to replace move assignment
-/// with destruction followed by relocation, including overlapping bulk shifts.
+/// is_replaceable = true`. This permits containers to replace assignment from T
+/// with reconstruction and relocation, including overlapping bulk shifts.
 /// The specialization promises equivalent owned values and valid lifetimes under
 /// that replacement. Slot identity, assignment side effects and storage reuse
 /// must not be required. The opt-in is independent of the relocation mode.
