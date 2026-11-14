@@ -8,6 +8,7 @@
 #include <array>
 #include <iostream>
 #include <map>
+#include <vector>
 
 #ifdef WJR_BENCHMARK_ABSEIL
     #include <absl/container/btree_map.h>
@@ -32,12 +33,19 @@ struct specification {
     uint64_t source_base;
     uint64_t destination_base;
     size_t expected_conflicts;
+    size_t batches = 1;
+    bool prepend_batches = false;
 };
 #ifdef WJR_BENCHMARK_JOIN
 constexpr specification cases[] = {{"leaf9", 9, 9, 1, 1, 8192, 0, 0},
                                    {"inner150", 150, 150, 1, 1, 8192, 0, 0},
                                    {"large4096", 4096, 4096, 1, 1, 8192, 0, 0},
-                                   {"unequal", 64, 4096, 1, 1, 8192, 0, 0}};
+                                   {"unequal", 64, 4096, 1, 1, 8192, 0, 0},
+                                   {"unequal_leaf", 9, 4096, 1, 1, 8192, 0, 0},
+                                   {"unequal_tall_source", 4096, 64, 1, 1, 8192, 0, 0},
+                                   {"accumulate64", 64, 4096, 1, 1, 8192, 0, 0, 32},
+                                   {"accumulate150", 150, 4096, 1, 1, 8192, 0, 0, 32},
+                                   {"prepend64", 64, 4096, 1, 1, 0, 1048576, 0, 32, true}};
 
 template <typename Tree>
 struct append_tree : Tree {
@@ -45,19 +53,30 @@ struct append_tree : Tree {
     void merge(append_tree &source) { wjr::experimental::append_btree_disjoint(*this, source); }
 };
 
-template <typename Tree>
+template <typename Tree, bool Prepend = false>
 struct node_hint_tree : Tree {
     using Tree::Tree;
     void merge(node_hint_tree &source) {
-        while (!source.empty())
-            this->insert(this->end(), source.extract(source.begin()));
+        while (!source.empty()) {
+            if constexpr (Prepend) {
+                auto position = source.end();
+                --position;
+                this->insert(this->begin(), source.extract(position));
+            } else {
+                this->insert(this->end(), source.extract(source.begin()));
+            }
+        }
     }
 };
 #else
 constexpr specification cases[] = {{"empty", 4096, 0, 1, 1, 0, 0, 0},
                                    {"interleaved", 4096, 4096, 2, 2, 0, 1, 0},
                                    {"conflicting", 4096, 4096, 1, 1, 0, 0, 4096},
-                                   {"sparse", 64, 4096, 64, 1, 32, 0, 64}};
+                                   {"sparse", 64, 4096, 64, 1, 32, 0, 64},
+                                   {"unequal_conflicting", 64, 4096, 1, 1, 0, 0, 64},
+                                   {"unequal_overlap", 64, 4096, 1, 1, 4064, 0, 32},
+                                   {"unequal_leaf_sparse", 9, 4096, 455, 1, 32, 0, 9},
+                                   {"unequal_source_conflicting", 4096, 64, 1, 1, 0, 0, 64}};
 #endif
 
 template <typename Tree>
@@ -84,12 +103,83 @@ void validate(const Tree &destination, specification spec) {
 }
 #endif
 
+#ifdef WJR_BENCHMARK_JOIN
+specification batch_specification(specification spec, size_t batch) {
+    const auto position = spec.prepend_batches ? spec.batches - batch - 1 : batch;
+    spec.source_base += position * spec.source * spec.source_step;
+    return spec;
+}
+
+template <typename Tree>
+void fill_batches(std::vector<Tree> &sources, Tree &destination, specification spec) {
+    for (size_t batch = 0; batch < sources.size(); ++batch) {
+        const auto part = batch_specification(spec, batch);
+        for (size_t i = 0; i < part.source; ++i)
+            sources[batch].try_emplace(part.source_base + i * part.source_step);
+    }
+    for (size_t i = 0; i < spec.destination; ++i)
+        destination.try_emplace(spec.destination_base + i * spec.destination_step);
+}
+
+template <typename Tree>
+void merge_batches(std::vector<Tree> &sources, Tree &destination) {
+    for (auto &source : sources)
+        destination.merge(source);
+}
+
+template <typename Tree>
+void validate_batches(const std::vector<Tree> &sources, const Tree &destination,
+                      specification spec) {
+    if (destination.size() != spec.destination + spec.source * spec.batches)
+        std::abort();
+    for (size_t batch = 0; batch < sources.size(); ++batch) {
+        if (!sources[batch].empty())
+            std::abort();
+        validate(destination, batch_specification(spec, batch));
+    }
+}
+#endif
+
 #ifdef WJR_MERGE_MEMORY
 using btree_probe::counts;
 template <typename T>
 using allocator = btree_probe::allocator<T>;
+
+    #ifdef WJR_BENCHMARK_JOIN
+template <typename Tree>
+void measure_batches(const std::string &label, specification spec) {
+    counts stats;
+    btree_probe::pass current(stats);
+    size_t before, after, peak, allocations, deallocations;
+    {
+        std::vector<Tree> sources(spec.batches);
+        Tree destination;
+        fill_batches(sources, destination, spec);
+        before = stats.live;
+        stats.peak = stats.live;
+        const auto old_allocations = stats.allocations;
+        const auto old_deallocations = stats.deallocations;
+        merge_batches(sources, destination);
+        validate_batches(sources, destination, spec);
+        after = stats.live;
+        peak = stats.peak;
+        allocations = stats.allocations - old_allocations;
+        deallocations = stats.deallocations - old_deallocations;
+    }
+    if (stats.live != 0 || stats.allocations != stats.deallocations)
+        std::abort();
+    std::cout << label << '/' << spec.name << ',' << before << ',' << after << ',' << peak << ','
+              << allocations << ',' << deallocations << ',' << stats.live << '\n';
+}
+    #endif
 template <typename Tree>
 void measure(const std::string &label, specification spec) {
+    #ifdef WJR_BENCHMARK_JOIN
+    if (spec.batches != 1) {
+        measure_batches<Tree>(label, spec);
+        return;
+    }
+    #endif
     counts stats;
     btree_probe::pass current(stats);
     size_t before, after, peak, allocations, deallocations;
@@ -120,8 +210,50 @@ void measure(const std::string &label, specification spec) {
 #else
 template <typename T>
 using allocator = std::allocator<T>;
+    #ifdef WJR_BENCHMARK_JOIN
+template <typename Tree>
+void measure_batches(const std::string &label, specification spec) {
+    {
+        std::vector<Tree> sources(spec.batches);
+        Tree destination;
+        fill_batches(sources, destination, spec);
+        merge_batches(sources, destination);
+        validate_batches(sources, destination, spec);
+    }
+    benchmark::RegisterBenchmark((label + '/' + spec.name).c_str(),
+                                 [spec](benchmark::State &state) {
+                                     for (auto _ : state) {
+                                         state.PauseTiming();
+                                         {
+                                             std::vector<Tree> sources(spec.batches);
+                                             Tree destination;
+                                             fill_batches(sources, destination, spec);
+                                             state.ResumeTiming();
+                                             merge_batches(sources, destination);
+                                             benchmark::DoNotOptimize(sources);
+                                             benchmark::DoNotOptimize(destination);
+                                             benchmark::ClobberMemory();
+                                             state.PauseTiming();
+                                         }
+                                         state.ResumeTiming();
+                                     }
+                                     state.SetItemsProcessed(state.iterations() * spec.source *
+                                                             spec.batches);
+                                 })
+        ->Iterations(8)
+        ->Repetitions(5)
+        ->UseRealTime();
+}
+    #endif
+
 template <typename Tree>
 void measure(const std::string &label, specification spec) {
+    #ifdef WJR_BENCHMARK_JOIN
+    if (spec.batches != 1) {
+        measure_batches<Tree>(label, spec);
+        return;
+    }
+    #endif
     Tree source, destination;
     fill(source, destination, spec);
     destination.merge(source);
@@ -164,16 +296,24 @@ void scenario(const std::string &label) {
         using legacy = wjr::btree_map<uint64_t, Value, std::less<>, A>;
         using compact = wjr::experimental::compact_btree_map<uint64_t, Value, std::less<>, A>;
         measure<legacy>(label + "/legacy_merge", spec);
-        measure<append_tree<legacy>>(label + "/legacy_append", spec);
         measure<compact>(label + "/compact_merge", spec);
-        measure<append_tree<compact>>(label + "/compact_append", spec);
+        if (!spec.prepend_batches) {
+            measure<append_tree<legacy>>(label + "/legacy_append", spec);
+            measure<append_tree<compact>>(label + "/compact_append", spec);
+        }
         using std_tree = std::map<uint64_t, Value, std::less<>, allocator<pair>>;
         measure<std_tree>(label + "/std_merge", spec);
-        measure<node_hint_tree<std_tree>>(label + "/std_node_hint", spec);
+        if (spec.prepend_batches)
+            measure<node_hint_tree<std_tree, true>>(label + "/std_node_hint", spec);
+        else
+            measure<node_hint_tree<std_tree>>(label + "/std_node_hint", spec);
     #ifdef WJR_BENCHMARK_ABSEIL
         using absl_tree = absl::btree_map<uint64_t, Value, std::less<>, allocator<pair>>;
         measure<absl_tree>(label + "/absl_merge", spec);
-        measure<node_hint_tree<absl_tree>>(label + "/absl_node_hint", spec);
+        if (spec.prepend_batches)
+            measure<node_hint_tree<absl_tree, true>>(label + "/absl_node_hint", spec);
+        else
+            measure<node_hint_tree<absl_tree>>(label + "/absl_node_hint", spec);
     #endif
 #else
         measure<wjr::btree_map<uint64_t, Value, reference_less, A>>(label + "/legacy_reference",
