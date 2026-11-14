@@ -18,7 +18,8 @@ add_executable(json_immutable_tests ${WJR_SOURCE}/test/json/immutable_document.c
     ${WJR_SOURCE}/test/json/number_boundaries.cpp)
 target_link_libraries(json_immutable_tests PRIVATE wjr::json GTest::gtest_main)
 add_executable(json_immutable_sanitized ${WJR_SOURCE}/test/json/immutable_document.cpp
-    ${WJR_SOURCE}/src/json/immutable_document.cpp ${WJR_SOURCE}/src/json/utf8.cpp)
+    ${WJR_SOURCE}/src/json/immutable_document.cpp ${WJR_SOURCE}/src/json/utf8.cpp
+    ${WJR_SOURCE}/src/memory/stack_allocator.cpp)
 target_link_libraries(json_immutable_sanitized PRIVATE wjr::json GTest::gtest_main)
 target_compile_options(json_immutable_sanitized PRIVATE
     -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
