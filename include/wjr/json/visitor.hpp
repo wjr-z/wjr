@@ -77,17 +77,12 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept(
     unsigned int depth = 0;
     uint8_t type;
 
-    auto next = [&]() noexcept {
-        const uint32_t token = rd.get();
+    auto read = [&](uint32_t &token,
+                    error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
+        token = rd.get();
         if constexpr (requires { par.observe_token(token); }) {
             par.observe_token(token);
         }
-        return token;
-    };
-
-    auto read = [&next](uint32_t &token,
-                        error_code err = error_code::TAPE_ERROR) mutable -> result<void> {
-        token = next();
         if (WJR_LIKELY(token != ondemand_reader::npos)) {
             return {};
         }
@@ -111,7 +106,10 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept(
             }
 
             WJR_EXPECTED_TRY(par.visit_end_object_to_root(token));
-            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
+            if (const auto trailing = rd.get(); WJR_UNLIKELY(trailing != ondemand_reader::npos)) {
+                if constexpr (requires { par.observe_token(trailing); }) {
+                    par.observe_token(trailing);
+                }
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
@@ -124,7 +122,10 @@ WJR_NOINLINE result<void> parse(Parser &&par, ondemand_reader &rd) noexcept(
 
         if (WJR_UNLIKELY(ptr[token] == ']')) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(token));
-            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
+            if (const auto trailing = rd.get(); WJR_UNLIKELY(trailing != ondemand_reader::npos)) {
+                if constexpr (requires { par.observe_token(trailing); }) {
+                    par.observe_token(trailing);
+                }
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
@@ -211,7 +212,10 @@ OBJECT_ELEMENTS: {
 
         if (depth == 0) {
             WJR_EXPECTED_TRY(par.visit_end_object_to_root(next_token));
-            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
+            if (const auto trailing = rd.get(); WJR_UNLIKELY(trailing != ondemand_reader::npos)) {
+                if constexpr (requires { par.observe_token(trailing); }) {
+                    par.observe_token(trailing);
+                }
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
@@ -353,7 +357,10 @@ ARRAY_ELEMENTS: {
         if (depth == 0) {
             WJR_EXPECTED_TRY(par.visit_end_array_to_root(next_token));
 
-            if (WJR_UNLIKELY(next() != ondemand_reader::npos)) {
+            if (const auto trailing = rd.get(); WJR_UNLIKELY(trailing != ondemand_reader::npos)) {
+                if constexpr (requires { par.observe_token(trailing); }) {
+                    par.observe_token(trailing);
+                }
                 return unexpected(error_code::TRAILING_CONTENT);
             }
             return {};
