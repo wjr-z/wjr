@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          fetch-depth: 0
           submodules: recursive
       - name: Check out reviewed comparison source
         uses: actions/checkout@v5
@@ -22,13 +23,86 @@ jobs:
           ref: 2a2d6aad626f75a32c8b7bb775fbff73d558b8b1
           path: .showcase-abseil
           persist-credentials: false
+      - name: Check out the frozen merge baseline
+        uses: actions/checkout@v5
+        with:
+          ref: c69cdbbf370009c8419ea3ef8507d6e48754cbfb
+          path: .merge-baseline
+          submodules: recursive
+          persist-credentials: false
       - name: Prepare focused tools
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build g++-13 clang-18 python3-venv
+          sudo apt-get install -y ninja-build g++-13 clang-18 python3-venv libgtest-dev
           python3 -m venv "$RUNNER_TEMP/showcase-python"
           "$RUNNER_TEMP/showcase-python/bin/pip" install matplotlib==3.11.1
+      - name: Paired core merge measurements
+        shell: bash
+        run: |
+          evidence="$GITHUB_WORKSPACE/showcase-results/merge"
+          mkdir -p "$evidence"
+          git diff --exit-code 4732ea4f37ff052ae7cb9a5162fc7bcdfe2d979b HEAD -- include src test benchmarks
+          git rev-parse HEAD > "$evidence/research-source.txt"
+          git -C .merge-baseline rev-parse HEAD > "$evidence/baseline-source.txt"
+          echo 4732ea4f37ff052ae7cb9a5162fc7bcdfe2d979b > "$evidence/feature-source.txt"
+          cmp benchmarks/src/btree_merge.cpp .merge-baseline/benchmarks/src/btree_merge.cpp
+          sha256sum include/wjr/container/btree.hpp include/wjr/container/detail/btree_join.hpp \
+            include/wjr/container/experimental/btree_join.hpp benchmarks/src/btree_merge.cpp \
+            test/container/btree_merge.cpp test/container/btree_join.cpp > "$evidence/feature-sources.sha256"
+          sha256sum .merge-baseline/include/wjr/container/btree.hpp \
+            .merge-baseline/include/wjr/container/experimental/btree_join.hpp \
+            .merge-baseline/benchmarks/src/btree_merge.cpp > "$evidence/baseline-sources.sha256"
+          dpkg-query -W libstdc++-13-dev libgtest-dev > "$evidence/library-versions.txt"
+          for profile in gcc clang; do
+            if [[ "$profile" == gcc ]]; then cc=gcc-13; cxx=g++-13; else cc=clang-18; cxx=clang++-18; fi
+            "$cxx" --version > "$evidence/$profile-compiler.txt"
+            for variant in main candidate; do
+              source="$GITHUB_WORKSPACE"
+              if [[ "$variant" == main ]]; then source="$GITHUB_WORKSPACE/.merge-baseline"; fi
+              build="$GITHUB_WORKSPACE/build-merge-$profile-$variant"
+              cmake -S "$source" -B "$build" -GNinja \
+                -DCMAKE_C_COMPILER="$cc" -DCMAKE_CXX_COMPILER="$cxx" \
+                -DCMAKE_CXX_FLAGS=-fstack-usage -DCMAKE_BUILD_TYPE=Release \
+                -DWJR_CXX_STANDARD=20 -DWJR_CPU_TARGET=baseline \
+                -DWJR_BUILD_BENCHMARKS=ON -DWJR_BUILD_TESTS=OFF -DWJR_BENCHMARK_PROFILE=btree \
+                -DWJR_BENCHMARK_ABSEIL=ON \
+                -DWJR_BENCHMARK_ABSEIL_SOURCE_DIR="$GITHUB_WORKSPACE/.showcase-abseil" \
+                -DWJR_ENABLE_INSTALL=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                -DFETCHCONTENT_BASE_DIR="$RUNNER_TEMP/merge-deps-$profile-$variant"
+              cmake --build "$build" --target btree_merge btree_join btree_merge_memory btree_join_memory --parallel 4
+              "$build/bin/btree_merge_memory" > "$evidence/$profile-$variant-merge-memory.csv"
+              "$build/bin/btree_join_memory" > "$evidence/$profile-$variant-join-memory.csv"
+              cp "$build/compile_commands.json" "$evidence/$profile-$variant-compile-commands.json"
+              size "$build/bin/btree_merge" "$build/bin/btree_join" > "$evidence/$profile-$variant-size.txt"
+              find "$build" -name '*btree_merge*.su' -exec cat {} \; > "$evidence/$profile-$variant-stack-usage.txt"
+              objdump -Cd --no-show-raw-insn "$build/benchmarks/CMakeFiles/btree_merge.dir/src/btree_merge.cpp.o" > "$evidence/$profile-$variant-disassembly.txt"
+            done
+            for round in 1 2 3; do
+              order=(main candidate)
+              if [[ "$round" == 2 ]]; then order=(candidate main); fi
+              for variant in "${order[@]}"; do
+                build="$GITHUB_WORKSPACE/build-merge-$profile-$variant"
+                for operation in merge join; do
+                  "$build/bin/btree_$operation" --benchmark_report_aggregates_only=false \
+                    --benchmark_out="$evidence/$profile-$variant-$operation-$round.json" \
+                    > "$evidence/$profile-$variant-$operation-$round.txt" 2>&1
+                done
+              done
+            done
+          done
+      - name: Core merge lifetime sanitizers
+        shell: bash
+        run: |
+          evidence="$GITHUB_WORKSPACE/showcase-results/merge"
+          clang++-18 -std=c++20 -O1 -g -DNDEBUG -DWJR_DEBUG_LEVEL=0 -DFMT_HEADER_ONLY \
+            -march=x86-64 -fsanitize=address,undefined -fno-sanitize-recover=all \
+            -Iinclude -Ithird-party/fmt/include -I/usr/src/googletest/googletest/include \
+            -I/usr/src/googletest/googletest test/container/btree_merge.cpp test/container/btree_join.cpp \
+            /usr/src/googletest/googletest/src/gtest-all.cc \
+            /usr/src/googletest/googletest/src/gtest_main.cc -pthread -o "$evidence/asan"
+          "$evidence/asan" > "$evidence/asan-tests.txt" 2>&1
+          rm "$evidence/asan"
       - name: Measure both compiler profiles on this worker
         shell: bash
         run: |
