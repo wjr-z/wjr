@@ -10,6 +10,18 @@ class basic_btree;
 namespace btree_detail {
 /// @brief Join eligible equal-height disjoint graphs without relocating stored values.
 struct disjoint_join_access {
+    /// @brief Reject mismatched root/child kinds before loading endpoint values.
+    template <typename Traits>
+    WJR_INTRINSIC_INLINE static bool
+    compatible_root_kinds(const typename Traits::node_type *left,
+                          const typename Traits::node_type *right) noexcept {
+        const bool leaf = left->size() < 0;
+        if (leaf != (right->size() < 0))
+            return false;
+        return leaf || ((left->as_inner()->m_sons[0]->size() < 0) ==
+                        (right->as_inner()->m_sons[0]->size() < 0));
+    }
+
     template <typename Traits>
     static unsigned depth(typename Traits::node_type *node) noexcept {
         unsigned result = 0;
@@ -59,7 +71,7 @@ struct disjoint_join_access {
             return false;
         const auto left_size = left->size();
         const auto right_size = right->size();
-        if ((left_size < 0) != (right_size < 0))
+        if (!compatible_root_kinds<Traits>(left, right))
             return false;
         if (left_size < 0) {
             if (-left_size < static_cast<int>(minimum) || -right_size < static_cast<int>(minimum) ||

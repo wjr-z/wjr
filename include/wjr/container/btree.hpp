@@ -1658,7 +1658,11 @@ public:
                 return;
             }
             /// Heap roots own nonempty leaf rings. First keys choose the boundary to test.
-            if (_get_root() != nullptr && source._get_root() != nullptr) {
+            auto *const root = _get_root();
+            auto *const source_root = source._get_root();
+            if (root != nullptr && source_root != nullptr &&
+                btree_detail::disjoint_join_access::compatible_root_kinds<Traits>(root,
+                                                                                  source_root)) {
                 const auto *first = _get_sentry()->next()->self();
                 const auto *source_first = source._get_sentry()->next()->self();
                 const bool prepend = !key_comp()(first->get_key(0), source_first->get_key(0));
