@@ -71,6 +71,7 @@
 #define WJR_CONTAINER_VECTOR_HPP__
 
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 
@@ -737,6 +738,18 @@ private:
 
     static constexpr bool _is_nothrow_relocation =
         vector_detail::is_nothrow_relocation_v<_Alty, value_type>;
+
+    static constexpr bool _can_shift_by_relocation = [] {
+        if constexpr (requires { get_relocate_mode<value_type>::is_replaceable; }) {
+            return get_relocate_mode<value_type>::is_replaceable &&
+                   get_relocate_mode_v<value_type> == relocate_t::trivial &&
+                   std::is_pointer_v<pointer> && std::is_nothrow_destructible_v<value_type> &&
+                   is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
+                   is_trivially_allocator_destroy_v<_Alty, value_type>;
+        } else {
+            return false;
+        }
+    }();
 
     class _construction_rollback {
     public:
@@ -1868,6 +1881,22 @@ private:
         const auto _rest = static_cast<size_type>(_buf_end - _end);
 
         if (WJR_LIKELY(_rest >= n)) {
+            if constexpr (_can_shift_by_relocation &&
+                          std::is_same_v<remove_cvref_t<iterator_reference_t<Iter>>, value_type> &&
+                          is_trivially_allocator_construct_v<_Alty, value_type,
+                                                             iterator_reference_t<Iter>>) {
+                if (!std::is_constant_evaluated() && pos != _end) {
+                    const auto bytes = static_cast<size_type>(_end - pos) * sizeof(value_type);
+                    std::memmove(pos + n, pos, bytes);
+                    WJR_TRY { _construct_range_n(first, n, pos); }
+                    WJR_CATCH(...) {
+                        std::memmove(pos, pos + n, bytes);
+                        WJR_XTHROW;
+                    }
+                    _get_size() += n;
+                    return;
+                }
+            }
             const auto _elements_after = static_cast<size_type>(_end - pos);
             if (_elements_after >= n) {
                 _uninitialized_rollback<pointer, _Alty> rollback(_end, &al);
