@@ -2351,7 +2351,7 @@ private:
     WJR_INTRINSIC_INLINE static result<void>
     _fill_allocated_string(string_type &string, const char *first, const char *last) noexcept {
         WJR_EXPECTED_INIT(short_string, try_decode_short_string(string, first, last));
-        if (short_string) {
+        if (*short_string) {
             return {};
         }
 #if defined(__cpp_lib_string_resize_and_overwrite) &&                                              \
