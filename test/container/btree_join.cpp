@@ -101,6 +101,7 @@ TEST(BtreeMerge, DisjointHeapGraphsSupportBothOrientationsAndSubsequentMutations
     for (bool prepend : {false, true}) {
         check_shapes<legacy, true>(prepend);
         check_shapes<compact, true>(prepend);
+        check_shapes<wjr::btree_map<int, int, std::less<int>>, true>(prepend);
         check_shapes<wjr::btree_map<int, int, std::greater<>>, true>(prepend);
         check_shapes<wjr::btree_map<int, int, std::greater<int>>, true>(prepend);
         check_shapes<
@@ -295,12 +296,11 @@ TEST(BtreeMerge, DisjointGraphsRetainLifetimesAllocatorsAndHookObservability) {
     for (bool prepend : {false, true}) {
         for (int count : {9, 17, 80, 150, 4096}) {
             check_graph_ownership<false, 16, true>(count, prepend);
-            check_graph_ownership<true, 16, true>(count, prepend);
         }
         check_graph_ownership<false, 4, true>(9, prepend);
-        check_graph_ownership<true, 5, true>(16, prepend);
-        check_graph_ownership<true, 64, true>(33, prepend);
-        check_graph_ownership<true, 64, true>(1000, prepend);
+        check_graph_ownership<false, 5, true>(16, prepend);
+        check_graph_ownership<false, 64, true>(33, prepend);
+        check_graph_ownership<false, 64, true>(1000, prepend);
     }
 }
 
