@@ -54,6 +54,11 @@ parser represents larger finite integers as double, with its ordinary rounding.
 Floating overflow or underflow reports `BIGINT_ERROR`. Getter calls perform no
 numeric conversions.
 
+Keep a named getter result alive while iterating its contained view, as in
+`const auto array = value.get_array(); if (array) { for (auto child : *array) { ... } }`.
+Copying the view into a local value also works. In C++20, dereferencing a
+temporary `result` directly in a range-for initializer leaves a dangling range.
+
 ## Validation and failure
 
 Parsing consumes one complete JSON value using the existing lexer, visitor,

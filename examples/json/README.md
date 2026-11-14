@@ -20,6 +20,7 @@ After installing WJR, build it as a normal package consumer:
 
 ```sh
 cmake -S examples/json -B build-json-example -GNinja \
+  -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_PREFIX_PATH=/path/to/wjr/install
 cmake --build build-json-example
 ./build-json-example/json_pool_snapshots

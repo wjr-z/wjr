@@ -44,13 +44,15 @@ document materialize(value_view value) {
         return document(std::string(*value.get_string()));
     case value_t::array: {
         auto output = document::_construct_array();
-        for (auto child : *value.get_array())
+        const auto array = value.get_array();
+        for (auto child : *array)
             output.get<array_t>().push_back(materialize(child));
         return output;
     }
     case value_t::object: {
         auto output = document::_construct_object();
-        for (auto field : *value.get_object())
+        const auto object = value.get_object();
+        for (auto field : *object)
             output.get<object_t>().emplace(std::string(field.key), materialize(field.value));
         return output;
     }
