@@ -63,8 +63,8 @@ jobs:
           ./research-build/json_direct_strong_timing corpus > strong-timing.csv 2> strong-timing-metadata.txt
           ./research-build/json_direct_hand > hand-timing.csv 2> hand-timing-metadata.txt
           ./research-build/json_direct_stages > stages.csv 2> stages-metadata.txt
-          SIMDJSON_FORCE_IMPLEMENTATION=haswell ./research-build/json_direct_strong_timing > matched-avx2-strong.csv 2> matched-avx2-strong-metadata.txt
-          SIMDJSON_FORCE_IMPLEMENTATION=haswell ./research-build/json_direct_stages > matched-avx2-stages.csv 2> matched-avx2-stages-metadata.txt
+          ./research-build/json_direct_matched_strong > matched-avx2-strong.csv 2> matched-avx2-strong-metadata.txt
+          ./research-build/json_direct_matched_stages > matched-avx2-stages.csv 2> matched-avx2-stages-metadata.txt
           sha256sum corpus/*.json > corpus-sha256.txt
       - uses: actions/upload-artifact@v4
         if: always()

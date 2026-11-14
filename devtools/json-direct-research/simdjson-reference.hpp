@@ -65,7 +65,7 @@ struct parser {
         (void)run();
         static bool report = true;
         if (report) {
-            std::cerr << "simdjson_active=" << simdjson::get_active_implementation()->name() << '\n';
+            std::cerr << "simdjson_builtin=" << simdjson::builtin_implementation()->name() << ", active=" << simdjson::get_active_implementation()->name() << '\n';
             report = false;
         }
     }
