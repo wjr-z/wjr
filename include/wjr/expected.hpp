@@ -1312,13 +1312,13 @@ public:
         using std::swap;
         if (has_value()) {
             if (other.has_value()) {
-                std::swap(this->m_val, other.m_val);
+                swap(this->m_val, other.m_val);
             } else {
                 _swap_impl(other);
             }
         } else {
             if (!other.has_value()) {
-                std::swap(this->m_err, other.m_err);
+                swap(this->m_err, other.m_err);
             } else {
                 other._swap_impl(*this);
             }
@@ -1707,7 +1707,7 @@ public:
             }
         } else {
             if (!other.has_value()) {
-                std::swap(this->m_err, other.m_err);
+                swap(this->m_err, other.m_err);
             } else {
                 other._swap_impl(*this);
             }
