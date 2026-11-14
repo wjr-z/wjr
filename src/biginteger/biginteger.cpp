@@ -933,7 +933,7 @@ void _pow_impl(biginteger_dispatcher dst, const biginteger_view *num, uint32_t e
 
 } // namespace biginteger_detail
 
-std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept {
+std::ostream &operator<<(std::ostream &os, const biginteger_view &src) {
     if (const std::ostream::sentry ok(os); ok) {
         unique_stack_allocator stkal;
         vector<char, weak_stack_allocator<char>> buffer(stkal);
@@ -971,8 +971,6 @@ std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept 
         // seems won't be empty
         WJR_ASSERT(!buffer.empty());
         _ostream_insert_unchecked(os, buffer.data(), buffer.size());
-    } else {
-        os.setstate(std::ios::badbit);
     }
 
     return os;

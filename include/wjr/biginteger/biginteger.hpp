@@ -1188,7 +1188,7 @@ std::basic_istream<char, Traits> &operator>>(std::basic_istream<char, Traits> &i
 
 template <typename Traits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
-                                             const biginteger_view &src) noexcept;
+                                             const biginteger_view &src);
 
 WJR_NODISCARD WJR_PURE inline int32_t compare(const biginteger_view &lhs,
                                               const biginteger_view &rhs) noexcept {
@@ -3017,7 +3017,7 @@ std::basic_istream<char, Traits> &operator>>(std::basic_istream<char, Traits> &i
 
 template <typename Traits>
 std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &os,
-                                             const biginteger_view &src) noexcept {
+                                             const biginteger_view &src) {
     using ostream_type = std::basic_ostream<char, Traits>;
     if (typename ostream_type::sentry ok(os); ok) {
         unique_stack_allocator stkal;
@@ -3056,14 +3056,12 @@ std::basic_ostream<char, Traits> &operator<<(std::basic_ostream<char, Traits> &o
         // seems won't be empty
         WJR_ASSERT(!buffer.empty());
         _ostream_insert_unchecked(os, buffer.data(), buffer.size());
-    } else {
-        os.setstate(std::ios::badbit);
     }
 
     return os;
 }
 
-extern std::ostream &operator<<(std::ostream &os, const biginteger_view &src) noexcept;
+extern std::ostream &operator<<(std::ostream &os, const biginteger_view &src);
 
 } // namespace wjr
 
