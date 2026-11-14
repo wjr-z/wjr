@@ -22,7 +22,8 @@ create fresh readers/parsers, include their scratch in peak usage and destroy
 them before measuring retained output. Input preparation is outside both windows.
 
 The following entries are median elapsed-time ratios over five alternating
-trials. Values below one mean the immutable consumer finished sooner.
+trials. Values below one mean the immutable consumer finished sooner. The
+[Windows raw trials](data/json-immutable-windows.csv) preserve all repetitions.
 
 | Platform | Consumer | Immutable / mutable | Immutable / simdjson DOM |
 | --- | --- | ---: | ---: |
