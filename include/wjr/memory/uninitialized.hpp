@@ -34,7 +34,7 @@ construct_at(T *ptr, Args &&...args) noexcept(std::is_nothrow_constructible_v<T,
                   requires { std::construct_at(ptr, std::forward<Args>(args)...); }) {
         (void)std::construct_at(ptr, std::forward<Args>(args)...);
     } else {
-        // Keep arrays, cv-qualified objects, and WJR-only constructors on this path.
+        /// @note Keep arrays, cv-qualified objects, and WJR-only constructors on this path.
         ::new (const_cast<void *>(static_cast<const volatile void *>(ptr)))
             T(std::forward<Args>(args)...);
     }
