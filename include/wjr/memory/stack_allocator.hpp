@@ -28,6 +28,11 @@ inline constexpr size_t stack_allocator_threshold = 16_KB;
 class unique_stack_allocator;
 class automatic_free_pool;
 
+namespace stack_allocator_detail {
+template <typename T>
+class growing_allocator;
+}
+
 namespace mem {
 /// @brief Resolve the originating module's pool only on arena growth paths.
 automatic_free_pool &_get_stack_free_pool() noexcept;
@@ -130,6 +135,22 @@ private:
     }
 
     WJR_MALLOC void *_small_allocate(size_t n) noexcept { return _allocate_impl(n, _small_tag{}); }
+
+    /// @private The allocation and its owner must belong to the innermost live scope.
+    bool _try_expand_small(void *pointer, size_t old_size, size_t new_size) noexcept {
+        auto *const first = static_cast<std::byte *>(pointer);
+        const auto old_step =
+            align_up(old_size + asan_small_redzone_size, mem::default_new_alignment);
+        const auto new_step =
+            align_up(new_size + asan_small_redzone_size, mem::default_new_alignment);
+        if (first + old_step != m_cache.ptr ||
+            static_cast<size_t>(m_cache.end - m_cache.ptr) < new_step - old_step) {
+            return false;
+        }
+        m_cache.ptr += new_step - old_step;
+        WJR_ASAN_UNPOISON_MEMORY_REGION(first + old_size, new_size - old_size);
+        return true;
+    }
 
     void _small_deallocate(const stack_context &context) noexcept {
 #if defined(WJR_HAS_ADDRESS_SANITIZER)
@@ -238,6 +259,8 @@ class unique_stack_allocator {
 
     template <typename T>
     friend class weak_stack_allocator;
+    template <typename T>
+    friend class stack_allocator_detail::growing_allocator;
 
 public:
     WJR_INTRINSIC_INLINE
@@ -277,6 +300,10 @@ private:
 
     WJR_NODISCARD WJR_MALLOC WJR_INTRINSIC_INLINE void *_small_allocate(size_t n) noexcept {
         return m_context.object()->_small_allocate(n);
+    }
+
+    bool _try_expand_small(void *pointer, size_t old_size, size_t new_size) noexcept {
+        return m_context.object()->_try_expand_small(pointer, old_size, new_size);
     }
 
     stack_context m_context;
@@ -369,11 +396,50 @@ private:
     UniqueStackAllocator *m_alloc = nullptr;
 };
 
+namespace stack_allocator_detail {
+
+/**
+ * @private Allocator for leaf scratch buffers whose owner is the innermost scope.
+ * @pre No child scope is alive while the container grows. The container is destroyed
+ * before its owner. Ordinary weak_stack_allocator retains its existing allocation behavior.
+ */
+template <typename T>
+class growing_allocator : public weak_stack_allocator<T> {
+    using base = weak_stack_allocator<T>;
+
+public:
+    using base::base;
+    template <typename U>
+    struct rebind {
+        using other = growing_allocator<U>;
+    };
+    template <typename U>
+    growing_allocator(const growing_allocator<U> &other) noexcept : base(*other.alloc()) {}
+
+    bool _wjr_try_expand(T *pointer, size_t old_count, size_t new_count) noexcept {
+        if constexpr (alignof(T) > mem::default_new_alignment) {
+            return false;
+        } else {
+            if (pointer == nullptr || new_count <= old_count ||
+                new_count > (stack_allocator_threshold - 1) / sizeof(T)) {
+                return false;
+            }
+            return this->alloc()->_try_expand_small(pointer, old_count * sizeof(T),
+                                                    new_count * sizeof(T));
+        }
+    }
+};
+
+} // namespace stack_allocator_detail
+
 template <typename T>
 struct is_weak_stack_allocator : std::false_type {};
 
 template <typename T>
 struct is_weak_stack_allocator<weak_stack_allocator<T>> : std::true_type {};
+
+template <typename T>
+struct is_weak_stack_allocator<stack_allocator_detail::growing_allocator<T>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool is_weak_stack_allocator_v = is_weak_stack_allocator<T>::value;

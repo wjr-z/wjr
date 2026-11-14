@@ -207,6 +207,20 @@ public:
         return m_storage.m_buffer - m_storage.m_data;
     }
 
+    /// @private Optional allocator protocol for extending a live allocation in place.
+    WJR_CONSTEXPR20 bool try_expand_capacity(size_type new_capacity, _Alty &al) noexcept
+    requires requires(_Alty &allocator, pointer ptr, size_type count) {
+        { allocator._wjr_try_expand(ptr, count, count) } noexcept -> std::same_as<bool>;
+    } && is_trivially_allocator_construct_v<_Alty, T, T &&> &&
+             is_trivially_allocator_destroy_v<_Alty, T>
+    {
+        if (!al._wjr_try_expand(data(), capacity(), new_capacity)) {
+            return false;
+        }
+        m_storage.m_buffer = m_storage.m_data + new_capacity;
+        return true;
+    }
+
     WJR_PURE constexpr pointer data() noexcept { return m_storage.m_data; }
     WJR_PURE constexpr const_pointer data() const noexcept { return m_storage.m_data; }
 
@@ -1083,6 +1097,10 @@ private:
             const size_type old_size = size();
             const size_type new_capacity = get_growth_capacity(old_capacity, n);
 
+            if (_try_expand_capacity(new_capacity)) {
+                return;
+            }
+
             if constexpr (_is_nothrow_relocation &&
                           _is_nothrow_take_storage_impl<_grow_storage_type>) {
                 _grow_storage_type new_storage;
@@ -1581,6 +1599,18 @@ public:
     }
 
 private:
+    WJR_INTRINSIC_INLINE WJR_CONSTEXPR20 bool _try_expand_capacity(size_type capacity) noexcept {
+        if constexpr (requires {
+                          {
+                              get_storage().try_expand_capacity(capacity, _get_allocator())
+                          } noexcept -> std::same_as<bool>;
+                      }) {
+            return get_storage().try_expand_capacity(capacity, _get_allocator());
+        } else {
+            return false;
+        }
+    }
+
     WJR_CONSTEXPR20 void
     _deallocate() noexcept(noexcept(get_storage().deallocate(this->_get_allocator()))) {
         get_storage().deallocate(_get_allocator());
@@ -1906,6 +1936,13 @@ private:
         const auto new_size = old_size - removed + n;
         const pointer old_begin = data();
         const pointer old_end = old_begin + old_size;
+        if constexpr (NothrowIncoming && sizeof...(Position) == 0) {
+            if (_try_expand_capacity(new_capacity)) {
+                construct(old_end, n, al);
+                _get_size() = new_size;
+                return;
+            }
+        }
         _grow_storage_type new_storage;
         uninitialized_construct(new_storage, new_size, new_capacity);
 
@@ -2219,6 +2256,14 @@ private:
                 std::is_nothrow_constructible_v<value_type, Args &&...> &&
                 is_trivially_allocator_construct_v<_Alty, value_type, Args &&...> &&
                 is_trivially_allocator_destroy_v<_Alty, value_type>;
+            if constexpr (nothrow_incoming) {
+                if (_try_expand_capacity(new_capacity)) {
+                    wjr::uninitialized_construct_using_allocator(old_end, al,
+                                                                 std::forward<Args>(args)...);
+                    _get_size() = new_size;
+                    return;
+                }
+            }
             constexpr bool nothrow_transfer =
                 is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
                 std::is_nothrow_destructible_v<value_type> &&
