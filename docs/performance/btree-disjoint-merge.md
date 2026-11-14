@@ -1,18 +1,18 @@
-# ÆÕÍ¨ merge µÄ disjoint graph Â·¾¶
+# æ™®é€š merge çš„ disjoint graph è·¯å¾„
 
-ÆÕÍ¨ `btree_map/set/multimap/multiset::merge` ×Ô¶¯¸´ÓÃÏàÍ¬ traits¡¢±ê×¼ `less/greater` ÅÅĞò¡¢ÑÏ¸ñ²»½»µşÇÒµÈ¸ßµÄºÏÊÊ heap Í¼¡£
-ËüÓëÏÔÊ½ append ¹²ÓÃÒ»¸öÄÚºË£¬Ö§³Ö source Î»ÓÚ destination Ç°ºóÁ½¸ö·½Ïò¡£allocator ÊµÀı±£Áô£¬source Îª¿ÕÇÒ¿ÉÖØÓÃ¡£
-SSO¡¢×Ô¶¨Òå comparator ºÍÆäËûĞÎÌ¬ÑØÓÃ¼ÈÓĞÔªËØ×ªÒÆÂß¼­¡£experimental compact µÄÆÕÍ¨ merge ÑØÓÃÆäÔ­Ñ¡Ôñ²ßÂÔ¡£
-[Æ´½ÓĞ­Òé](../design/btree-disjoint-append.md)¶¨ÒåÕ¼ÓÃ¡¢ÉúÃüÖÜÆÚºÍ hook ¿É¹Û²ì×´Ì¬¡£
+æ™®é€š `btree_map/set/multimap/multiset::merge` è‡ªåŠ¨å¤ç”¨ç›¸åŒ traitsã€æ ‡å‡† `less/greater` æ’åºã€ä¸¥æ ¼ä¸äº¤å ä¸”ç­‰é«˜çš„åˆé€‚ heap å›¾ã€‚
+å®ƒä¸æ˜¾å¼ append å…±ç”¨ä¸€ä¸ªå†…æ ¸ï¼Œæ”¯æŒ source ä½äº destination å‰åä¸¤ä¸ªæ–¹å‘ã€‚allocator å®ä¾‹ä¿ç•™ï¼Œsource ä¸ºç©ºä¸”å¯é‡ç”¨ã€‚
+SSOã€è‡ªå®šä¹‰ comparator å’Œå…¶ä»–å½¢æ€æ²¿ç”¨æ—¢æœ‰å…ƒç´ è½¬ç§»é€»è¾‘ã€‚experimental compact çš„æ™®é€š merge æ²¿ç”¨å…¶åŸé€‰æ‹©ç­–ç•¥ã€‚
+[æ‹¼æ¥åè®®](../design/btree-disjoint-append.md)å®šä¹‰å ç”¨ã€ç”Ÿå‘½å‘¨æœŸå’Œ hook å¯è§‚å¯ŸçŠ¶æ€ã€‚
 
-## ¹Ì¶¨²Ù×÷Çø¼ä
+## å›ºå®šæ“ä½œåŒºé—´
 
-![4096+4096 µÈ¸ß²»½»µş merge µÄËÄ profile ¼ÆÊ±](assets/btree-disjoint-merge.svg)
+![4096+4096 ç­‰é«˜ä¸äº¤å  merge çš„å›› profile è®¡æ—¶](assets/btree-disjoint-merge.svg)
 
-ÊäÈë°´¼üµİÔö¹¹Ôì£¬destination ´Ó0¿ªÊ¼£¬source ´Ó8192¿ªÊ¼¡£key Îª uint64_t£¬mapped Îª uint64_t »ò64B array£¬ÈİÁ¿ N16£¬Ê¹ÓÃ std::allocator¡£
-¼ÆÊ±¸²¸Ç merge£¬¹¹ÔìºÍÏú»ÙÅÅ³ı¡£ÏÖÓĞ `btree_merge.cpp` Ô­ÑùÓÃÓÚ main/candidate£¬¹Ì¶¨32´Îµü´ú¡¢Ã¿½ø³Ì5¸ö raw ÖØ¸´£¬½»ÌæË³Ğò3ÂÖ£¬Ã¿Ïî15¸öÑù±¾¡£
-Í¼Îª u64 map µÄÖĞÎ»Êı¼° raw ·¶Î§£¬ºáÖáÎª¶ÔÊı¡£¶ÌÍ¼²Ù×÷°üº¬ harness µ×Ôë£¬±¶Êı¶ÔÓ¦ÉÏÊö²Ù×÷Çø¼ä¡£
-std/Abseil µÄ³ÉÊì¶ÔÕÕÍ¬Ê±°üº¬ÆÕÍ¨ merge ºÍºÏ·¨µÄÖğ½Úµã extract+end-hint¡£
+è¾“å…¥æŒ‰é”®é€’å¢æ„é€ ï¼Œdestination ä»0å¼€å§‹ï¼Œsource ä»8192å¼€å§‹ã€‚key ä¸º uint64_tï¼Œmapped ä¸º uint64_t æˆ–64B arrayï¼Œå®¹é‡ N16ï¼Œä½¿ç”¨ std::allocatorã€‚
+è®¡æ—¶è¦†ç›– mergeï¼Œæ„é€ å’Œé”€æ¯æ’é™¤ã€‚ç°æœ‰ `btree_merge.cpp` åŸæ ·ç”¨äº main/candidateï¼Œå›ºå®š32æ¬¡è¿­ä»£ã€æ¯è¿›ç¨‹5ä¸ª raw é‡å¤ï¼Œäº¤æ›¿é¡ºåº3è½®ï¼Œæ¯é¡¹15ä¸ªæ ·æœ¬ã€‚
+å›¾ä¸º u64 map çš„ä¸­ä½æ•°åŠ raw èŒƒå›´ï¼Œæ¨ªè½´ä¸ºå¯¹æ•°ã€‚çŸ­å›¾æ“ä½œåŒ…å« harness åº•å™ªï¼Œå€æ•°å¯¹åº”ä¸Šè¿°æ“ä½œåŒºé—´ã€‚
+std/Abseil çš„æˆç†Ÿå¯¹ç…§åŒæ—¶åŒ…å«æ™®é€š merge å’Œåˆæ³•çš„é€èŠ‚ç‚¹ extract+end-hintã€‚
 
 | Profile | main us | core merge us | std node hint us | Abseil node hint us |
 |---|---:|---:|---:|---:|
@@ -21,17 +21,17 @@ std/Abseil µÄ³ÉÊì¶ÔÕÕÍ¬Ê±°üº¬ÆÕÍ¨ merge ºÍºÏ·¨µÄÖğ½Úµã extract+end-hint¡£
 | Linux GCC13 | 201.752 | 0.748 | 69.618 | 45.568 |
 | Linux Clang18 | 165.806 | 0.713 | 57.062 | 51.032 |
 
-4096+4096 µÄÆÕÍ¨ legacy merge ÔÚÁ½ÖÖ mapped ÏÂ±ÈÔ­ÊµÏÖ¿ì169¨C270±¶£¬±ÈÍ¬»ú×îÇ¿ std/Abseil Â·¾¶¿ì51¨C104±¶¡£
-150+150 ±ÈÔ­ÊµÏÖ¿ì5.8¨C7.0±¶£¬±È×îÇ¿³ÉÊìÂ·¾¶¿ì3.4¨C7.1±¶¡£È«²¿´óĞÍ core/main raw ½»²æ°üÂçÉÏ½çµÍÓÚ0.022¡£
-·ÖÆ¬¹¹Ôì³É±¾¡¢³¤ÆÚ»ìºÏ²Ù×÷ÍÌÍÂºÍµ¥¶À SSO ¼ÆÊ±³¬³ö±¾´Î¼ÆÊ±¼¯ºÏ£¬SSO ÕıÈ·ĞÔ°üº¬ÓÚ±ß½ç²âÊÔ¡£
-²»Í¬¸ß¶ÈµÄ4096+64±£³ÖÖğÔªËØÂ·¾¶£¬Æä²Ù×÷¼ÆÊ±ÈÔÎª×îÇ¿³ÉÊìÂ·¾¶µÄ1.59¨C2.71±¶¡£
+4096+4096 çš„æ™®é€š legacy merge åœ¨ä¸¤ç§ mapped ä¸‹æ¯”åŸå®ç°å¿«169â€“270å€ï¼Œæ¯”åŒæœºæœ€å¼º std/Abseil è·¯å¾„å¿«51â€“104å€ã€‚
+150+150 æ¯”åŸå®ç°å¿«5.8â€“7.0å€ï¼Œæ¯”æœ€å¼ºæˆç†Ÿè·¯å¾„å¿«3.4â€“7.1å€ã€‚å…¨éƒ¨å¤§å‹ core/main raw äº¤å‰åŒ…ç»œä¸Šç•Œä½äº0.022ã€‚
+åˆ†ç‰‡æ„é€ æˆæœ¬ã€é•¿æœŸæ··åˆæ“ä½œååå’Œå•ç‹¬ SSO è®¡æ—¶è¶…å‡ºæœ¬æ¬¡è®¡æ—¶é›†åˆï¼ŒSSO æ­£ç¡®æ€§åŒ…å«äºè¾¹ç•Œæµ‹è¯•ã€‚
+ä¸åŒé«˜åº¦çš„4096+64ä¿æŒé€å…ƒç´ è·¯å¾„ï¼Œå…¶æ“ä½œè®¡æ—¶ä»ä¸ºæœ€å¼ºæˆç†Ÿè·¯å¾„çš„1.59â€“2.71å€ã€‚
 
-## ÍêÕû¿ØÖÆ
+## å®Œæ•´æ§åˆ¶
 
-ÏÂ±íÎª candidate/main ÖĞÎ»±ÈÖµ¡£empty Îª4096ÔªËØ½øÈë¿ÕÄ¿±ê£¬interleaved/conflicting Îª4096+4096£¬sparse Îª64ÔªËØ½øÈë4096Ä¿±êÇÒ¾ù³åÍ»¡£
-ÆÕÍ¨ legacy ÊÇ±¾ÂÖ×Ô¶¯Â·¾¶µÄÖ§³ÖÓò¡£ËùÓĞ WJR ²ÎÕÕ comparator¡¢std¡¢Abseil¡¢raw ÂÖ´Î¼°½»²æ°üÂç¶¼±£ÁôÔÚÍ¬Ò³Á´½ÓµÄÊı¾İÖĞ¡£
+ä¸‹è¡¨ä¸º candidate/main ä¸­ä½æ¯”å€¼ã€‚empty ä¸º4096å…ƒç´ è¿›å…¥ç©ºç›®æ ‡ï¼Œinterleaved/conflicting ä¸º4096+4096ï¼Œsparse ä¸º64å…ƒç´ è¿›å…¥4096ç›®æ ‡ä¸”å‡å†²çªã€‚
+æ™®é€š legacy æ˜¯æœ¬è½®è‡ªåŠ¨è·¯å¾„çš„æ”¯æŒåŸŸã€‚æ‰€æœ‰ WJR å‚ç…§ comparatorã€stdã€Abseilã€raw è½®æ¬¡åŠäº¤å‰åŒ…ç»œéƒ½ä¿ç•™åœ¨åŒé¡µé“¾æ¥çš„æ•°æ®ä¸­ã€‚
 
-| ÆÕÍ¨ legacy ¿ØÖÆ | Windows Clang | Windows MSVC | Linux GCC | Linux Clang |
+| æ™®é€š legacy æ§åˆ¶ | Windows Clang | Windows MSVC | Linux GCC | Linux Clang |
 |---|---:|---:|---:|---:|
 | u64 empty | 1.068 | 1.028 | 0.990 | 0.995 |
 | u64 interleaved | 1.027 | 0.968 | 1.006 | 1.004 |
@@ -42,10 +42,10 @@ std/Abseil µÄ³ÉÊì¶ÔÕÕÍ¬Ê±°üº¬ÆÕÍ¨ merge ºÍºÏ·¨µÄÖğ½Úµã extract+end-hint¡£
 | 64B conflicting | 0.830 | 1.038 | 1.014 | 0.982 |
 | 64B sparse | 1.056 | 0.961 | 0.996 | 1.033 |
 
-Windows empty µÄÖĞÎ»Æ«ÒÆ×î¸ßÔ¼+6.8%£¬ÂÖ¼ä·½Ïò¼°·ù¶È±ä»¯Ã÷ÏÔ¡£MSVC64B conflicting Îª+3.8%£¬ÈıÂÖÔ¼+4.6/+3.0/+3.8%¡£
-Linux ÆÕÍ¨¿ØÖÆ×î¸ßÎª Clang64B sparse µÄ+3.3%£¬GCC64B conflicting Îª+1.3%¡£ÕâĞ©Ğ¡·ù³É±¾ºÍÂÖ¼ä²»È·¶¨ĞÔËæ raw Êı¾İ±£Áô¡£
+Windows empty çš„ä¸­ä½åç§»æœ€é«˜çº¦+6.8%ï¼Œè½®é—´æ–¹å‘åŠå¹…åº¦å˜åŒ–æ˜æ˜¾ã€‚MSVC64B conflicting ä¸º+3.8%ï¼Œä¸‰è½®çº¦+4.6/+3.0/+3.8%ã€‚
+Linux æ™®é€šæ§åˆ¶æœ€é«˜ä¸º Clang64B sparse çš„+3.3%ï¼ŒGCC64B conflicting ä¸º+1.3%ã€‚è¿™äº›å°å¹…æˆæœ¬å’Œè½®é—´ä¸ç¡®å®šæ€§éš raw æ•°æ®ä¿ç•™ã€‚
 
-| experimental compact ¿ØÖÆ | Windows Clang | Windows MSVC | Linux GCC | Linux Clang |
+| experimental compact æ§åˆ¶ | Windows Clang | Windows MSVC | Linux GCC | Linux Clang |
 |---|---:|---:|---:|---:|
 | u64 empty | 1.038 | 1.073 | 1.011 | 1.006 |
 | u64 interleaved | 1.014 | 0.941 | 0.998 | 0.992 |
@@ -56,32 +56,32 @@ Linux ÆÕÍ¨¿ØÖÆ×î¸ßÎª Clang64B sparse µÄ+3.3%£¬GCC64B conflicting Îª+1.3%¡£ÕâĞ©Ğ¡
 | 64B conflicting | 0.989 | 1.175 | 0.991 | 0.990 |
 | 64B sparse | 1.101 | 1.040 | 0.930 | 1.003 |
 
-compact µÄ×îĞ¡ ordinary-merge µ÷ÓÃ±Õ°üÔÚ Windows Clang/MSVC ÖĞ·Ö±ğÓĞ8/12¸ö¿É´ïº¯Êı£¬»úÆ÷ÂëÓë main Ò»ÖÂ¡£
-ÉÏ±í¸²¸ÇÍêÕû benchmark ¶ş½øÖÆ¼°Æä²¼¾ÖÓ°Ïì£¬Windows64B compact conflicting ÖĞÎ»1.175£¬ÈıÂÖ1.084/1.368/0.972¡£
-µÈÂë¼ì²éµÄ·¶Î§ÎªÉÏÊö±Õ°ü£¬ÍêÕû¶ş½øÖÆ¿ØÖÆµÄÆ«ÒÆÒ²±£Áô¡£
+compact çš„æœ€å° ordinary-merge è°ƒç”¨é—­åŒ…åœ¨ Windows Clang/MSVC ä¸­åˆ†åˆ«æœ‰8/12ä¸ªå¯è¾¾å‡½æ•°ï¼Œæœºå™¨ç ä¸ main ä¸€è‡´ã€‚
+ä¸Šè¡¨è¦†ç›–å®Œæ•´ benchmark äºŒè¿›åˆ¶åŠå…¶å¸ƒå±€å½±å“ï¼ŒWindows64B compact conflicting ä¸­ä½1.175ï¼Œä¸‰è½®1.084/1.368/0.972ã€‚
+ç­‰ç æ£€æŸ¥çš„èŒƒå›´ä¸ºä¸Šè¿°é—­åŒ…ï¼Œå®Œæ•´äºŒè¿›åˆ¶æ§åˆ¶çš„åç§»ä¹Ÿä¿ç•™ã€‚
 
-## ½ÚµãÇëÇóÓë´úÂë³É±¾
+## èŠ‚ç‚¹è¯·æ±‚ä¸ä»£ç æˆæœ¬
 
-ËÄ profile µÄ legacy4096+4096 ¾ùÓÉ512/511´Î½Úµã·ÖÅä/ÊÍ·Å½µÎª0/1£¬150+150ÓÉ20/17½µÎª1/0¡£
-ËùÓĞ¶ÀÁ¢¼ÆÊıĞĞÏú»Ùºó live requested bytes Îª0¡£graph Â·¾¶±£ÁôÖµ¶ÔÏóºÍÒ¶½Úµã£¬¶îÍâ typed ¹¤×÷Çø N16 Îª536B¡£
-Windows ¶ÀÁ¢ join Õ»Ö¡Îª680B£¬ÆÕÍ¨ merge Õ»Ö¡ÈÔÎª Clang152B/MSVC184B¡£
-ÆÕÍ¨ caller Ö¸ÁîÓÉ123/139Ìõ±äÎª124/143Ìõ£¬workspace ÓÉ¶ÀÁ¢ÄÚºË³Ğµ£¡£
-Windows merge benchmark TU µÄ `.text` ·Ö±ğÎª178727¡ú182503B£¨Clang£¬+2.1%£©¼°236006¡ú239470B£¨MSVC£¬+1.5%£©¡£
+å›› profile çš„ legacy4096+4096 å‡ç”±512/511æ¬¡èŠ‚ç‚¹åˆ†é…/é‡Šæ”¾é™ä¸º0/1ï¼Œ150+150ç”±20/17é™ä¸º1/0ã€‚
+æ‰€æœ‰ç‹¬ç«‹è®¡æ•°è¡Œé”€æ¯å live requested bytes ä¸º0ã€‚graph è·¯å¾„ä¿ç•™å€¼å¯¹è±¡å’Œå¶èŠ‚ç‚¹ï¼Œé¢å¤– typed å·¥ä½œåŒº N16 ä¸º536Bã€‚
+Windows ç‹¬ç«‹ join æ ˆå¸§ä¸º680Bï¼Œæ™®é€š merge æ ˆå¸§ä»ä¸º Clang152B/MSVC184Bã€‚
+æ™®é€š caller æŒ‡ä»¤ç”±123/139æ¡å˜ä¸º124/143æ¡ï¼Œworkspace ç”±ç‹¬ç«‹å†…æ ¸æ‰¿æ‹…ã€‚
+Windows merge benchmark TU çš„ `.text` åˆ†åˆ«ä¸º178727â†’182503Bï¼ˆClangï¼Œ+2.1%ï¼‰åŠ236006â†’239470Bï¼ˆMSVCï¼Œ+1.5%ï¼‰ã€‚
 
-¿ª·¢ÖĞÉáÆúÁËÔÚ¹«¿ª merge ±£Áô root gate µÄ°æ±¾£¬Æä GCC64B conflicting Îª+15.9%¡£
-ÌáÈ¡ elementwise wrapper µÄ°æ±¾ÈÔÎª+13.4%£¬²¢Ê¹ sparse ÔöÖÁ+22¨C29%¡£×îÖÕ´úÂë½«È«²¿ eligibility ·ÅÈë¼ÈÓĞ¹²ÏíÄÚºË£¬¹«¿ªÈë¿Ú±£ÁôÒ»´Îµ÷ÓÃ¡£
-Á½ÂÖÊ§°Ü¼ÇÂ¼¼°Ô­Ê¼Êä³ö¿É·Ö±ğ×·ËİÖÁ[Ô­ root-gate ÑĞ¾¿](https://github.com/wjr-z/wjr/actions/runs/43576634036)ºÍ[fallback wrapper ÑĞ¾¿](https://github.com/wjr-z/wjr/actions/runs/43577967529)¡£
+å¼€å‘ä¸­èˆå¼ƒäº†åœ¨å…¬å¼€ merge ä¿ç•™ root gate çš„ç‰ˆæœ¬ï¼Œå…¶ GCC64B conflicting ä¸º+15.9%ã€‚
+æå– elementwise wrapper çš„ç‰ˆæœ¬ä»ä¸º+13.4%ï¼Œå¹¶ä½¿ sparse å¢è‡³+22â€“29%ã€‚æœ€ç»ˆä»£ç å°†å…¨éƒ¨ eligibility æ”¾å…¥æ—¢æœ‰å…±äº«å†…æ ¸ï¼Œå…¬å¼€å…¥å£ä¿ç•™ä¸€æ¬¡è°ƒç”¨ã€‚
+ä¸¤è½®å¤±è´¥è®°å½•åŠåŸå§‹è¾“å‡ºå¯åˆ†åˆ«è¿½æº¯è‡³[åŸ root-gate ç ”ç©¶](https://github.com/wjr-z/wjr/actions/runs/43576634036)å’Œ[fallback wrapper ç ”ç©¶](https://github.com/wjr-z/wjr/actions/runs/43577967529)ã€‚
 
-## À´Ô´ÓëÕıÈ·ĞÔ
+## æ¥æºä¸æ­£ç¡®æ€§
 
-- main Îª `c69cdbbf370009c8419ea3ef8507d6e48754cbfb`£¬¶³½á¹¦ÄÜÔ´Îª `4732ea4f37ff052ae7cb9a5162fc7bcdfe2d979b`¡£
-  ×îÖÕ `btree.hpp` »Ö¸´ main Ô­ÓĞµÄÎŞ EOF newline ĞÎÌ¬£¬Ô¤´¦Àí token ÏàÍ¬¡£ÆäÓàÉú²ú¡¢²âÊÔ¼° benchmark blob Ò»ÖÂ£¬Á½¸ö SHA-256 ¼¯ºÏ¾ù¼ÇÂ¼ÓÚÊı¾İÎÄ¼ş¡£
-- Windows i5-13500HX¡¢CPU0Ç×ºÍĞÔ¡¢Clang18.1.8/MSVC STL¡¢MSVC19.42£»Linux Í¬Ò» Ubuntu24.04 worker¡¢Intel Xeon6975P-C£¬GCC13.3/Clang18.1.3¡¢ÏµÍ³ libstdc++£¬runner Ä¬ÈÏÇ×ºÍĞÔ¡£
-  ¸÷×ÔÎª C++20 Release/baseline£¬ÏàÍ¬ profile ÄÚ±È½Ï£¬±£ÁôÔ´Âë¡¢±àÒëÆ÷¡¢flags ºÍ exe provenance¡£
-- Abseil Îª¸É¾»µÄ `2a2d6aad626f75a32c8b7bb775fbff73d558b8b1`£¬¸´ÓÃ¼ÈÓĞ benchmark option ºÍ target¡£
-- Clang18ÍêÕû897Ïîµ¥²â¡¢11Ïî unit CTest¡¢MSVC26Ïî merge/join ²âÊÔºÍÈ«Á¿ clang-format Í¨¹ı¡£
-  Linux ASan+UBSan26ÏîÍ¨¹ı£¬¸²¸ÇË«Ïò±ß½ç shape¡¢N4/5/16/64¡¢Í¸Ã÷/·ÇÍ¸Ã÷ less/greater¡¢SSO¡¢ÄÚ²¿ÖØ¸´¡¢stateful comparator¡¢PMR¡¢immovable/align64 Öµ¡¢allocatorÉí·İ¡¢hook¹«¿ª×´Ì¬¼°sourceÖØÓÃ¡£
+- main ä¸º `c69cdbbf370009c8419ea3ef8507d6e48754cbfb`ï¼Œå†»ç»“åŠŸèƒ½æºä¸º `4732ea4f37ff052ae7cb9a5162fc7bcdfe2d979b`ã€‚
+  æœ€ç»ˆ `btree.hpp` æ¢å¤ main åŸæœ‰çš„æ—  EOF newline å½¢æ€ï¼Œé¢„å¤„ç† token ç›¸åŒã€‚å…¶ä½™ç”Ÿäº§ã€æµ‹è¯•åŠ benchmark blob ä¸€è‡´ï¼Œä¸¤ä¸ª SHA-256 é›†åˆå‡è®°å½•äºæ•°æ®æ–‡ä»¶ã€‚
+- Windows i5-13500HXã€CPU0äº²å’Œæ€§ã€Clang18.1.8/MSVC STLã€MSVC19.42ï¼›Linux åŒä¸€ Ubuntu24.04 workerã€Intel Xeon6975P-Cï¼ŒGCC13.3/Clang18.1.3ã€ç³»ç»Ÿ libstdc++ï¼Œrunner é»˜è®¤äº²å’Œæ€§ã€‚
+  å„è‡ªä¸º C++20 Release/baselineï¼Œç›¸åŒ profile å†…æ¯”è¾ƒï¼Œä¿ç•™æºç ã€ç¼–è¯‘å™¨ã€flags å’Œ exe provenanceã€‚
+- Abseil ä¸ºå¹²å‡€çš„ `2a2d6aad626f75a32c8b7bb775fbff73d558b8b1`ï¼Œå¤ç”¨æ—¢æœ‰ benchmark option å’Œ targetã€‚
+- Clang18å®Œæ•´897é¡¹å•æµ‹ã€11é¡¹ unit CTestã€MSVC26é¡¹ merge/join æµ‹è¯•å’Œå…¨é‡ clang-format é€šè¿‡ã€‚
+  Linux ASan+UBSan26é¡¹é€šè¿‡ï¼Œè¦†ç›–åŒå‘è¾¹ç•Œ shapeã€N4/5/16/64ã€é€æ˜/éé€æ˜ less/greaterã€SSOã€å†…éƒ¨é‡å¤ã€stateful comparatorã€PMRã€immovable/align64 å€¼ã€allocatorèº«ä»½ã€hookå…¬å¼€çŠ¶æ€åŠsourceé‡ç”¨ã€‚
 
-[ÍêÕû raw¡¢ÄÚ´æĞĞ¡¢Ô´Âë hash¡¢callee µÈÂëºÍ±àÒë provenance](data/btree-disjoint-merge.json)ÓÀ¾Ã±£Áô±¾ÂÖÊı¾İ¡£
-[×îÖÕ Linux run](https://github.com/wjr-z/wjr/actions/runs/43578777474)±£Áô±àÒëÃüÁî¡¢·´»ã±à¡¢stack-usageºÍ sanitizer Êä³ö¡£
-¸´ÏÖÊ¹ÓÃ¼ÈÓĞ `btree_merge`¡¢`btree_join` ¼°¶ÔÓ¦ `_memory` target£¬¹¹½¨Ñ¡ÏîÓë[ÏÔÊ½ append µÄÖØÏÖ²½Öè](btree-disjoint-append.md#ÕıÈ·ĞÔÓëÖØÏÖ)Ò»ÖÂ¡£
+[å®Œæ•´ rawã€å†…å­˜è¡Œã€æºç  hashã€callee ç­‰ç å’Œç¼–è¯‘ provenance](data/btree-disjoint-merge.json)æ°¸ä¹…ä¿ç•™æœ¬è½®æ•°æ®ã€‚
+[æœ€ç»ˆ Linux run](https://github.com/wjr-z/wjr/actions/runs/43578777474)ä¿ç•™ç¼–è¯‘å‘½ä»¤ã€åæ±‡ç¼–ã€stack-usageå’Œ sanitizer è¾“å‡ºã€‚
+å¤ç°ä½¿ç”¨æ—¢æœ‰ `btree_merge`ã€`btree_join` åŠå¯¹åº” `_memory` targetï¼Œæ„å»ºé€‰é¡¹ä¸[æ˜¾å¼ append çš„é‡ç°æ­¥éª¤](btree-disjoint-append.md#æ­£ç¡®æ€§ä¸é‡ç°)ä¸€è‡´ã€‚
