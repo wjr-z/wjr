@@ -40,24 +40,28 @@ static_assert(!accepts_append<legacy, wjr::btree_map<int, int, std::greater<>>>)
 static_assert(
     !accepts_append<wjr::btree_map<int, int, custom_less>, wjr::btree_map<int, int, custom_less>>);
 
-template <typename Tree>
-void check_shapes() {
+template <typename Tree, bool CoreMerge = false>
+void check_shapes(bool prepend = false) {
     const bool reverse = !typename Tree::key_compare{}(0, 1);
+    const bool source_first = reverse != prepend;
     for (int left : {0, 1, 2, 3, 8, 9, 16, 17, 18, 31, 32, 33, 80, 150, 272, 273, 4096}) {
         for (int right : {0, 1, 2, 3, 8, 9, 16, 17, 18, 31, 32, 33, 80, 150, 272, 273, 4096}) {
             Tree destination, source;
             std::map<int, int, typename Tree::key_compare> reference;
             for (int i = 0; i < left; ++i) {
-                const int key = i + (reverse ? 10000 : 0);
+                const int key = i + (source_first ? 10000 : 0);
                 destination.try_emplace(key, key * 3);
                 reference.emplace(key, key * 3);
             }
             for (int i = 0; i < right; ++i) {
-                const int key = i + (reverse ? 0 : 10000);
+                const int key = i + (source_first ? 0 : 10000);
                 source.try_emplace(key, key * 3);
                 reference.emplace(key, key * 3);
             }
-            wjr::experimental::append_btree_disjoint(destination, source);
+            if constexpr (CoreMerge)
+                destination.merge(source);
+            else
+                wjr::experimental::append_btree_disjoint(destination, source);
             EXPECT_TRUE(source.empty());
             EXPECT_TRUE(std::equal(destination.begin(), destination.end(), reference.begin(),
                                    reference.end()));
@@ -66,7 +70,10 @@ void check_shapes() {
             Tree moved(std::move(copy));
             EXPECT_TRUE(copy.empty());
             destination.swap(moved);
-            wjr::experimental::append_btree_disjoint(destination, destination);
+            if constexpr (CoreMerge)
+                destination.merge(destination);
+            else
+                wjr::experimental::append_btree_disjoint(destination, destination);
             EXPECT_EQ(destination.size(), reference.size());
             std::vector<int> keys;
             for (const auto &value : reference)
@@ -88,6 +95,17 @@ TEST(BtreeJoin, AllBoundaryShapesAndPostJoinMutations) {
     check_shapes<
         wjr::experimental::compact_btree_map<int, int, std::less<>, std::allocator<char>, 5>>();
     check_shapes<wjr::btree_map<int, int, std::greater<>>>();
+}
+
+TEST(BtreeMerge, DisjointHeapGraphsSupportBothOrientationsAndSubsequentMutations) {
+    for (bool prepend : {false, true}) {
+        check_shapes<legacy, true>(prepend);
+        check_shapes<compact, true>(prepend);
+        check_shapes<wjr::btree_map<int, int, std::greater<>>, true>(prepend);
+        check_shapes<
+            wjr::experimental::compact_btree_map<int, int, std::less<>, std::allocator<char>, 5>,
+            true>(prepend);
+    }
 }
 
 struct owner {
@@ -193,8 +211,8 @@ struct alignas(64) payload {
     }
 };
 
-template <bool Compact, size_t N>
-void check_graph_ownership(int count) {
+template <bool Compact, size_t N, bool CoreMerge = false>
+void check_graph_ownership(int count, bool prepend = false) {
     using allocator = owner_allocator<char>;
     using legacy_tree = wjr::btree_map<int, payload, std::less<>, allocator, N>;
     using compact_tree =
@@ -206,8 +224,10 @@ void check_graph_ownership(int count) {
         tree source(std::less<>{}, allocator(&state, 22));
         std::map<int, const payload *> addresses;
         for (int i = 0; i < count; ++i) {
-            destination.try_emplace(i, i);
-            source.try_emplace(i + 10000, i + 10000);
+            const auto destination_key = i + (prepend ? 10000 : 0);
+            const auto source_key = i + (prepend ? 0 : 10000);
+            destination.try_emplace(destination_key, destination_key);
+            source.try_emplace(source_key, source_key);
         }
         for (const auto &value : destination)
             addresses.emplace(value.first, &value.second);
@@ -231,7 +251,10 @@ void check_graph_ownership(int count) {
             }
             EXPECT_EQ(observed.size(), static_cast<size_t>(count * 2));
         };
-        wjr::experimental::append_btree_disjoint(destination, source);
+        if constexpr (CoreMerge)
+            destination.merge(source);
+        else
+            wjr::experimental::append_btree_disjoint(destination, source);
         state.observe = {};
         EXPECT_TRUE(source.empty());
         EXPECT_LE(state.allocations - allocations, 1u);
@@ -265,6 +288,19 @@ TEST(BtreeJoin, ExistingLifetimesAllocatorIdentityAndHookObservability) {
     check_graph_ownership<true, 64>(33);
     check_graph_ownership<true, 64>(1000);
     check_graph_ownership<true, 64>(1500);
+}
+
+TEST(BtreeMerge, DisjointGraphsRetainLifetimesAllocatorsAndHookObservability) {
+    for (bool prepend : {false, true}) {
+        for (int count : {9, 17, 80, 150, 4096}) {
+            check_graph_ownership<false, 16, true>(count, prepend);
+            check_graph_ownership<true, 16, true>(count, prepend);
+        }
+        check_graph_ownership<false, 4, true>(9, prepend);
+        check_graph_ownership<true, 5, true>(16, prepend);
+        check_graph_ownership<true, 64, true>(33, prepend);
+        check_graph_ownership<true, 64, true>(1000, prepend);
+    }
 }
 
 TEST(BtreeJoin, IndirectStringSeparatorsAndMultisetGroups) {

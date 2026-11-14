@@ -33,6 +33,7 @@
 #include <wjr/assert.hpp>
 #include <wjr/compressed_pair.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/btree_join.hpp>
 #include <wjr/container/detail/btree_lookup.hpp>
 #include <wjr/container/detail/btree_range.hpp>
 #include <wjr/container/detail/btree_slot.hpp>
@@ -1655,6 +1656,16 @@ public:
             if (empty() && source._get_root() != nullptr) {
                 _move_tree(std::move(source));
                 return;
+            }
+            if (!source.empty() && _get_root() != nullptr && source._get_root() != nullptr) {
+                if (key_comp()(Traits::get_key(*rbegin()), Traits::get_key(*source.begin()))) {
+                    if (btree_detail::disjoint_join_access::join(*this, source))
+                        return;
+                } else if (key_comp()(Traits::get_key(*source.rbegin()),
+                                      Traits::get_key(*begin()))) {
+                    if (btree_detail::disjoint_join_access::join(*this, source, true))
+                        return;
+                }
             }
         }
         auto current = source.begin();
