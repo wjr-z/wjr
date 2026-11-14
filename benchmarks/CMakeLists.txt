@@ -64,6 +64,7 @@ set(BENCHMARK_ALL_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/btree.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/container.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/json.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/json_direct.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/memory.cpp
 )
 

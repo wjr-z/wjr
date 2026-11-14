@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <bit>
 #include <stdexcept>
 
@@ -88,6 +89,11 @@ TEST(json_direct_parser, duplicates_replace_and_unknown_values_are_checked) {
     ASSERT_TRUE(value);
     EXPECT_EQ(value->x, 3);
     EXPECT_EQ(value->y, 2);
+    EXPECT_FALSE(parsed<point>(R"({"x":"bad","y":2,"x":3})"));
+    auto arrays =
+        parsed<recursive_record>(R"({"id":1,"children":[{"id":2,"children":[]}],"children":[]})");
+    ASSERT_TRUE(arrays);
+    EXPECT_TRUE(arrays->children.empty());
     const char *invalid[] = {
         R"({"x":1,"y":2,"extra":{"a":[0,]}})",
         R"({"x":1,"y":2,"extra":"\uD800"})",
@@ -98,6 +104,56 @@ TEST(json_direct_parser, duplicates_replace_and_unknown_values_are_checked) {
         SCOPED_TRACE(input);
         EXPECT_FALSE(parsed<point>(input));
     }
+}
+
+template <size_t Index>
+struct numbered_field {
+    int value = 0;
+};
+
+template <typename Sequence>
+struct wide_record;
+
+template <size_t... Index>
+struct wide_record<std::index_sequence<Index...>> : numbered_field<Index>... {
+    static constexpr auto names = [] {
+        std::array<std::array<char, 3>, sizeof...(Index)> output{};
+        for (size_t index = 0; index != output.size(); ++index) {
+            output[index] = {'f', static_cast<char>('0' + index / 10),
+                             static_cast<char>('0' + index % 10)};
+        }
+        return output;
+    }();
+
+    template <typename Owner = wide_record>
+    static constexpr auto wjr_json_fields() {
+        return std::tuple{field_descriptor<&numbered_field<Index>::value>{
+            std::string_view(names[Index].data(), names[Index].size())}...};
+    }
+};
+
+TEST(json_direct_parser, wide_inherited_fields_track_required_bits_across_words) {
+    using wide = wide_record<std::make_index_sequence<65>>;
+    std::string input = "{";
+    for (size_t index = 0; index != 65; ++index) {
+        if (index != 0) {
+            input += ',';
+        }
+        input += '"';
+        input.append(wide::names[index].data(), wide::names[index].size());
+        input += "\":" + std::to_string(index);
+    }
+    input += '}';
+    auto value = parsed<wide>(input);
+    ASSERT_TRUE(value);
+    EXPECT_EQ(static_cast<const numbered_field<0> &>(*value).value, 0);
+    EXPECT_EQ(static_cast<const numbered_field<64> &>(*value).value, 64);
+    input.erase(input.rfind(','));
+    input += '}';
+    auto missing = parsed<wide>(input);
+    ASSERT_FALSE(missing);
+    EXPECT_EQ(missing.error().code, error_code::NO_SUCH_FIELD);
+    EXPECT_EQ(missing.error().offset, input.size() - 1);
 }
 
 TEST(json_direct_parser, required_fields_and_error_offsets) {
@@ -116,6 +172,141 @@ TEST(json_direct_parser, required_fields_and_error_offsets) {
     auto end = parsed<point>(R"({"x":1,)");
     ASSERT_FALSE(end);
     EXPECT_EQ(end.error().offset, 7);
+}
+
+TEST(json_direct_parser, raw_utf8_is_checked_in_owned_and_unknown_fields) {
+    const std::string malformed[] = {"\xff",     "\x80",         "\xc2",
+                                     "\xc0\xaf", "\xed\xa0\x80", "\xf4\x90\x80\x80"};
+    struct fixture {
+        std::string_view prefix;
+        std::string_view suffix;
+        bool root_string;
+    };
+    constexpr fixture fixtures[] = {
+        {"\"", "\"", true},
+        {R"({"x":1,"y":2,"extra":")", "\"}", false},
+        {R"({"x":1,"y":2,")", "\":0}", false},
+    };
+    for (const auto &bytes : malformed) {
+        for (const auto &fixture : fixtures) {
+            const std::string input =
+                std::string(fixture.prefix) + bytes + std::string(fixture.suffix);
+            const auto check = [&](const auto &result) {
+                ASSERT_FALSE(result);
+                EXPECT_EQ(result.error().code, error_code::UTF8_ERROR);
+                EXPECT_EQ(result.error().offset, fixture.prefix.size());
+            };
+            if (fixture.root_string) {
+                check(parsed<std::string>(input));
+            } else {
+                check(parsed<point>(input));
+            }
+        }
+    }
+    const std::string valid = "\xe4\xb8\xad\xf4\x8f\xbf\xbf";
+    auto value = parsed<std::string>('"' + valid + '"');
+    ASSERT_TRUE(value);
+    EXPECT_EQ(*value, valid);
+}
+
+TEST(json_direct_parser, borrowed_targets_are_untouched_by_raw_utf8_failures) {
+    point output;
+    output.x = 9;
+    output.y = 8;
+    ondemand_reader reader;
+    reader.read(std::string_view("{\"x\":1,\"y\":2,\"bad\":\"\xff\"}"));
+    auto result = inplace_parser<point>::parse(&output, reader);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), error_code::UTF8_ERROR);
+    EXPECT_EQ(output.x, 9);
+    EXPECT_EQ(output.y, 8);
+}
+
+TEST(json_direct_parser, literal_control_bytes_are_rejected_and_escaped_controls_are_valid) {
+    struct fixture {
+        std::string_view prefix;
+        std::string_view suffix;
+        bool root_string;
+    };
+    constexpr fixture fixtures[] = {
+        {"\"", "\"", true},
+        {R"({"x":1,"y":2,"extra":")", "\"}", false},
+        {R"({"x":1,"y":2,")", "\":0}", false},
+        {R"({"x":1,"y":2,"extra":{"nested":[")", "\"]}}", false},
+    };
+    for (unsigned int byte = 0; byte != 0x20; ++byte) {
+        for (const auto &fixture : fixtures) {
+            const auto input =
+                std::string(fixture.prefix) + static_cast<char>(byte) + std::string(fixture.suffix);
+            const auto check = [&](const auto &result) {
+                ASSERT_FALSE(result);
+                EXPECT_EQ(result.error().code, error_code::UNESCAPED_CHARS);
+                EXPECT_EQ(result.error().offset, fixture.prefix.size() - 1);
+            };
+            if (fixture.root_string) {
+                check(parsed<std::string>(input));
+            } else {
+                check(parsed<point>(input));
+            }
+        }
+    }
+    auto escaped = parsed<std::string>(R"("\u0000\n\t\r\b\f\u001f")");
+    ASSERT_TRUE(escaped);
+    EXPECT_EQ(*escaped, std::string("\0\n\t\r\b\f\x1f", 7));
+    EXPECT_TRUE(parsed<point>(R"({"x":1,"y":2,"\u0001":0})"));
+}
+
+TEST(json_direct_parser, control_detection_covers_byte_values_and_word_boundaries) {
+    for (size_t length = 0; length != 25; ++length) {
+        for (const unsigned char fill : {0x20, 0x7f, 0xff}) {
+            std::string text(length, static_cast<char>(fill));
+            EXPECT_FALSE(detail::contains_unescaped_control(text.data(), text.data() + length));
+            for (size_t position = 0; position != length; ++position) {
+                for (unsigned int byte = 0; byte != 256; ++byte) {
+                    text[position] = static_cast<char>(byte);
+                    EXPECT_EQ(detail::contains_unescaped_control(text.data(), text.data() + length),
+                              byte < 0x20);
+                }
+                text[position] = static_cast<char>(fill);
+            }
+        }
+    }
+}
+
+TEST(json_direct_parser, only_json_whitespace_can_separate_values) {
+    for (const char whitespace : {'\v', '\f'}) {
+        const auto suffix = std::string(1, whitespace) + "garbage";
+        EXPECT_FALSE(parsed<bool>("true" + suffix));
+        EXPECT_FALSE(parsed<bool>("false" + suffix));
+        EXPECT_FALSE(parsed<int>("1" + suffix));
+        EXPECT_FALSE(parsed<double>("1.5" + suffix));
+        for (const char *value : {"true", "false", "null", "1", "1.5"}) {
+            const auto input = std::string(R"({"x":1,"y":2,"extra":)") + value + suffix + '}';
+            EXPECT_FALSE(parsed<point>(input));
+        }
+    }
+    for (const char whitespace : {' ', '\t', '\n', '\r'}) {
+        const auto suffix = std::string(1, whitespace);
+        EXPECT_TRUE(parsed<bool>("true" + suffix));
+        EXPECT_TRUE(parsed<int>("1" + suffix));
+        EXPECT_TRUE(parsed<double>("1.5" + suffix));
+        EXPECT_TRUE(parsed<std::string>("\"ok\"" + suffix));
+        EXPECT_TRUE(parsed<point>(std::string(R"({"x":1,"y":2,"extra":null)") + suffix + '}'));
+    }
+}
+
+TEST(json_direct_parser, closing_quotes_require_a_json_token_boundary) {
+    for (const char *input : {"\"ok\"junk", "\"ok\"1", "\"ok\"\v", "\"ok\"\f"}) {
+        EXPECT_FALSE(parsed<std::string>(input));
+    }
+    EXPECT_FALSE(parsed<std::vector<std::string>>(R"(["ok"junk])"));
+    EXPECT_FALSE(
+        parsed<record>(R"({"id":1,"name":"ok"junk,"active":false,"points":[],"samples":[]})"));
+    for (const char *input :
+         {R"({"x"junk:1,"y":2})", R"({"x":1,"y":2,"extra":"ok"junk})",
+          R"({"x":1,"y":2,"extra":{"u"junk:0}})", R"({"x":1,"y":2,"extra":["ok"junk]})"}) {
+        EXPECT_FALSE(parsed<point>(input));
+    }
 }
 
 TEST(json_direct_parser, numeric_types_are_strict_and_boolean_arrays_work) {
@@ -237,6 +428,17 @@ TEST(json_direct_parser, legacy_entry_reuses_live_targets_and_preserves_callback
     EXPECT_TRUE(callbacks.visit_end_array_to_root(0));
 }
 
+TEST(json_direct_parser, borrowed_strings_clear_uninitialized_growth_after_escape_failure) {
+    std::string output = "before";
+    const std::string input = '"' + std::string(80, 'x') + "\\uD800\"";
+    ondemand_reader reader;
+    reader.read(input);
+    auto result = inplace_parser<std::string>::parse(&output, reader);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), error_code::UTF8_ERROR);
+    EXPECT_TRUE(output.empty());
+}
+
 #ifndef WJR_DISABLE_EXCEPTIONS
 struct construction_error {};
 struct tracked {
@@ -264,6 +466,20 @@ TEST(json_direct_parser, user_constructor_exceptions_unwind_existing_elements) {
     tracked::fail_on = 0;
     EXPECT_FALSE(parsed<std::vector<tracked>>(R"([{"value":1},{"value":"wrong"}])"));
     EXPECT_EQ(tracked::live, 0);
+}
+
+struct throwing_move_record {
+    static inline int live = 0;
+    WJR_REGISTER_JSON_FIELDS(throwing_move_record, value)
+    int value = 0;
+    throwing_move_record() { ++live; }
+    throwing_move_record(throwing_move_record &&) { throw construction_error{}; }
+    ~throwing_move_record() { --live; }
+};
+
+TEST(json_direct_parser, result_move_exceptions_destroy_the_factory_target) {
+    EXPECT_THROW(parsed<throwing_move_record>(R"({"value":7})"), construction_error);
+    EXPECT_EQ(throwing_move_record::live, 0);
 }
 
 struct allocation_state {
@@ -301,6 +517,28 @@ struct allocated_record {
     counted_string name;
     std::vector<counted_string> labels;
 };
+
+TEST(json_direct_parser, short_escaped_strings_use_decoded_size_before_growth) {
+    const std::string input = R"("\u4e2d\u4e2d\u4e2d\u4e2d")";
+    allocation_state::calls = 0;
+    allocation_state::fail_on = 1;
+    {
+        auto value = parsed<counted_string>(input);
+        ASSERT_TRUE(value);
+        EXPECT_EQ(value->size(), 12);
+        EXPECT_EQ(allocation_state::calls, 0);
+    }
+    EXPECT_EQ(allocation_state::live_bytes, 0);
+    allocation_state::fail_on = 0;
+    ondemand_reader reader;
+    reader.read(input);
+    auto source = document::parse(reader);
+    ASSERT_TRUE(source);
+    EXPECT_EQ(source->get<string_t>().size(), 12);
+    EXPECT_EQ(source->get<string_t>().capacity(), std::string{}.capacity());
+    EXPECT_FALSE(parsed<counted_string>(R"("\u4e2d\u4e2d\u4e2d\uD800")"));
+    EXPECT_EQ(allocation_state::live_bytes, 0);
+}
 
 TEST(json_direct_parser, every_owned_string_allocation_failure_cleans_partial_output) {
     const std::string text(128, 'x');
