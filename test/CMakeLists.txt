@@ -1,36 +1,5 @@
 include(FetchContent)
 
-set(WJR_USE_GMP_DEFAULT ON)
-
-if(WJR_USE_GMP)
-   set(WJR_USE_GMP_DEFAULT ${WJR_USE_GMP})
-else()
-   find_package(GMP QUIET)
-
-   if(NOT GMP_FOUND)
-      find_package(PkgConfig)
-      pkg_check_modules(GMP QUIET gmp)
-
-      if(NOT GMP_FOUND)
-         set(WJR_USE_GMP_DEFAULT OFF)
-      else()
-         set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIRS})
-         set(GMP_LIBRARIES ${GMP_LIBRARIES})
-      endif()
-   else()
-      set(GMP_INCLUDE_DIRS)
-      set(GMP_LIBRARIES gmp libgmp)
-   endif()
-endif()
-
-option(WJR_USE_GMP_TESTS "Use GMP library for tests" ${WJR_USE_GMP_DEFAULT})
-
-if(WJR_USE_GMP_TESTS)
-   add_compile_definitions(WJR_USE_GMP)
-else()
-   message(STATUS "GMP library not found, tests will be built without GMP support.")
-endif()
-
 include(${PROJECT_SOURCE_DIR}/cmake/wjrGTest.cmake)
 wjr_load_gtest()
 
@@ -125,6 +94,18 @@ add_test(NAME wjr_legacy_standard
 set_tests_properties(wjr_legacy_standard PROPERTIES WILL_FAIL TRUE)
 set_tests_properties(wjr_build_policy wjr_invalid_standard wjr_legacy_standard
    PROPERTIES LABELS configuration)
+
+foreach(_WJR_GMP_MODE IN ITEMS off on auto pkgconfig auto-missing tool-missing
+   required-missing legacy legacy-off explicit-off package-preexisting-pkgconfig switch)
+   add_test(NAME wjr_gmp_${_WJR_GMP_MODE}
+      COMMAND ${CMAKE_COMMAND}
+      -S ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gmp-tests
+      -B ${CMAKE_CURRENT_BINARY_DIR}/gmp-${_WJR_GMP_MODE}
+      ${WJR_POLICY_CMAKE_ARGS}
+      -DMODE=${_WJR_GMP_MODE}
+   )
+   set_tests_properties(wjr_gmp_${_WJR_GMP_MODE} PROPERTIES LABELS configuration)
+endforeach()
 
 FetchContent_GetProperties(cpu_features)
 foreach(_WJR_GTEST_MODE IN ITEMS installed preexisting alias bare bare-alias disabled
@@ -244,14 +225,14 @@ if(WJR_ENABLE_COVERAGE)
    )
 endif()
 
-target_include_directories(tests PRIVATE ${GMP_INCLUDE_DIRS})
-
 target_link_libraries(tests
    PRIVATE
    wjr::wjr
    GTest::gtest_main
-   ${GMP_LIBRARIES}
 )
+
+include(wjrGMP)
+wjr_link_gmp(tests)
 
 # Test fatal allocation contracts without changing allocators in the unit-test process.
 add_executable(automatic_free_pool_failure memory/automatic_free_pool_failure.cpp)
