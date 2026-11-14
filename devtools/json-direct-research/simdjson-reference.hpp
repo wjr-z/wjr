@@ -63,6 +63,11 @@ struct parser {
     simdjson::padded_string input;
     explicit parser(std::string_view text) : input(text) {
         (void)run();
+        static bool report = true;
+        if (report) {
+            std::cerr << "simdjson_active=" << simdjson::get_active_implementation()->name() << '\n';
+            report = false;
+        }
     }
     uint64_t run() {
         auto document = reader.iterate(input);

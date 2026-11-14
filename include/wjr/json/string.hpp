@@ -2,7 +2,9 @@
 #define WJR_JSON_STRING_HPP__
 
 #include <array>
+#include <cstring>
 
+#include <wjr/container/detail.hpp>
 #include <wjr/format/utf8/utf8.hpp>
 #include <wjr/json/detail.hpp>
 
@@ -47,6 +49,43 @@ inline result<void> check_string(const char *first, const char *last) noexcept {
     } else {
         return {};
     }
+}
+
+/// @private Preserve short decoded strings when their escaped representation exceeds capacity.
+template <typename String>
+result<bool> try_decode_short_string(String &output, const char *first, const char *last) {
+    constexpr size_t scratch_size = 64;
+    const auto length = static_cast<size_t>(last - first);
+    if (length > scratch_size || length <= output.capacity() ||
+        std::memchr(first, '\\', length) == nullptr) {
+        return false;
+    }
+    char scratch[scratch_size];
+    auto parsed = parse_string(scratch, first, last);
+    if (!parsed) {
+        return unexpected(parsed.error());
+    }
+    output.assign(scratch, static_cast<size_t>(*parsed - scratch));
+    return true;
+}
+
+/// @private Decode into owned storage while retaining its allocator and capacity.
+template <typename String>
+result<void> decode_owned_string(String &output, const char *first, const char *last) {
+    auto short_string = try_decode_short_string(output, first, last);
+    if (!short_string) {
+        return unexpected(short_string.error());
+    }
+    if (*short_string) {
+        return {};
+    }
+    try_uninitialized_resize(output, static_cast<size_t>(last - first));
+    auto parsed = parse_string(output.data(), first, last);
+    if (!parsed) {
+        return unexpected(parsed.error());
+    }
+    output.resize(static_cast<size_t>(*parsed - output.data()));
+    return {};
 }
 
 } // namespace detail

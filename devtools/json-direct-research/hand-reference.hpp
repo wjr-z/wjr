@@ -27,7 +27,7 @@ private:
         auto& current = frames.back();
         current.pending = field::unknown;
         if (current.type == kind::unknown_object) return detail::check_string(first,last);
-        auto parsed = detail::decode_typed_string(key_text,first,last);
+        auto parsed = detail::decode_owned_string(key_text,first,last);
         if (!parsed) return parsed;
         unsigned bit = 0;
         if (current.type == kind::record) {
@@ -94,7 +94,7 @@ private:
     result<void> string(location where,const char* first,const char* last) {
         if (discarded(where)) return detail::check_string(first,last);
         if (where==location::object && frames.back().type==kind::record && frames.back().pending==field::name)
-            return detail::decode_typed_string(static_cast<probe::record*>(frames.back().output)->name,first,last);
+            return detail::decode_owned_string(static_cast<probe::record*>(frames.back().output)->name,first,last);
         return wjr::unexpected(error_code::INCORRECT_TYPE);
     }
     result<void> begin(location where,bool object) {

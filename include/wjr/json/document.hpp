@@ -2350,6 +2350,10 @@ private:
 
     WJR_INTRINSIC_INLINE static result<void>
     _fill_allocated_string(string_type &string, const char *first, const char *last) noexcept {
+        WJR_EXPECTED_INIT(short_string, try_decode_short_string(string, first, last));
+        if (short_string) {
+            return {};
+        }
 #if defined(__cpp_lib_string_resize_and_overwrite) &&                                              \
     __cpp_lib_string_resize_and_overwrite >= 202110L
         error_code error = error_code::SUCCESS;
@@ -2447,13 +2451,11 @@ protected:
                 return unexpected(ret.error());
             }
         } else {
-            try_uninitialized_resize(*str, last - first);
-            auto ret = parse_string(str->data(), first, last);
+            auto ret = decode_owned_string(*str, first, last);
             if (WJR_UNLIKELY(!ret)) {
                 _document_destroy(str);
                 return unexpected(std::move(ret).error());
             }
-            str->resize(*ret - str->data());
         }
         current->m_value.set(string_t(), str);
         return {};
@@ -2469,13 +2471,11 @@ protected:
                 return unexpected(ret.error());
             }
         } else {
-            try_uninitialized_resize(*str, last - first);
-            auto ret = parse_string(str->data(), first, last);
+            auto ret = decode_owned_string(*str, first, last);
             if (WJR_UNLIKELY(!ret)) {
                 _document_destroy(str);
                 return unexpected(std::move(ret).error());
             }
-            str->resize(*ret - str->data());
         }
         element->m_value.set(string_t(), str);
         return {};
@@ -2491,13 +2491,11 @@ protected:
                 return unexpected(ret.error());
             }
         } else {
-            try_uninitialized_resize(*str, last - first);
-            auto ret = parse_string(str->data(), first, last);
+            auto ret = decode_owned_string(*str, first, last);
             if (WJR_UNLIKELY(!ret)) {
                 _document_destroy(str);
                 return unexpected(std::move(ret).error());
             }
-            str->resize(*ret - str->data());
         }
         if constexpr (document_type::uses_allocator) {
             auto &value = current->_get_array().emplace_back(default_construct);
@@ -2514,9 +2512,7 @@ protected:
         if constexpr (document_type::uses_allocator) {
             WJR_EXPECTED_TRY(_fill_allocated_string(str, first, last));
         } else {
-            try_uninitialized_resize(str, last - first);
-            WJR_EXPECTED_INIT(ret, parse_string(str.data(), first, last));
-            str.resize(*ret - str.data());
+            WJR_EXPECTED_TRY(decode_owned_string(str, first, last));
         }
         const auto iter = current->_get_object().try_emplace(std::move(str), default_construct);
         element = std::addressof(iter.first->second);

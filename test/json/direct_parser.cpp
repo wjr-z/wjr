@@ -88,6 +88,11 @@ TEST(json_direct_parser, duplicates_replace_and_unknown_values_are_checked) {
     ASSERT_TRUE(value);
     EXPECT_EQ(value->x, 3);
     EXPECT_EQ(value->y, 2);
+    EXPECT_FALSE(parsed<point>(R"({"x":"bad","y":2,"x":3})"));
+    auto arrays = parsed<recursive_record>(
+        R"({"id":1,"children":[{"id":2,"children":[]}],"children":[]})");
+    ASSERT_TRUE(arrays);
+    EXPECT_TRUE(arrays->children.empty());
     const char *invalid[] = {
         R"({"x":1,"y":2,"extra":{"a":[0,]}})",
         R"({"x":1,"y":2,"extra":"\uD800"})",
@@ -98,6 +103,56 @@ TEST(json_direct_parser, duplicates_replace_and_unknown_values_are_checked) {
         SCOPED_TRACE(input);
         EXPECT_FALSE(parsed<point>(input));
     }
+}
+
+template <size_t Index>
+struct numbered_field {
+    int value = 0;
+};
+
+template <typename Sequence>
+struct wide_record;
+
+template <size_t... Index>
+struct wide_record<std::index_sequence<Index...>> : numbered_field<Index>... {
+    static constexpr auto names = [] {
+        std::array<std::array<char, 3>, sizeof...(Index)> output{};
+        for (size_t index = 0; index != output.size(); ++index) {
+            output[index] = {'f', static_cast<char>('0' + index / 10),
+                             static_cast<char>('0' + index % 10)};
+        }
+        return output;
+    }();
+
+    template <typename Owner = wide_record>
+    static constexpr auto wjr_json_fields() {
+        return std::tuple{field_descriptor<&numbered_field<Index>::value>{
+            std::string_view(names[Index].data(), names[Index].size())}...};
+    }
+};
+
+TEST(json_direct_parser, wide_inherited_fields_track_required_bits_across_words) {
+    using wide = wide_record<std::make_index_sequence<65>>;
+    std::string input = "{";
+    for (size_t index = 0; index != 65; ++index) {
+        if (index != 0) {
+            input += ',';
+        }
+        input += '"';
+        input.append(wide::names[index].data(), wide::names[index].size());
+        input += "\":" + std::to_string(index);
+    }
+    input += '}';
+    auto value = parsed<wide>(input);
+    ASSERT_TRUE(value);
+    EXPECT_EQ(static_cast<const numbered_field<0> &>(*value).value, 0);
+    EXPECT_EQ(static_cast<const numbered_field<64> &>(*value).value, 64);
+    input.erase(input.rfind(','));
+    input += '}';
+    auto missing = parsed<wide>(input);
+    ASSERT_FALSE(missing);
+    EXPECT_EQ(missing.error().code, error_code::NO_SUCH_FIELD);
+    EXPECT_EQ(missing.error().offset, input.size() - 1);
 }
 
 TEST(json_direct_parser, required_fields_and_error_offsets) {
@@ -266,6 +321,20 @@ TEST(json_direct_parser, user_constructor_exceptions_unwind_existing_elements) {
     EXPECT_EQ(tracked::live, 0);
 }
 
+struct throwing_move_record {
+    static inline int live = 0;
+    WJR_REGISTER_JSON_FIELDS(throwing_move_record, value)
+    int value = 0;
+    throwing_move_record() { ++live; }
+    throwing_move_record(throwing_move_record &&) { throw construction_error{}; }
+    ~throwing_move_record() { --live; }
+};
+
+TEST(json_direct_parser, result_move_exceptions_destroy_the_factory_target) {
+    EXPECT_THROW(parsed<throwing_move_record>(R"({"value":7})"), construction_error);
+    EXPECT_EQ(throwing_move_record::live, 0);
+}
+
 struct allocation_state {
     static inline int calls = 0;
     static inline int fail_on = 0;
@@ -301,6 +370,28 @@ struct allocated_record {
     counted_string name;
     std::vector<counted_string> labels;
 };
+
+TEST(json_direct_parser, short_escaped_strings_use_decoded_size_before_growth) {
+    const std::string input = R"("\u4e2d\u4e2d\u4e2d\u4e2d")";
+    allocation_state::calls = 0;
+    allocation_state::fail_on = 1;
+    {
+        auto value = parsed<counted_string>(input);
+        ASSERT_TRUE(value);
+        EXPECT_EQ(value->size(), 12);
+        EXPECT_EQ(allocation_state::calls, 0);
+    }
+    EXPECT_EQ(allocation_state::live_bytes, 0);
+    allocation_state::fail_on = 0;
+    ondemand_reader reader;
+    reader.read(input);
+    auto source = document::parse(reader);
+    ASSERT_TRUE(source);
+    EXPECT_EQ(source->get<string_t>().size(), 12);
+    EXPECT_EQ(source->get<string_t>().capacity(), std::string{}.capacity());
+    EXPECT_FALSE(parsed<counted_string>(R"("\u4e2d\u4e2d\u4e2d\uD800")"));
+    EXPECT_EQ(allocation_state::live_bytes, 0);
+}
 
 TEST(json_direct_parser, every_owned_string_allocation_failure_cleans_partial_output) {
     const std::string text(128, 'x');

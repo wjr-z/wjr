@@ -15,13 +15,34 @@ jobs:
         with:
           submodules: recursive
       - run: sudo apt-get update && sudo apt-get install -y ninja-build libgmp-dev libgtest-dev g++-14 clang-18
-      - name: Configure
+      - name: Configure candidate
         run: |
           cmake -S devtools/json-direct-research -B research-build -GNinja \
             -DWJR_SOURCE="$PWD" -DCMAKE_BUILD_TYPE=Release -DWJR_CPU_TARGET=native \
-            -DWJR_BUILD_TESTS=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
-      - name: Build
+            -DWJR_BUILD_TESTS=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Build candidate
         run: cmake --build research-build --parallel 3
+      - name: Build exact original and observer-only sources
+        run: |
+          for variant in original observer; do
+            if [[ "$variant" == original ]]; then
+              revision=77ab5fb6815a205b3a2e67be8ac8d21ab301d9af
+            else
+              revision=d5cc93b31202325df49bbe22aa71d09c4820691f
+            fi
+            source="$RUNNER_TEMP/wjr-json-$variant"
+            git worktree add --detach "$source" "$revision"
+            git -C "$source" -c protocol.file.allow=always \
+              -c submodule.third-party/fmt.url="$PWD/third-party/fmt" \
+              submodule update --init --no-fetch third-party/fmt
+            cmake -S devtools/json-direct-research -B "$variant-build" -GNinja \
+              -DWJR_SOURCE="$source" -DCMAKE_BUILD_TYPE=Release -DWJR_CPU_TARGET=native \
+              -DWJR_BUILD_TESTS=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+              -DFETCHCONTENT_SOURCE_DIR_CPU_FEATURES="$PWD/research-build/_deps/cpu_features-src" \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            cmake --build "$variant-build" --target json_direct_timing json_direct_allocations --parallel 3
+          done
       - name: Correctness
         run: ./research-build/json_direct_tests
       - name: Sanitizers
@@ -32,12 +53,17 @@ jobs:
           lscpu > machine.txt
           ${{ matrix.compiler }} --version >> machine.txt
           git rev-parse HEAD >> machine.txt
-          ./research-build/json_direct_allocations > allocations.csv 2> allocation-metadata.txt
-          ./research-build/json_direct_timing corpus > timing.csv 2> timing-metadata.txt
+          for variant in original observer research; do
+            ./$variant-build/json_direct_allocations > "$variant-allocations.csv" 2> "$variant-allocation-metadata.txt"
+            ./$variant-build/json_direct_timing > "$variant-timing.csv" 2> "$variant-timing-metadata.txt"
+            cp "$variant-build/compile_commands.json" "$variant-compile-commands.json"
+          done
           ./research-build/json_direct_strong_allocations > strong-allocations.csv 2> strong-allocation-metadata.txt
-          ./research-build/json_direct_strong_timing > strong-timing.csv 2> strong-timing-metadata.txt
+          ./research-build/json_direct_strong_timing corpus > strong-timing.csv 2> strong-timing-metadata.txt
           ./research-build/json_direct_hand > hand-timing.csv 2> hand-timing-metadata.txt
           ./research-build/json_direct_stages > stages.csv 2> stages-metadata.txt
+          SIMDJSON_FORCE_IMPLEMENTATION=haswell ./research-build/json_direct_strong_timing > matched-avx2-strong.csv 2> matched-avx2-strong-metadata.txt
+          SIMDJSON_FORCE_IMPLEMENTATION=haswell ./research-build/json_direct_stages > matched-avx2-stages.csv 2> matched-avx2-stages-metadata.txt
           sha256sum corpus/*.json > corpus-sha256.txt
       - uses: actions/upload-artifact@v4
         if: always()
@@ -46,4 +72,5 @@ jobs:
           path: |
             *.txt
             *.csv
+            *compile-commands.json
             corpus

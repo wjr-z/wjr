@@ -95,17 +95,6 @@ inline constexpr auto typed_fields = std::apply(
     },
     T::template wjr_json_fields<>());
 
-template <typename String>
-result<void> decode_typed_string(String &output, const char *first, const char *last) {
-    try_uninitialized_resize(output, static_cast<size_t>(last - first));
-    auto parsed = parse_string(output.data(), first, last);
-    if (!parsed) {
-        return unexpected(parsed.error());
-    }
-    output.resize(static_cast<size_t>(*parsed - output.data()));
-    return {};
-}
-
 template <typename T>
 result<void> assign_typed_number(void *object, const basic_value &value) {
     T &output = *static_cast<T *>(object);
@@ -185,7 +174,7 @@ constexpr typed_operations make_typed_operations() {
     } else if constexpr (typed_string<T>::value) {
         typed_operations operations{typed_kind::string};
         operations.string = [](void *object, const char *first, const char *last) {
-            return decode_typed_string(*static_cast<T *>(object), first, last);
+            return decode_owned_string(*static_cast<T *>(object), first, last);
         };
         return operations;
     } else if constexpr (registered_json_object<T>) {
@@ -373,7 +362,7 @@ private:
             auto checked = check_string(first, last);
             return checked ? result<void>{} : failure(checked.error(), offset(first) - 1);
         }
-        auto decoded = decode_typed_string(m_key, first, last);
+        auto decoded = decode_owned_string(m_key, first, last);
         if (!decoded) {
             return failure(decoded.error(), offset(first) - 1);
         }
