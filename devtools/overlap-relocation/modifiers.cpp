@@ -8,6 +8,9 @@
 #ifdef _WIN32
     #define NOMINMAX
     #include <windows.h>
+#else
+    #include <dlfcn.h>
+    #include <gnu/libc-version.h>
 #endif
 #include <wjr/json/document.hpp>
 
@@ -64,6 +67,14 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
     if (!SetThreadAffinityMask(GetCurrentThread(), 1))
         return 1;
+#endif
+#ifndef _WIN32
+    void *backend = dlsym(RTLD_DEFAULT, "memmove");
+    Dl_info info{};
+    dladdr(backend, &info);
+    std::fprintf(stderr, "glibc=%s memmove_offset=0x%zx\n", gnu_get_libc_version(),
+                 reinterpret_cast<std::uintptr_t>(backend) -
+                     reinterpret_cast<std::uintptr_t>(info.dli_fbase));
 #endif
     const bool inserting = argc > 1 && std::string_view(argv[1]) == "insert";
     std::cout << "size,count,repeat,mode,ns_per_call\n";

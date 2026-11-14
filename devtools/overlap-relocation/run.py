@@ -1,15 +1,18 @@
 from pathlib import Path
 import subprocess,json,time,csv,statistics,hashlib
 import os
-r=Path('overlap-results')
-r.mkdir(exist_ok=True)
+import sys
+r=Path(sys.argv[1] if len(sys.argv)>1 else 'overlap-results')
+r.mkdir(parents=True,exist_ok=True)
 os.sched_setaffinity(0,{min(os.sched_getaffinity(0))})
 start=time.time()
 rows=[]
 for round in range(3):
     for mode in (['main','candidate'] if round%2==0 else ['candidate','main']):
         for operation in ['erase','insert']:
-            output=subprocess.check_output([str(Path('build-'+('baseline' if mode=='main' else mode))/'modifiers'),operation],text=True)
+            result=subprocess.run([str(Path('build-'+('baseline' if mode=='main' else os.environ.get('CANDIDATE_BUILD','candidate')))/'modifiers'),operation],text=True,capture_output=True,check=True)
+            output=result.stdout
+            (r/f'linux-{round}-{mode}-{operation}.metadata.txt').write_text(result.stderr)
             (r/f'linux-{round}-{mode}-{operation}.csv').write_text(output)
             for row in csv.DictReader(output.splitlines()):
                 rows.append(dict(row,round=round,source=mode,operation=operation))

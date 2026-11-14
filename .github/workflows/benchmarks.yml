@@ -32,6 +32,11 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DWJR_CPU_TARGET=native \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           cmake --build build-candidate --target modifiers --parallel 3
+          cmake -S devtools/overlap-relocation -B build-loop -GNinja \
+            -DWJR_SOURCE="$PWD" -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DWJR_CPU_TARGET=native \
+            -DELEMENTWISE_ERASE=ON
+          cmake --build build-loop --target modifiers --parallel 3
       - name: Correctness and paired measurements
         run: |
           mkdir -p overlap-results
@@ -43,7 +48,11 @@ jobs:
           cp build-baseline/compile_commands.json overlap-results/baseline-compile-commands.json
           cp build-candidate/compile_commands.json overlap-results/candidate-compile-commands.json
           size build-baseline/modifiers build-candidate/modifiers > overlap-results/size.txt
+          objdump -Cd build-candidate/modifiers > overlap-results/candidate-disassembly.txt
+          objdump -Cd build-loop/modifiers > overlap-results/loop-disassembly.txt
           python3 devtools/overlap-relocation/run.py
+          GLIBC_TUNABLES=glibc.cpu.hwcaps=-ERMS,-FSRM python3 devtools/overlap-relocation/run.py overlap-results/no-erms
+          CANDIDATE_BUILD=loop python3 devtools/overlap-relocation/run.py overlap-results/loop
       - uses: actions/upload-artifact@v4
         if: always()
         with:

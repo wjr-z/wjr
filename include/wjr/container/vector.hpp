@@ -1801,8 +1801,15 @@ private:
                 if (!std::is_constant_evaluated()) {
                     destroy_using_allocator(first, last, _get_allocator());
                     if (last != _end) {
+#ifdef WJR_RESEARCH_ELEMENTWISE_ERASE
+                        for (auto source = last, destination = first; source != _end;
+                             ++source, ++destination) {
+                            builtin_memcpy(destination, source, sizeof(value_type));
+                        }
+#else
                         std::memmove(first, last,
                                      static_cast<size_type>(_end - last) * sizeof(value_type));
+#endif
                     }
                     _get_size() -= static_cast<size_type>(last - first);
                     return _make_iterator(first);
