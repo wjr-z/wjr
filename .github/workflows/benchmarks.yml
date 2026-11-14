@@ -36,6 +36,8 @@ jobs:
           ./research-build/json_direct_timing corpus > timing.csv 2> timing-metadata.txt
           ./research-build/json_direct_strong_allocations > strong-allocations.csv 2> strong-allocation-metadata.txt
           ./research-build/json_direct_strong_timing > strong-timing.csv 2> strong-timing-metadata.txt
+          ./research-build/json_direct_hand > hand-timing.csv 2> hand-timing-metadata.txt
+          ./research-build/json_direct_stages > stages.csv 2> stages-metadata.txt
           sha256sum corpus/*.json > corpus-sha256.txt
       - uses: actions/upload-artifact@v4
         if: always()
