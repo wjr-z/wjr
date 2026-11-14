@@ -88,6 +88,13 @@
 namespace wjr {
 
 namespace vector_detail {
+template <typename Alloc, typename T>
+inline constexpr bool is_nothrow_relocation_v =
+    is_trivially_allocator_construct_v<Alloc, T, T &&> &&
+    is_trivially_allocator_destroy_v<Alloc, T> &&
+    (get_relocate_mode_v<T> == relocate_t::trivial ||
+     (std::is_nothrow_destructible_v<T> && std::is_nothrow_move_constructible_v<T>));
+
 template <typename Range, typename T>
 concept insertable_range = detail::_container_compatible_range<Range, T> &&
                            std::is_move_constructible_v<T> && std::is_move_assignable_v<T> &&
@@ -451,26 +458,39 @@ public:
 
     WJR_CONSTEXPR20 void
     take_storage(small_vector_storage &WJR_RESTRICT other,
-                 _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
+                 _Alty &al) noexcept(vector_detail::is_nothrow_relocation_v<_Alty, T>) {
         const auto rhs = _add_restrict(other.data());
-
-        m_size = other.size();
-        other.m_size = 0;
+        const auto count = other.size();
+        if constexpr (vector_detail::is_nothrow_relocation_v<_Alty, T>) {
+            m_size = count;
+            other.m_size = 0;
+        }
 
         if (other._is_small()) {
             _reset_small();
+            if constexpr (!vector_detail::is_nothrow_relocation_v<_Alty, T>) {
+                m_size = 0;
+            }
             const auto lhs = _add_restrict(data());
             if constexpr (_use_memcpy) {
-                if (m_size) {
+                if (count) {
                     builtin_memcpy(lhs, rhs, _memcpy_bytes);
                 }
+            } else if constexpr (vector_detail::is_nothrow_relocation_v<_Alty, T>) {
+                wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, count, lhs, al);
             } else {
-                wjr::uninitialized_relocate_n_restrict_using_allocator(rhs, m_size, lhs, al);
+                /// @note Keep all source lifetimes until construction succeeds, including hooks.
+                wjr::uninitialized_move_n_restrict_using_allocator(rhs, count, lhs, al);
+                wjr::destroy_n_using_allocator(rhs, count, al);
             }
         } else {
             m_data = other.m_data;
             m_capacity = other.m_capacity;
             other._reset_small();
+        }
+        if constexpr (!vector_detail::is_nothrow_relocation_v<_Alty, T>) {
+            m_size = count;
+            other.m_size = 0;
         }
     }
 
@@ -484,7 +504,19 @@ public:
 
     WJR_CONSTEXPR20 void
     swap_storage(small_vector_storage &other,
-                 _Alty &al) noexcept(std::is_nothrow_move_constructible_v<value_type>) {
+                 _Alty &al) noexcept(vector_detail::is_nothrow_relocation_v<_Alty, T>) {
+        if constexpr (!vector_detail::is_nothrow_relocation_v<_Alty, T>) {
+            small_vector_storage temporary;
+            const auto cleanup = [&al](small_vector_storage *storage) {
+                wjr::destroy_n_using_allocator(storage->data(), storage->size(), al);
+                storage->deallocate(al);
+            };
+            std::unique_ptr<small_vector_storage, decltype(cleanup)> guard(&temporary, cleanup);
+            temporary.take_storage(*this, al);
+            take_storage(other, al);
+            other.take_storage(temporary, al);
+            return;
+        }
         if (_is_small()) {
             if (other._is_small()) {
                 _simd_storage_t<T, Capacity> tmp;
@@ -565,9 +597,9 @@ class small_vector_storage<T, 0, Alloc> : public default_vector_storage<T, Alloc
 
 template <typename T, size_t Capacity, typename Alloc>
 struct get_relocate_mode<small_vector_storage<T, Capacity, Alloc>> {
-    /// @todo May be trivial.
+    /// @note Inline storage contains a pointer to its own buffer.
     static constexpr relocate_t value =
-        Capacity == 0 ? relocate_t::normal : get_relocate_mode_v<default_vector_storage<T, Alloc>>;
+        Capacity == 0 ? get_relocate_mode_v<default_vector_storage<T, Alloc>> : relocate_t::normal;
 };
 
 /**
@@ -700,18 +732,7 @@ private:
     using _grow_storage_type = detail::get_grow_storage_t<Storage>;
 
     static constexpr bool _is_nothrow_relocation =
-        is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
-        is_trivially_allocator_destroy_v<_Alty, value_type> &&
-        (get_relocate_mode_v<value_type> == relocate_t::trivial ||
-         (std::is_nothrow_destructible_v<value_type> &&
-          std::is_nothrow_move_constructible_v<value_type>));
-
-    static_assert(
-        std::is_same_v<_grow_storage_type, storage_type> ||
-            (_is_nothrow_take_storage_impl<_grow_storage_type> == _is_nothrow_take_storage &&
-             _is_nothrow_uninitialized_construct_impl<_grow_storage_type> ==
-                 _is_nothrow_uninitialized_construct),
-        "If grow_storage_type is provided, it must have the same noexcept guarantees as storage_type");
+        vector_detail::is_nothrow_relocation_v<_Alty, value_type>;
 
     class _construction_rollback {
     public:
@@ -1563,14 +1584,14 @@ public:
     WJR_CONSTEXPR20 const storage_type &get_storage() const noexcept { return m_pair.second(); }
 
     template <typename S>
-    WJR_CONSTEXPR20 void take_storage(S &other) noexcept(_is_nothrow_take_storage) {
+    WJR_CONSTEXPR20 void take_storage(S &other) noexcept(_is_nothrow_take_storage_impl<S>) {
         get_storage().take_storage(other, _get_allocator());
     }
 
     template <typename S>
     WJR_CONSTEXPR20 void
     uninitialized_construct(S &other, size_type siz,
-                            size_type cap) noexcept(_is_nothrow_uninitialized_construct) {
+                            size_type cap) noexcept(_is_nothrow_uninitialized_construct_impl<S>) {
         WJR_ASSERT_ASSUME(cap != 0);
         get_storage().uninitialized_construct(other, siz, cap, _get_allocator());
     }
@@ -1677,7 +1698,7 @@ private:
     }
 
     template <typename S>
-    WJR_CONSTEXPR20 void _take_storage(S &other) noexcept(_is_nothrow_take_storage) {
+    WJR_CONSTEXPR20 void _take_storage(S &other) noexcept(_is_nothrow_take_storage_impl<S>) {
         take_storage(other);
     }
 
@@ -1910,14 +1931,9 @@ private:
         _grow_storage_type new_storage;
         uninitialized_construct(new_storage, new_size, new_capacity);
 
-        constexpr bool nothrow_relocate =
-            is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
-            is_trivially_allocator_destroy_v<_Alty, value_type> &&
-            std::is_nothrow_destructible_v<value_type> &&
-            (get_relocate_mode_v<value_type> == relocate_t::trivial ||
-             std::is_nothrow_move_constructible_v<value_type>);
         constexpr bool can_relocate =
-            nothrow_relocate && _is_nothrow_take_storage_impl<_grow_storage_type>;
+            _is_nothrow_relocation && _is_nothrow_take_storage_impl<_grow_storage_type> &&
+            (sizeof...(Position) != 2 || std::is_nothrow_destructible_v<value_type>);
         constexpr bool needs_rollback = !NothrowIncoming || !can_relocate;
         const auto deallocate = [&al](_grow_storage_type *storage) { storage->deallocate(al); };
         using allocation_guard =
@@ -2221,11 +2237,7 @@ private:
                 is_trivially_allocator_construct_v<_Alty, value_type, Args &&...> &&
                 is_trivially_allocator_destroy_v<_Alty, value_type>;
             constexpr bool nothrow_transfer =
-                is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
-                std::is_nothrow_destructible_v<value_type> &&
-                (get_relocate_mode_v<value_type> == relocate_t::trivial ||
-                 std::is_nothrow_move_constructible_v<value_type>) &&
-                _is_nothrow_take_storage_impl<_grow_storage_type>;
+                _is_nothrow_relocation && _is_nothrow_take_storage_impl<_grow_storage_type>;
             if constexpr (nothrow_incoming && nothrow_transfer) {
                 _grow_storage_type new_storage;
                 uninitialized_construct(new_storage, new_size, new_capacity);
@@ -2747,7 +2759,8 @@ template <typename T, typename Alloc = std::allocator<T>>
 using fixed_vector = basic_vector<fixed_vector_storage<T, Alloc>>;
 
 template <typename Storage>
-void swap(basic_vector<Storage> &lhs, basic_vector<Storage> &rhs) noexcept {
+void swap(basic_vector<Storage> &lhs,
+          basic_vector<Storage> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);
 }
 
