@@ -130,3 +130,6 @@ incomplete repetition sets, incompatible compiler/STL/flags and unbalanced memor
 passes. `render` consumes those collected compact inputs; it is not a general
 benchmark-data validation interface. See the workflow for the exact collection/build commands and
 [the baseline methodology](btree-baseline.md) for the executable's larger input set.
+
+[Automatic disjoint graph merge](btree-disjoint-merge.md) records ordinary map/set
+merge measurements, mature hinted-node baselines and the overlapping-input controls.

@@ -1,5 +1,8 @@
 # 有序 disjoint 分片的 graph append
 
+本页记录下述功能源的显式 append 测量。普通 `merge` 的自动图拼接结果见
+[核心 merge 测量](btree-disjoint-merge.md)。
+
 显式 `append_btree_disjoint` 对满足[区间/所有权合同](../design/btree-disjoint-append.md)的分片拼接节点，
 保持普通 merge 不变。本轮四种 map 在适合的 inner-root 场景中，Windows/Linux 均比现有 merge 及成熟
 std/Abseil 的 node-extract+end-hint 路径快。不同高度仍回退，不能用于宣称通用 merge 更快。
