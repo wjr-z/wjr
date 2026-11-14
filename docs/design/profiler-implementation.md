@@ -13,6 +13,7 @@
 | P03 cProfile | JSON importer、显式 exporter 和单次热点摘要已交付 | [cProfile guide](../../devtools/profiler/CPROFILE.md) |
 | P04a perf stat | 离线 importer 与进程级摘要已交付；正向硬件采集未验证 | [perf stat guide](../../devtools/profiler/PERF_STAT.md) |
 | P05 curl | 离线 importer 和 owned-localhost fixture 已交付 | [curl guide](../../devtools/profiler/CURL.md) |
+| P06a py-spy | sampled-seconds 离线导入、逐线程热点摘要与 Windows 实际采样已交付 | [Sampled stacks guide](../../devtools/profiler/SAMPLED_STACKS.md) |
 
 P01–P03 构成本设计定义的离线 MVP，均已有实现。P04a、P05 的 importer 也已交付；这不代表
 正向硬件采集、任意版本兼容或通用 collector 已交付。P00 的真实来源和原始字节证据随
@@ -28,7 +29,6 @@ sampled 或 derived 类型区分，不能自动参加跨 provider 排名或回�
 | 候选 | 最小交付及边界 |
 | --- | --- |
 | P04b perf record | 有真实热点需求后读取匹配版本 `perf script` 导出；记录 build-id、符号和 lost samples。不解码 `perf.data`、不 attach 全系统、不自动提权 |
-| P06a py-spy | 固定一个 speedscope sampled 格式；保留 weights、采样频率、线程、GIL/idle/native 状态和丢样；权限不足时只支持离线导入 |
 | P06b allocation | 已交付 [MemoryManager 1.9.2 原生字段导入](../../devtools/profiler/MEMORY_MANAGER.md)，明确独立 pass、hook coverage、字节和分配单位；不全局替换 `new`。[tracemalloc](../../devtools/profiler/TRACEMALLOC.md) 已提供真实 Snapshot 导出、端点净存活/完整已记录栈和单独全局峰值诊断；一对快照固定 n=1，不读 pickle，不将峰值归到某 frame。抽样、RSS、总分配量及拷贝归因仍未交付 |
 | P07a iperf3 | 固定实际 JSON 版本和两端授权 workload，记录方向、协议、并发、omit、zerocopy；不能由 HTTP 延迟推导链路吞吐 |
 | P07b OTel | 为实际 SDK/proto/exporter 固定版本和输入格式；trace/span 因果关系、clock uncertainty 与跨机时间线分别验收 |

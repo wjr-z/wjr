@@ -1,7 +1,10 @@
 """python -m wjr_profiler: explicit local files in, new local directories out."""
 
 import argparse
+import hashlib
+import json
 import sys
+from pathlib import Path
 
 from .adapters import cprofile_json, google_benchmark, google_benchmark_memory, llvm_mca, curl_json, perf_stat
 from .bundle import import_bundle, load_bundle
@@ -13,6 +16,8 @@ from .curl_report import write_summary as write_curl_summary
 from .perf_report import write_summary as write_perf_summary
 from .adapters import tracemalloc_json
 from .tracemalloc_report import write_summary as write_memory_summary
+from .adapters import speedscope
+from .sampled_report import write_summary as write_sampled_summary
 
 PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
              "google-benchmark-memory": google_benchmark_memory.import_artifact,
@@ -20,7 +25,8 @@ PROVIDERS = {"google-benchmark": google_benchmark.import_artifact,
              "llvm-mca": llvm_mca.import_artifact,
              "curl-json": curl_json.import_artifact,
              "perf-stat": perf_stat.import_artifact,
-             "tracemalloc-json": tracemalloc_json.import_artifact}
+             "tracemalloc-json": tracemalloc_json.import_artifact,
+             "py-spy-speedscope": speedscope.import_artifact}
 
 
 def main(argv=None):
@@ -64,12 +70,26 @@ def main(argv=None):
     memory.add_argument("bundle")
     memory.add_argument("--out", required=True)
     memory.add_argument("--limit", type=int, default=20, help="maximum positive/negative sites in Markdown; JSON keeps all")
+    sampled = commands.add_parser("speedscope-summary", help="rank recorded sampled stacks from explicit thread profiles")
+    sampled.add_argument("bundle")
+    sampled.add_argument("--out", required=True)
+    sampled.add_argument("--limit", type=int, default=20)
+    sampling_manifest = commands.add_parser("speedscope-manifest", help="write an editable manifest for an existing py-spy JSON capture")
+    sampling_manifest.add_argument("--raw", required=True)
+    sampling_manifest.add_argument("--out", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "import":
             decoders = {"curl-json": curl_json.decode_raw, "perf-stat": perf_stat.decode_raw}
             import_bundle(args.provider, PROVIDERS[args.provider], args.raw, args.manifest, args.out,
                           decoder=decoders.get(args.provider), stderr_path=args.stderr)
+        elif args.command == "speedscope-manifest":
+            raw = Path(args.raw).read_bytes()
+            manifest = speedscope.default_manifest(json.loads(raw.decode("utf-8-sig")), hashlib.sha256(raw).hexdigest())
+            with Path(args.out).open("x", encoding="utf-8", newline="\n") as output:
+                output.write(json.dumps(manifest, indent=2, allow_nan=False) + "\n")
+        elif args.command == "speedscope-summary":
+            write_sampled_summary(load_bundle(args.bundle), args.out, args.limit)
         elif args.command == "tracemalloc-summary":
             write_memory_summary(load_bundle(args.bundle), args.out, args.limit)
         elif args.command == "perf-summary":

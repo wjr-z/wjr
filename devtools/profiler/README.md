@@ -18,6 +18,7 @@ and remaining acceptance work is in the [implementation status](../../docs/desig
 | tracemalloc | `wjr.tracemalloc-json/1`; Snapshot API verified on CPython 3.12.7 | Diagnose live blocks, signed retained changes, tracebacks and an optional global checkpoint | One snapshot pair is n=1; no per-frame peak, allocation-volume or RSS claim; no native pickle input |
 | Linux perf stat | JSON source-checked against Linux v6.8.12 | Import and summarize whole-process counters or unavailable diagnostics | The fixture worker denied both hardware and tool-event collection; no positive PMU capture is claimed. Other perf versions are exploratory |
 | curl | 8.11.1 native `%{json}` JSONL | Import and summarize independent HTTP/1.1 request processes | Verified with an owned localhost server; unknown curl versions are exploratory |
+| py-spy sampled stacks | 0.4.1 sampled-seconds Speedscope JSON | Import and rank thread-local sampled hotspots | Windows capture verified; recorded weights retain sampling/filter limits |
 
 Provider guides document exact contracts, fixtures, and reproduction steps:
 [Google Benchmark](#supported-input-and-provenance), [LLVM-MCA](LLVM_MCA.md),
@@ -25,7 +26,9 @@ Provider guides document exact contracts, fixtures, and reproduction steps:
 [MemoryManager](MEMORY_MANAGER.md) documents native memory fields and their separate scope.
 [tracemalloc](TRACEMALLOC.md) documents the owned Snapshot exporter and offline
 Python live-block diagnosis.
-Collection services, py-spy/Scalene/Tracy, iperf3/OTel, ETW/WPA and performance
+[Sampled stacks](SAMPLED_STACKS.md) provide offline Python frame attribution and
+preserve the collector's sampling limits.
+Collection services, Scalene/Tracy, iperf3/OTel, ETW/WPA and performance
 regression gates are not implemented.
 
 [Optional comparison charts](CHARTS.md) add offline SVG bars, sample dots and

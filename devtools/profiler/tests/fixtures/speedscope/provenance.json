@@ -1,0 +1,38 @@
+{
+  "real": true,
+  "producer": "py-spy 0.4.1",
+  "platform": "Windows-11-10.0.22631-SP0",
+  "python": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
+  "argv": [
+    "py-spy",
+    "record",
+    "--duration",
+    "2",
+    "--rate",
+    "100",
+    "--format",
+    "speedscope",
+    "--full-filenames",
+    "--output",
+    "D:/repos/.cache/wjr/worktrees/profiler-sampled-stacks/devtools/profiler/tests/fixtures/speedscope/profile.json",
+    "--",
+    "python",
+    "D:/repos/.cache/wjr/worktrees/profiler-sampled-stacks/devtools/profiler/tests/fixtures/speedscope/program.py"
+  ],
+  "exit_status": 0,
+  "sample_count": 199,
+  "errors": 0,
+  "raw_sha256": "c1ab4847567c9c75bc50331e297b268d985e26ad62ad178b3c1fd0d39f9614e8",
+  "program_sha256": "5e5f08ec525aea9c7b397ce447a45b3d676cad3c9f9537e9dcb5d4239776c153",
+  "capture_policy": {
+    "rate_hz": 100,
+    "gil_only": false,
+    "include_idle": false,
+    "native": false,
+    "nonblocking": false,
+    "full_filenames": true
+  },
+  "source_revision": "c69cdbbf370009c8419ea3ef8507d6e48754cbfb",
+  "note": "Owned finite fixture program is an uncommitted addition to the base revision. Capture duration is two seconds; recorded weights use retained stacks divided by sampling rate.",
+  "python_executable": "C:\\Users\\19663\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+}
