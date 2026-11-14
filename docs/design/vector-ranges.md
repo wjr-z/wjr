@@ -35,13 +35,12 @@ Iterator invalidation and source nonoverlap requirements follow the modifier's
 existing contract.
 
 ```cpp
-#include <array>
 #include <wjr/json/document.hpp>
 
 using document = wjr::json::document;
 document::array_type items{document(10), document(30)};
 items.reserve(16);
-const std::array batch{document(20)};
+const document::array_type batch{document(20), document(25)};
 items.insert_range(items.cbegin() + 1, batch);
 ```
 

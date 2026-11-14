@@ -356,8 +356,8 @@ TEST(vector_relocation, pmr_document_assignment_retains_destination_resource) {
     values.emplace_back(std::allocator_arg, allocator(&first), std::string_view("first"));
     values.emplace_back(std::allocator_arg, allocator(&second), std::string_view("second"));
     values.emplace_back(std::allocator_arg, allocator(&third), std::string_view("third"));
-    std::array incoming{document(std::allocator_arg, allocator(&third), std::string_view("new"))};
-    values.insert_range(values.cbegin(), incoming);
+    document incoming(std::allocator_arg, allocator(&third), std::string_view("new"));
+    values.insert_range(values.cbegin(), std::span(&incoming, 1));
     EXPECT_EQ(values[0].get_allocator().resource(), &first);
     EXPECT_EQ(values[0].get<wjr::json::string_t>(), "new");
 }
