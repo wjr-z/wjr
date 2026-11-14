@@ -412,6 +412,74 @@ TEST(BtreeMerge, RepeatedUnequalShardsSupportBothOrdersAndLaterMutations) {
     }
 }
 
+template <bool Multi>
+void check_unequal_inline_slots(bool prepend) {
+    using allocator = owner_allocator<char>;
+    using tree = std::conditional_t<Multi, wjr::btree_multiset<int, std::less<>, allocator>,
+                                    wjr::btree_set<int, std::less<>, allocator>>;
+    owner state;
+    {
+        tree destination(std::less<>{}, allocator(&state, 11));
+        tree source(std::less<>{}, allocator(&state, 22));
+        for (int i = 0; i < 4096; ++i)
+            destination.insert(i / (Multi ? 2 : 1) + (prepend ? 8192 : 0));
+        for (int i = 0; i < 64; ++i)
+            source.insert(i / (Multi ? 2 : 1) + (prepend ? 0 : 8192));
+        std::vector<std::pair<int, const int *>> expected;
+        const auto capture = [&](const tree &part) {
+            for (const auto &value : part)
+                expected.emplace_back(value, &value);
+        };
+        capture(prepend ? source : destination);
+        capture(prepend ? destination : source);
+        destination.merge(source);
+        EXPECT_TRUE(source.empty());
+        ASSERT_EQ(destination.size(), expected.size());
+        size_t index = 0;
+        for (const auto &value : destination) {
+            EXPECT_EQ(value, expected[index].first);
+            EXPECT_EQ(&value, expected[index].second);
+            ++index;
+        }
+        source.insert(-1);
+        EXPECT_EQ(*source.begin(), -1);
+    }
+    EXPECT_TRUE(state.blocks.empty());
+}
+
+TEST(BtreeMerge, UnequalInlineAndDuplicateShardsPreserveEveryStoredSlot) {
+    for (bool prepend : {false, true}) {
+        check_unequal_inline_slots<false>(prepend);
+        check_unequal_inline_slots<true>(prepend);
+    }
+}
+
+TEST(BtreeMerge, UnequalPmrGraphCanOutliveItsSourceObject) {
+    for (bool prepend : {false, true}) {
+        std::pmr::unsynchronized_pool_resource resource;
+        using allocator = std::pmr::polymorphic_allocator<char>;
+        using tree = wjr::btree_map<int, std::pmr::string, std::less<>, allocator>;
+        tree destination(std::less<>{}, allocator(&resource));
+        for (int i = 0; i < 4096; ++i)
+            destination.try_emplace(i + (prepend ? 8192 : 0), 80, 'a');
+        {
+            tree source(std::less<>{}, allocator(&resource));
+            for (int i = 0; i < 64; ++i)
+                source.try_emplace(i + (prepend ? 0 : 8192), 80, 'b');
+            destination.merge(source);
+            EXPECT_TRUE(source.empty());
+            source.try_emplace(-1, 8, 'r');
+            EXPECT_EQ(source.at(-1), "rrrrrrrr");
+        }
+        EXPECT_EQ(destination.size(), 4160u);
+        for (const auto &[key, value] : destination) {
+            EXPECT_EQ(value.get_allocator().resource(), &resource);
+            EXPECT_EQ(value.size(), 80u);
+            EXPECT_EQ(value.front(), key < 8192 ? (prepend ? 'b' : 'a') : (prepend ? 'a' : 'b'));
+        }
+    }
+}
+
 TEST(BtreeJoin, IndirectStringSeparatorsAndMultisetGroups) {
     wjr::btree_set<std::string> destination, source;
     std::map<std::string, const std::string *> addresses;
