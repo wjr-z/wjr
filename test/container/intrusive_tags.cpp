@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <ranges>
 
 #include <wjr/container/forward_list.hpp>
@@ -93,4 +94,130 @@ TEST(intrusive_tags, simultaneous_chains_and_ring_are_independent) {
     EXPECT_TRUE(std::ranges::equal(ready, std::array{2}, {}, &item::value));
     EXPECT_TRUE(std::ranges::equal(timer, std::array{2, 1}, {}, &item::value));
     EXPECT_TRUE(std::ranges::equal(ring, std::array{1, 2}, {}, &item::value));
+}
+
+namespace {
+template <class Hook>
+void entry_macros_select_tagged_hook() {
+    for (int count : {0, 1, 3}) {
+        Hook head;
+        item first(1), second(2), third(3);
+        item *values[] = {&first, &second, &third};
+        if constexpr (requires { head.prev(); }) {
+            for (int i = 0; i < count; ++i)
+                head.push_back(static_cast<Hook *>(values[i]));
+        } else {
+            for (int i = count; i > 0; --i)
+                head.push_front(static_cast<Hook *>(values[i - 1]));
+        }
+        item *entry = nullptr, *next = nullptr;
+        int visited = 0;
+        if constexpr (requires { head.prev(); }) {
+            WJR_LIST_FOR_EACH_ENTRY(entry, &head) { EXPECT_EQ(entry, values[visited++]); }
+        } else {
+            WJR_HLIST_FOR_EACH_ENTRY(entry, &head) { EXPECT_EQ(entry, values[visited++]); }
+        }
+        EXPECT_EQ(visited, count);
+        EXPECT_EQ(entry, nullptr);
+        visited = 0;
+        const auto &const_head = head;
+        const item *const_entry = nullptr, *const_next = nullptr;
+        if constexpr (requires { head.prev(); }) {
+            WJR_LIST_FOR_EACH_ENTRY_SAFE(const_entry, const_next, &const_head) {
+                EXPECT_EQ(const_entry, values[visited++]);
+                EXPECT_EQ(const_next, visited == count ? nullptr : values[visited]);
+            }
+        } else {
+            WJR_HLIST_FOR_EACH_ENTRY_SAFE(const_entry, const_next, &const_head) {
+                EXPECT_EQ(const_entry, values[visited++]);
+                EXPECT_EQ(const_next, visited == count ? nullptr : values[visited]);
+            }
+        }
+        EXPECT_EQ(visited, count);
+        EXPECT_EQ(const_entry, nullptr);
+        EXPECT_EQ(const_next, nullptr);
+        visited = 0;
+        if constexpr (requires { head.prev(); }) {
+            WJR_LIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+                EXPECT_EQ(entry, values[visited++]);
+                static_cast<Hook *>(entry)->remove();
+            }
+        } else {
+            WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+                EXPECT_EQ(entry, values[visited++]);
+                EXPECT_EQ(head.pop_front()->self(), entry);
+            }
+        }
+        EXPECT_EQ(visited, count);
+        EXPECT_TRUE(head.empty());
+    }
+}
+
+template <class Hook>
+void safe_entry_macro_destroys_current_payload() {
+    Hook head;
+    for (int i = 3; i > 0; --i)
+        head.push_front(static_cast<Hook *>(new item(i)));
+    item *entry = nullptr, *next = nullptr;
+    int visited = 0;
+    if constexpr (requires { head.prev(); }) {
+        WJR_LIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+            std::unique_ptr<item> current(entry);
+            EXPECT_EQ(entry->value, ++visited);
+            static_cast<Hook *>(entry)->remove();
+            EXPECT_EQ(next == nullptr, visited == 3);
+        }
+    } else {
+        WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &head) {
+            std::unique_ptr<item> current(entry);
+            EXPECT_EQ(entry->value, ++visited);
+            EXPECT_EQ(head.pop_front()->self(), entry);
+            EXPECT_EQ(next == nullptr, visited == 3);
+        }
+    }
+    EXPECT_EQ(visited, 3);
+    EXPECT_TRUE(head.empty());
+    EXPECT_EQ(entry, nullptr);
+    EXPECT_EQ(next, nullptr);
+}
+} // namespace
+
+TEST(intrusive_tags, entry_macros_follow_selected_ring_and_chain_hooks) {
+    entry_macros_select_tagged_hook<ready_ring>();
+    entry_macros_select_tagged_hook<timer_ring>();
+    entry_macros_select_tagged_hook<ready_chain>();
+    entry_macros_select_tagged_hook<timer_chain>();
+}
+
+TEST(intrusive_tags, safe_entry_macros_allow_destroying_tagged_payloads) {
+    safe_entry_macro_destroys_current_payload<ready_ring>();
+    safe_entry_macro_destroys_current_payload<timer_ring>();
+    safe_entry_macro_destroys_current_payload<ready_chain>();
+    safe_entry_macro_destroys_current_payload<timer_chain>();
+}
+
+TEST(intrusive_tags, nested_entry_macros_preserve_break_and_continue) {
+    ready_ring ring;
+    timer_chain chain;
+    item first(1), second(2), third(3);
+    for (auto *value : {&first, &second, &third})
+        ring.push_back(static_cast<ready_ring *>(value));
+    for (auto *value : {&third, &second, &first})
+        chain.push_front(static_cast<timer_chain *>(value));
+    item *outer = nullptr, *entry = nullptr, *next = nullptr;
+    int sum = 0;
+    WJR_LIST_FOR_EACH_ENTRY(outer, &ring) {
+        WJR_HLIST_FOR_EACH_ENTRY_SAFE(entry, next, &chain) {
+            if (entry->value == 2)
+                continue;
+            sum += outer->value * entry->value;
+        }
+    }
+    EXPECT_EQ(sum, 24);
+    EXPECT_EQ(outer, nullptr);
+    EXPECT_EQ(entry, nullptr);
+    EXPECT_EQ(next, nullptr);
+    WJR_LIST_FOR_EACH_ENTRY_SAFE(entry, next, &ring) { break; }
+    EXPECT_EQ(entry, &first);
+    EXPECT_EQ(next, &second);
 }

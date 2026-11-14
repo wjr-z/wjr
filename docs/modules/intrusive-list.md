@@ -81,6 +81,13 @@ pointers, hlist hooks one pointer, and iterators one pointer. Different tags
 cannot be mixed in an insertion or iterator conversion. Omitting the tag retains
 the default `void` tag and existing one-hook source syntax.
 
+The `WJR_LIST_FOR_EACH_ENTRY` and `WJR_HLIST_FOR_EACH_ENTRY` macros also
+select the hook from `head`. They support mutable and const payload pointers
+with offset or tagged hooks. Their `_SAFE` variants save the next hook before
+the body runs, allowing the current payload to be unlinked and destroyed.
+The next payload pointer is null for the final element. A completed traversal
+leaves the current payload pointer null.
+
 ## Filtering and adjacent duplicates
 
 Include `<wjr/container/intrusive_algorithms.hpp>` for `intrusive::remove_if`
