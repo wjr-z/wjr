@@ -1668,32 +1668,10 @@ public:
                 }
             }
         }
-        auto current = source.begin();
-        while (current != source.end()) {
-            const auto &key = Traits::get_key(*current);
-            const auto position = _get_insert_multi_pos(key);
-            if constexpr (!multi) {
-                if (_same_insert_key(position, key)) {
-                    ++current;
-                    continue;
-                }
-            }
-            auto &slot = current.get_leaf()->m_values[current.pos()];
-            if constexpr (!compact_slots && !Traits::is_inline_value && !Other::is_inline_value) {
-                ivalue_type value = slot;
-                current = source.template _erase_iter<false>(current);
-                static_cast<void>(_insert_iter(position, value));
-            } else if constexpr (compact_slots) {
-                btree_detail::compact_temporary<value_type, _Alty> value(
-                    _get_allocator(), std::move(Other::from_ivalue(slot)));
-                current = source._erase_iter(current);
-                static_cast<void>(_insert_iter(position, value.get()));
-            } else {
-                ivalue_type value = _create_node(std::as_const(Other::from_ivalue(slot)));
-                current = source._erase_iter(current);
-                static_cast<void>(_insert_iter(position, value));
-            }
-        }
+        if constexpr (ordered && std::same_as<Traits, Other> && !compact_slots)
+            _merge_elements_outlined(source);
+        else
+            _merge_elements(source);
     }
 
     /// @copydoc merge(basic_btree<Other> &)
@@ -1798,6 +1776,39 @@ public:
     WJR_PURE size_type size() const noexcept { return _get_size(); }
 
 private:
+    template <typename Other>
+    WJR_INTRINSIC_INLINE void _merge_elements(basic_btree<Other> &source) {
+        auto current = source.begin();
+        while (current != source.end()) {
+            const auto &key = Traits::get_key(*current);
+            const auto position = _get_insert_multi_pos(key);
+            if constexpr (!multi) {
+                if (_same_insert_key(position, key)) {
+                    ++current;
+                    continue;
+                }
+            }
+            auto &slot = current.get_leaf()->m_values[current.pos()];
+            if constexpr (!compact_slots && !Traits::is_inline_value && !Other::is_inline_value) {
+                ivalue_type value = slot;
+                current = source.template _erase_iter<false>(current);
+                static_cast<void>(_insert_iter(position, value));
+            } else if constexpr (compact_slots) {
+                btree_detail::compact_temporary<value_type, _Alty> value(
+                    _get_allocator(), std::move(Other::from_ivalue(slot)));
+                current = source._erase_iter(current);
+                static_cast<void>(_insert_iter(position, value.get()));
+            } else {
+                ivalue_type value = _create_node(std::as_const(Other::from_ivalue(slot)));
+                current = source._erase_iter(current);
+                static_cast<void>(_insert_iter(position, value));
+            }
+        }
+    }
+
+    // Keep graph selection outside the elementwise loop's register allocation.
+    WJR_NOINLINE void _merge_elements_outlined(basic_btree &source) { _merge_elements(source); }
+
     /// @brief Count an ordered iterator range through leaf sizes without visiting each value.
     size_type _range_count(const_iterator first, const_iterator last) const noexcept {
         auto *const first_leaf = first.get_leaf();
