@@ -1665,13 +1665,12 @@ public:
                         root, source_root)) {
                     if (btree_detail::disjoint_join_access::join(*this, source, true))
                         return;
+                    _merge_elements_outlined(source);
+                    return;
                 }
             }
         }
-        if constexpr (ordered && std::same_as<Traits, Other> && !compact_slots)
-            _merge_elements_outlined(source);
-        else
-            _merge_elements(source);
+        _merge_elements(source);
     }
 
     /// @copydoc merge(basic_btree<Other> &)
