@@ -1658,14 +1658,8 @@ public:
                 return;
             }
             if constexpr (!compact_slots) {
-                auto *const root = _get_root();
-                auto *const source_root = source._get_root();
-                if (root != nullptr && source_root != nullptr &&
-                    btree_detail::disjoint_join_access::compatible_root_kinds<Traits>(
-                        root, source_root)) {
-                    if (btree_detail::disjoint_join_access::join(*this, source, true))
-                        return;
-                }
+                if (btree_detail::disjoint_join_access::join(*this, source, true))
+                    return;
             }
         }
         auto current = source.begin();
