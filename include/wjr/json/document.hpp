@@ -586,8 +586,10 @@ T *_document_create(Args &&...args) noexcept(
     std::is_nothrow_constructible_v<T, Args &&...>) {
     std::allocator<T> al;
     auto *const ptr = al.allocate(1);
+    const auto deallocate = [&al](T *pointer) noexcept { al.deallocate(pointer, 1); };
+    std::unique_ptr<T, decltype(deallocate)> guard(ptr, deallocate);
     wjr::construct_at(ptr, std::forward<Args>(args)...);
-    return ptr;
+    return guard.release();
 }
 
 template <typename T>
@@ -758,13 +760,15 @@ public:
                 break;
             }
             case value_t::object: {
-                _destroy_payload(std::addressof(_get_string()));
+                auto *const previous = std::addressof(_get_string());
                 _emplace_object(other._get_object());
+                _destroy_payload(previous);
                 break;
             }
             case value_t::array: {
-                _destroy_payload(std::addressof(_get_string()));
+                auto *const previous = std::addressof(_get_string());
                 _emplace_array(other._get_array());
+                _destroy_payload(previous);
                 break;
             }
             default: {
@@ -786,8 +790,9 @@ public:
                 break;
             }
             case value_t::string: {
-                _destroy_payload(std::addressof(_get_object()));
+                auto *const previous = std::addressof(_get_object());
                 _emplace_string(other._get_string());
+                _destroy_payload(previous);
                 break;
             }
             case value_t::object: {
@@ -795,8 +800,9 @@ public:
                 break;
             }
             case value_t::array: {
-                _destroy_payload(std::addressof(_get_object()));
+                auto *const previous = std::addressof(_get_object());
                 _emplace_array(other._get_array());
+                _destroy_payload(previous);
                 break;
             }
             default: {
@@ -818,13 +824,15 @@ public:
                 break;
             }
             case value_t::string: {
-                _destroy_payload(std::addressof(_get_array()));
+                auto *const previous = std::addressof(_get_array());
                 _emplace_string(other._get_string());
+                _destroy_payload(previous);
                 break;
             }
             case value_t::object: {
-                _destroy_payload(std::addressof(_get_array()));
+                auto *const previous = std::addressof(_get_array());
                 _emplace_object(other._get_object());
+                _destroy_payload(previous);
                 break;
             }
             case value_t::array: {
