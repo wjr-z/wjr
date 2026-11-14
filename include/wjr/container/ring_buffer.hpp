@@ -950,6 +950,7 @@ public:
             return *this;
         }
 
+        _release_before_copy();
         take_storage(other);
         return *this;
     }
