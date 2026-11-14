@@ -254,7 +254,10 @@ TEST(vector_storage_transfer, explicit_trivial_inline_relocation_accepts_deleted
 TEST(vector_storage_transfer, nested_vector_growth_rebinds_inline_buffer_pointers) {
     using small = wjr::small_vector<int, 4>;
     static_assert(wjr::get_relocate_mode_v<small> != wjr::relocate_t::trivial);
-    static_assert(wjr::get_relocate_mode_v<wjr::small_vector<int, 0>> == wjr::relocate_t::trivial);
+    using heap_storage = wjr::small_vector_storage<int, 0, std::allocator<int>>;
+    static_assert(wjr::get_relocate_mode_v<heap_storage> == wjr::relocate_t::trivial);
+    static_assert(wjr::get_relocate_mode_v<wjr::small_vector<int, 0>> ==
+                  wjr::get_relocate_mode_v<wjr::vector<int>>);
     wjr::vector<small> values;
     values.reserve(1);
     values.emplace_back(3, 42);
