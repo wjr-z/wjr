@@ -610,9 +610,10 @@ struct expected_operations_base : expected_storage_base<T, E> {
         }
     }
 
-    WJR_CONSTEXPR20 void
-    _move_assign(expected_operations_base &&other) noexcept(std::is_nothrow_move_assignable_v<T> &&
-                                                            std::is_nothrow_move_assignable_v<E>) {
+    WJR_CONSTEXPR20 void _move_assign(expected_operations_base &&other) noexcept(
+        std::is_nothrow_move_assignable_v<T> && std::is_nothrow_move_assignable_v<error_type> &&
+        std::is_nothrow_move_constructible_v<T> &&
+        std::is_nothrow_move_constructible_v<error_type>) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 this->m_val = std::move(other.m_val);
@@ -680,7 +681,8 @@ struct expected_operations_base<void, E> : expected_storage_base<void, E> {
     }
 
     WJR_CONSTEXPR20 void _move_assign(expected_operations_base &&other) noexcept(
-        std::is_nothrow_move_assignable_v<error_type>) {
+        std::is_nothrow_move_assignable_v<error_type> &&
+        std::is_nothrow_move_constructible_v<error_type>) {
         if (this->has_value()) {
             if (WJR_LIKELY(other.has_value())) {
                 WJR_ASSERT_ASSUME_L2(this->has_value());
