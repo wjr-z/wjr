@@ -11,7 +11,8 @@ target_compile_definitions(json_direct_allocations PRIVATE COUNT_ALLOCATIONS=1)
 
 find_package(GTest REQUIRED)
 add_executable(json_direct_tests ${WJR_SOURCE}/test/json/direct_parser.cpp
-    ${WJR_SOURCE}/test/json/pmr.cpp ${WJR_SOURCE}/test/json/registered_fields.cpp)
+    ${WJR_SOURCE}/test/json/pmr.cpp ${WJR_SOURCE}/test/json/registered_fields.cpp
+    ${WJR_SOURCE}/test/json/utf8_validation.cpp)
 target_link_libraries(json_direct_tests PRIVATE wjr::json GTest::gtest_main)
 add_executable(json_direct_sanitized ${WJR_SOURCE}/test/json/direct_parser.cpp)
 target_link_libraries(json_direct_sanitized PRIVATE wjr::json GTest::gtest_main)

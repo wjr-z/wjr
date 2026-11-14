@@ -15,8 +15,15 @@ class context {
     struct frame { kind type; void* output; field pending = field::unknown; unsigned seen = 0; };
 public:
     std::vector<probe::record> output;
-    result<void> run(ondemand_reader& reader) { return visitor_detail::parse(*this, reader); }
+    result<void> run(ondemand_reader& reader) { active_reader=&reader; return visitor_detail::parse(*this, reader); }
+    uint32_t position() const noexcept { return current_position; }
 private:
+    void observe_token(uint32_t token) noexcept { current_position=token==ondemand_reader::npos ? active_reader->size() : token; }
+    bool boundary(const char* pointer) const noexcept {
+        if(pointer==active_reader->data()+active_reader->size()) return true;
+        const char ch=*pointer;
+        return detail::is_json_space(ch)||ch=='{'||ch=='}'||ch=='['||ch==']'||ch==','||ch==':'||ch=='"';
+    }
     bool discarded(location where) const {
         if (where == location::root) return false;
         const auto& parent = frames.back();
@@ -24,6 +31,8 @@ private:
                (where == location::object && parent.pending == field::unknown);
     }
     result<void> key(const char* first, const char* last) {
+        if(!boundary(last+1)) return wjr::unexpected(error_code::TAPE_ERROR);
+        if(detail::contains_unescaped_control(first,last)) return wjr::unexpected(error_code::UNESCAPED_CHARS);
         auto& current = frames.back();
         current.pending = field::unknown;
         if (current.type == kind::unknown_object) return detail::check_string(first,last);
@@ -49,11 +58,14 @@ private:
     result<void> null(location where,const char* first) {
         auto checked=detail::check_null(first);
         if (!checked) return checked;
+        if(!boundary(first+4)) return wjr::unexpected(error_code::TAPE_ERROR);
         return discarded(where) ? result<void>{} : wjr::unexpected(error_code::INCORRECT_TYPE);
     }
     result<void> boolean(location where,const char* first,bool value) {
         auto checked=value ? detail::check_true(first) : detail::check_false(first);
-        if (!checked || discarded(where)) return checked;
+        if (!checked) return checked;
+        if(!boundary(first+(value?4:5))) return wjr::unexpected(error_code::TAPE_ERROR);
+        if(discarded(where)) return checked;
         if (where==location::object && frames.back().type==kind::record && frames.back().pending==field::enabled) {
             static_cast<probe::record*>(frames.back().output)->enabled=value;
             return {};
@@ -71,8 +83,10 @@ private:
                 return detail::parse_typed_float<double>(&static_cast<probe::point*>(current.output)->y,first,last);
         }
         basic_value value(wjr::default_construct);
-        auto parsed=detail::parse_number(first,last,value);
-        if (!parsed || discarded(where)) return parsed;
+        auto parsed=number_detail::from_chars_json(first,last,value);
+        if(!parsed) return wjr::unexpected(parsed.ec==std::errc::result_out_of_range ? error_code::BIGINT_ERROR : error_code::TAPE_ERROR);
+        if(parsed.ptr!=last&&!detail::is_json_space(*parsed.ptr)) return wjr::unexpected(error_code::TAPE_ERROR);
+        if(discarded(where)) return {};
         if (value.m_type==value_t::number_float) {
             const bool fraction=std::find_if(first,last,[](char ch) {return ch=='.'||ch=='e'||ch=='E';})!=last;
             return wjr::unexpected(fraction ? error_code::INCORRECT_TYPE : error_code::NUMBER_OUT_OF_RANGE);
@@ -92,6 +106,8 @@ private:
         return wjr::unexpected(error_code::INCORRECT_TYPE);
     }
     result<void> string(location where,const char* first,const char* last) {
+        if(!boundary(last+1)) return wjr::unexpected(error_code::TAPE_ERROR);
+        if(detail::contains_unescaped_control(first,last)) return wjr::unexpected(error_code::UNESCAPED_CHARS);
         if (discarded(where)) return detail::check_string(first,last);
         if (where==location::object && frames.back().type==kind::record && frames.back().pending==field::name)
             return detail::decode_owned_string(static_cast<probe::record*>(frames.back().output)->name,first,last);
@@ -167,6 +183,8 @@ private:
     HAND_END(object)
     HAND_END(array)
 #undef HAND_END
+    ondemand_reader* active_reader=nullptr;
+    uint32_t current_position=0;
     wjr::small_vector<frame,16> frames;
     std::string key_text;
 };
@@ -177,9 +195,10 @@ struct parser {
     std::string_view input;
     explicit parser(std::string_view text):input(text) { (void)run(); }
     uint64_t run() {
+        if(wjr::json::detail::find_invalid_utf8(input)!=std::string_view::npos) throw std::runtime_error("invalid UTF8");
         reader.read(input);
         hand_reference::context parsed;
-        if (!parsed.run(reader)) throw std::runtime_error("hand-written WJR parse failure");
+        if (!parsed.run(reader)) throw std::runtime_error("hand-written WJR parse failure at "+std::to_string(parsed.position()));
         return probe::checksum(parsed.output);
     }
 };
