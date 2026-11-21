@@ -78,6 +78,27 @@ using tagged_document =
     basic_document<detail::basic_document_traits<std::basic_string, tagged_object, wjr::vector>>;
 } // namespace
 
+TEST(json, pmr_parse_releases_payloads_after_string_decode_failure) {
+    counted_resource resource;
+    const std::string prefix(80, 'x');
+    const auto invalid_string = '"' + prefix + R"(\uD800")";
+    const std::string inputs[] = {
+        invalid_string,
+        '[' + invalid_string + ']',
+        R"({"previous":"value","key":)" + invalid_string + '}',
+        '{' + invalid_string + ":0}",
+    };
+    ondemand_reader reader;
+    for (const auto &input : inputs) {
+        SCOPED_TRACE(input);
+        reader.read(input);
+        const auto result = pmr_document::parse_with_allocator(reader, &resource);
+        ASSERT_FALSE(result);
+        EXPECT_EQ(result.error(), error_code::UTF8_ERROR);
+        EXPECT_EQ(resource.live, 0);
+    }
+}
+
 TEST(json, exact_object_copy_assignment_to_its_own_storage) {
     document value;
     fill(value);
