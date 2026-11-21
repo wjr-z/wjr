@@ -103,6 +103,34 @@ struct plain_assignment_allocator {
     bool operator==(const plain_assignment_allocator &) const = default;
 };
 
+template <typename T>
+struct counted_forward_iterator {
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::forward_iterator_tag;
+
+    const T *ptr = nullptr;
+    int *steps = nullptr;
+    int throw_at = -1;
+
+    const T &operator*() const { return *ptr; }
+    counted_forward_iterator &operator++() {
+        if (++*steps == throw_at) {
+            throw std::runtime_error("increment failed");
+        }
+        ++ptr;
+        return *this;
+    }
+    counted_forward_iterator operator++(int) {
+        auto copy = *this;
+        ++*this;
+        return copy;
+    }
+    bool operator==(const counted_forward_iterator &) const = default;
+};
+
+static_assert(std::forward_iterator<counted_forward_iterator<int>>);
+
 using allocator = assignment_allocator<assignment_element>;
 using ring = wjr::ring_buffer<assignment_element, allocator>;
 
@@ -277,3 +305,49 @@ TEST(ring_assignment, throwing_forward_iterator_releases_growth_for_nothrow_valu
     expect_released(counts);
 }
 } // namespace
+
+TEST(ring_assignment, forward_cursor_advances_once_per_element_after_counting) {
+    const int source[] = {10, 11, 12, 13, 14, 15, 16};
+    wjr::ring_buffer<int> queue(8, wjr::in_place_reserve);
+    for (int i = 0; i != 4; ++i)
+        queue.emplace_back(i);
+    for (int i = 0; i != 3; ++i)
+        queue.pop_front();
+    queue.emplace_back(4);
+
+    int steps = 0;
+    using iter = counted_forward_iterator<int>;
+    const auto *storage = queue.data();
+    queue.assign(iter{source, &steps}, iter{source + 7, &steps});
+
+    EXPECT_EQ(queue.data(), storage);
+    EXPECT_TRUE(std::ranges::equal(queue, source));
+    EXPECT_EQ(steps, 14);
+}
+
+TEST(ring_assignment, throwing_forward_advance_rolls_back_both_new_segments) {
+    assignment_counts counts;
+    {
+        ring queue(8, wjr::in_place_reserve, allocator(counts));
+        populate(queue, counts, 3, 2);
+        std::vector<assignment_element> source;
+        source.reserve(7);
+        for (int i = 0; i != 7; ++i)
+            source.emplace_back(counts, i + 10);
+
+        int steps = 0;
+        using iter = counted_forward_iterator<assignment_element>;
+        const auto *storage = queue.data();
+        EXPECT_THROW(
+            queue.assign(iter{source.data(), &steps, 13}, iter{source.data() + 7, &steps, 13}),
+            std::runtime_error);
+
+        EXPECT_EQ(queue.data(), storage);
+        EXPECT_EQ(queue.size(), 2);
+        EXPECT_EQ(queue.front().number, 10);
+        EXPECT_EQ(queue.back().number, 11);
+        EXPECT_EQ(counts.live.size(), 9);
+        EXPECT_EQ(counts.invalid_destroys, 0);
+    }
+    expect_released(counts);
+}

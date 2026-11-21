@@ -222,6 +222,14 @@ TEST(ranges, constructors_reject_count_that_exceeds_storage_size_type) {
     EXPECT_EQ(state.increments, 0);
 }
 
+TEST(ranges, ring_assign_checks_count_before_discarding_existing_elements) {
+    wjr::ring_buffer<int, narrow_allocator<int>> target{13, 17};
+    const std::vector<int> source(std::size_t{1} << 16);
+
+    EXPECT_THROW(target.assign(source.data(), source.data() + source.size()), std::length_error);
+    EXPECT_TRUE(std::ranges::equal(target, std::array{13, 17}));
+}
+
 TEST(ranges, vector_accepts_noncommon_counted_ranges) {
     int source[] = {2, 4, 6};
     auto input = std::ranges::subrange(std::counted_iterator(source, 3), std::default_sentinel);
