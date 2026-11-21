@@ -78,6 +78,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/concept/ranges_base.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/range_size.hpp>
 #include <wjr/container/detail/storage_traits.hpp>
 #include <wjr/container/detail/vector_size_reference.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
@@ -945,18 +946,10 @@ public:
                       requires { typename iterator_category_t<std::ranges::iterator_t<Range>>; }) {
             assign(std::ranges::begin(range), std::ranges::end(range));
         } else {
-            if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
-                const auto count = [&] {
-                    if constexpr (std::ranges::sized_range<Range>) {
-                        return std::ranges::size(range);
-                    } else {
-                        return std::ranges::distance(range);
-                    }
-                }();
-                if (count > max_size()) {
-                    WJR_THROW(std::length_error("vector::assign_range: size overflow"));
-                }
-                clear_if_reserved(static_cast<size_type>(count));
+            if constexpr (container_detail::countable_range<Range>) {
+                const auto count = container_detail::checked_range_size<size_type>(
+                    range, max_size(), "vector::assign_range: size overflow");
+                clear_if_reserved(count);
             }
             auto first = std::ranges::begin(range);
             const auto last = std::ranges::end(range);
@@ -983,24 +976,15 @@ public:
      */
     template <detail::_container_compatible_range<value_type> Range>
     WJR_CONSTEXPR20 void append_range(Range &&range) {
-        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
-            const auto count = [&] {
-                if constexpr (std::ranges::sized_range<Range>) {
-                    return std::ranges::size(range);
-                } else {
-                    return std::ranges::distance(range);
-                }
-            }();
-            if (count > max_size() - size()) {
-                WJR_THROW(std::length_error("vector::append_range: size overflow"));
-            }
+        if constexpr (container_detail::countable_range<Range>) {
+            const auto count = container_detail::checked_range_size<size_type>(
+                range, max_size() - size(), "vector::append_range: size overflow");
             if (count != 0) {
-                const auto n = static_cast<size_type>(count);
-                reserve(size() + n);
+                reserve(size() + count);
                 wjr::uninitialized_copy_restrict_using_allocator(std::ranges::begin(range),
                                                                  std::ranges::end(range),
                                                                  end_unsafe(), _get_allocator());
-                _get_size() += n;
+                _get_size() += count;
             }
         } else {
             for (auto &&value : range) {
@@ -1324,16 +1308,9 @@ public:
     template <vector_detail::insertable_range<value_type> Range>
     WJR_CONSTEXPR20 iterator insert_range(const_iterator pos, Range &&range) {
         const auto offset = static_cast<size_type>(pos - cbegin());
-        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
-            const auto count = [&] {
-                if constexpr (std::ranges::sized_range<Range>)
-                    return std::ranges::size(range);
-                else
-                    return std::ranges::distance(range);
-            }();
-            if (count > max_size() - size()) {
-                WJR_THROW(std::length_error("vector::insert_range: size overflow"));
-            }
+        if constexpr (container_detail::countable_range<Range>) {
+            const auto count = container_detail::checked_range_size<size_type>(
+                range, max_size() - size(), "vector::insert_range: size overflow");
             if (count != 0) {
                 auto first = [&] {
                     if constexpr (std::copy_constructible<std::ranges::iterator_t<Range>>)
@@ -1341,8 +1318,7 @@ public:
                     else
                         return std::ranges::begin(range);
                 }();
-                _range_insert_n<decltype(first)>(data() + offset, first,
-                                                 static_cast<size_type>(count));
+                _range_insert_n<decltype(first)>(data() + offset, first, count);
             }
         } else {
             const auto original_size = size();
@@ -1415,8 +1391,9 @@ public:
     WJR_CONSTEXPR20 basic_vector(wjr::from_range_t, Range &&rg,
                                  const allocator_type &al = allocator_type())
         : basic_vector(al) {
-        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
-            const auto n = static_cast<size_type>(std::ranges::distance(rg));
+        if constexpr (container_detail::countable_range<Range>) {
+            const auto n = container_detail::checked_range_size<size_type>(
+                rg, max_size(), "vector::from_range: size overflow");
             _construct_n(n, std::ranges::begin(rg), std::ranges::end(rg));
         } else {
             auto _first = std::ranges::begin(rg);
@@ -1564,24 +1541,16 @@ public:
         auto *const old_first = _get_pointer(from);
         auto *const old_last = _get_pointer(to);
         const auto removed = static_cast<size_type>(old_last - old_first);
-        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
-            const auto count = [&] {
-                if constexpr (std::ranges::sized_range<Range>)
-                    return std::ranges::size(range);
-                else
-                    return std::ranges::distance(range);
-            }();
-            if (count > max_size() - (size() - removed)) {
-                WJR_THROW(std::length_error("vector::replace_range: size overflow"));
-            }
+        if constexpr (container_detail::countable_range<Range>) {
+            const auto count = container_detail::checked_range_size<size_type>(
+                range, max_size() - (size() - removed), "vector::replace_range: size overflow");
             auto first = [&] {
                 if constexpr (std::copy_constructible<std::ranges::iterator_t<Range>>)
                     return wjr::_iter_base(std::ranges::begin(range));
                 else
                     return std::ranges::begin(range);
             }();
-            _replace_range_n<decltype(first)>(old_first, old_last, first,
-                                              static_cast<size_type>(count));
+            _replace_range_n<decltype(first)>(old_first, old_last, first, count);
         } else {
             const auto original_size = size();
             const auto last_offset = static_cast<size_type>(old_last - data());
