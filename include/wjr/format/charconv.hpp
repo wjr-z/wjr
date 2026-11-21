@@ -997,13 +997,119 @@ to_chars_result<uint8_t *> _fast_to_chars_impl(uint8_t *first, uint8_t *last, Va
     return {last, std::errc::value_too_large};
 }
 
+namespace charconv_detail {
+
+/// @private Select the digit writer, its maximum output length and any precomputed count.
+template <typename Value, typename Base, typename Visit>
+WJR_INTRINSIC_INLINE decltype(auto)
+dispatch_magnitude(Base input_base, std::make_unsigned_t<Value> magnitude, Visit visit) {
+    constexpr auto binary_digits = std::numeric_limits<decltype(magnitude)>::digits;
+    constexpr auto decimal_digits = std::numeric_limits<Value>::digits10 + 1;
+    const unsigned int base = input_base;
+    switch (base) {
+    case 2:
+        return visit.template operator()<2, binary_digits>(count_digits<2>(magnitude), 0);
+    case 8:
+        return visit.template operator()<8, (binary_digits + 2) / 3>(count_digits<8>(magnitude), 0);
+    case 16:
+        return visit.template operator()<16, (binary_digits + 3) / 4>(count_digits<16>(magnitude),
+                                                                      0);
+    case 4:
+    case 32: {
+        const int bits = base == 4 ? 2 : 5;
+        return visit.template operator()<1, (binary_digits + 1) / 2>(
+            count_digits<1>(magnitude, bits), bits);
+    }
+    case 10:
+        return visit.template operator()<10, decimal_digits>(0, 0);
+    default:
+        WJR_UNREACHABLE();
+    }
+}
+
+template <unsigned int Base, typename Byte, typename Unsigned, typename Converter>
+WJR_INTRINSIC_INLINE Byte *write_magnitude(Byte *end, Unsigned value, int digits, int bits,
+                                           Converter conv) noexcept {
+    auto *out = reinterpret_cast<uint8_t *>(end);
+    if constexpr (Base == 10) {
+        return reinterpret_cast<Byte *>(
+            _unsigned_to_chars_backward_unchecked<10>(out, value, conv));
+    } else if constexpr (Base == 1) {
+        return reinterpret_cast<Byte *>(
+            _unsigned_to_chars_backward_unchecked<1>(out, digits, value, bits, conv));
+    } else {
+        return reinterpret_cast<Byte *>(
+            _unsigned_to_chars_backward_unchecked<Base>(out, digits, value, conv));
+    }
+}
+
+template <unsigned int Base, bool Signed, typename Byte, typename Unsigned, typename Converter>
+WJR_INTRINSIC_INLINE Byte *write_signed_magnitude(Byte *end, Unsigned value, int digits, int bits,
+                                                  int sign, Converter conv) noexcept {
+    auto *out = write_magnitude<Base>(end, value, digits, bits, conv);
+    if constexpr (Signed) {
+        if (sign) {
+            *--out = '-';
+        }
+    }
+    return out;
+}
+
+/// @private Write a formatted magnitude to an insertion iterator or a scratch buffer.
+template <typename Value, typename Iter, typename Converter>
+struct unchecked_magnitude_output {
+    Iter ptr;
+    std::make_unsigned_t<Value> magnitude;
+    int sign;
+    WJR_NO_UNIQUE_ADDRESS Converter conv;
+
+    template <unsigned int Base, size_t Capacity>
+    WJR_INTRINSIC_INLINE Iter operator()(int digits, int bits) {
+        constexpr auto is_signed = std::is_signed_v<Value>;
+        constexpr auto inserter = charconv_detail::is_fast_container_inserter_v<Iter>;
+        if constexpr (inserter != 0) {
+            if constexpr (Base == 10) {
+                digits = count_digits<10>(magnitude);
+            }
+            auto &cont = get_inserter_container(ptr);
+            const auto size = cont.size() + digits + sign;
+#if defined(__cpp_lib_string_resize_and_overwrite) &&                                              \
+    __cpp_lib_string_resize_and_overwrite >= 202110L
+            auto overwrite = [&](auto *data, size_t) noexcept {
+                charconv_detail::write_signed_magnitude<Base, is_signed>(data + size, magnitude,
+                                                                         digits, bits, sign, conv);
+                return size;
+            };
+            if constexpr (requires { cont.resize_and_overwrite(size, overwrite); }) {
+                cont.resize_and_overwrite(size, overwrite);
+                return ptr;
+            }
+#endif
+            if constexpr (inserter == 1) {
+                resize(cont, size);
+            } else {
+                append(cont, digits + sign, default_construct);
+            }
+            charconv_detail::write_signed_magnitude<Base, is_signed>(
+                cont.data() + cont.size(), magnitude, digits, bits, sign, conv);
+            return ptr;
+        } else {
+            std::array<charconv_detail::fast_buffer_t<Iter>, Capacity + is_signed> buffer;
+            auto *const end = buffer.data() + buffer.size();
+            auto *out = charconv_detail::write_signed_magnitude<Base, is_signed>(
+                end, magnitude, digits, bits, sign, conv);
+            return wjr::copy(out, end, ptr);
+        }
+    }
+};
+
+} // namespace charconv_detail
+
 /// @private Fallback to_chars implementation for non-contiguous iterators
 template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                               Converter conv) noexcept {
     constexpr auto is_signed = std::is_signed_v<Value>;
-    constexpr auto base_2_table = std::numeric_limits<std::make_unsigned_t<Value>>::digits;
-    constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
     constexpr auto is_random_access = is_random_access_iterator_v<Iter>;
 
     if (WJR_UNLIKELY(val == 0)) {
@@ -1040,99 +1146,41 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
         }
     }
 
-    const unsigned int base = ibase;
+    auto write = [&]<unsigned int Base, size_t Capacity>(int digits,
+                                                         int bits) -> to_chars_result<Iter> {
+        if constexpr (is_random_access && Base != 10) {
+            if (WJR_UNLIKELY(digits + sign > std::distance(first, last))) {
+                return {last, std::errc::value_too_large};
+            }
+        }
 
-#define WJR_TO_CHARS_VALIDATE_IMPL(BASE, TABLE, CALL)                                              \
-    if constexpr (is_random_access) {                                                              \
-        const auto size = std::distance(first, last);                                              \
-        WJR_PP_QUEUE_IF(WJR_PP_NE(BASE, 10),                                                       \
-                        (                                                                          \
-                            if constexpr (is_signed) {                                             \
-                                if (WJR_UNLIKELY(n + sign > size)) {                               \
-                                    return {last, std::errc::value_too_large};                     \
-                                }                                                                  \
-                            } else {                                                               \
-                                if (WJR_UNLIKELY(n > size)) {                                      \
-                                    return {last, std::errc::value_too_large};                     \
-                                }                                                                  \
-                            }),                                                                    \
-                        ())                                                                        \
-                                                                                                   \
-        charconv_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                            \
-        const auto _end = buffer + TABLE + is_signed;                                              \
-        auto _ptr =                                                                                \
-            (charconv_detail::fast_buffer_t<Iter> *)_unsigned_to_chars_backward_unchecked<BASE>(   \
-                (uint8_t *)_end, WJR_PP_QUEUE_EXPAND(CALL), conv);                                 \
-                                                                                                   \
-        WJR_PP_QUEUE_IF(WJR_PP_EQ(BASE, 10),                                                       \
-                        (                                                                          \
-                            const auto n = _end - _ptr;                                            \
-                                                                                                   \
-                            if constexpr (is_signed) {                                             \
-                                if (WJR_UNLIKELY(n + sign > size)) {                               \
-                                    return {last, std::errc::value_too_large};                     \
-                                }                                                                  \
-                            } else {                                                               \
-                                if (WJR_UNLIKELY(n > size)) {                                      \
-                                    return {last, std::errc::value_too_large};                     \
-                                }                                                                  \
-                            }),                                                                    \
-                        ())                                                                        \
-                                                                                                   \
-        if constexpr (is_signed) {                                                                 \
-            if (sign) {                                                                            \
-                *--_ptr = '-';                                                                     \
-            }                                                                                      \
-        }                                                                                          \
-                                                                                                   \
-        return {wjr::copy(_ptr, _end, first), std::errc{}};                                        \
-    } else {                                                                                       \
-        charconv_detail::fast_buffer_t<Iter> buffer[TABLE];                                        \
-        const auto _end = buffer + TABLE;                                                          \
-        auto _ptr =                                                                                \
-            (charconv_detail::fast_buffer_t<Iter> *)_unsigned_to_chars_backward_unchecked<BASE>(   \
-                (uint8_t *)_end, WJR_PP_QUEUE_EXPAND(CALL), conv);                                 \
-                                                                                                   \
-        do {                                                                                       \
-            if (WJR_UNLIKELY(first == last)) {                                                     \
-                return {last, std::errc::value_too_large};                                         \
-            }                                                                                      \
-                                                                                                   \
-            *first++ = *_ptr++;                                                                    \
-        } while (_ptr != _end);                                                                    \
-                                                                                                   \
-        return {first, std::errc{}};                                                               \
-    }
-
-    switch (base) {
-    case 2: {
-        const int n = count_digits<2>(uVal);
-        WJR_TO_CHARS_VALIDATE_IMPL(2, base_2_table, (n, uVal));
-    }
-    case 8: {
-        const int n = count_digits<8>(uVal);
-        WJR_TO_CHARS_VALIDATE_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
-    }
-    case 16: {
-        const int n = count_digits<16>(uVal);
-        WJR_TO_CHARS_VALIDATE_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_VALIDATE_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
-    }
-    case 10: {
-        WJR_TO_CHARS_VALIDATE_IMPL(10, base_10_table, (uVal));
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-
-#undef WJR_TO_CHARS_VALIDATE_IMPL
+        std::array<charconv_detail::fast_buffer_t<Iter>, Capacity + (is_signed && is_random_access)>
+            buffer;
+        auto *const end = buffer.data() + buffer.size();
+        auto *out = charconv_detail::write_magnitude<Base>(end, uVal, digits, bits, conv);
+        if constexpr (is_random_access) {
+            if constexpr (Base == 10) {
+                if (WJR_UNLIKELY(end - out + sign > std::distance(first, last))) {
+                    return {last, std::errc::value_too_large};
+                }
+            }
+            if constexpr (is_signed) {
+                if (sign) {
+                    *--out = '-';
+                }
+            }
+            return {wjr::copy(out, end, first), std::errc{}};
+        } else {
+            do {
+                if (WJR_UNLIKELY(first == last)) {
+                    return {last, std::errc::value_too_large};
+                }
+                *first++ = *out++;
+            } while (out != end);
+            return {first, std::errc{}};
+        }
+    };
+    return charconv_detail::dispatch_magnitude<Value>(ibase, uVal, write);
 }
 
 /// @private Internal to_chars implementation dispatcher
@@ -1211,10 +1259,6 @@ uint8_t *_fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter _fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) noexcept {
     constexpr auto is_signed = std::is_signed_v<Value>;
-    WJR_MAYBE_UNUSED constexpr auto base_2_table =
-        std::numeric_limits<std::make_unsigned_t<Value>>::digits;
-    WJR_MAYBE_UNUSED constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
-
     if (WJR_UNLIKELY(val == 0)) {
         *ptr++ = conv.template to<1>(0);
         return ptr;
@@ -1230,75 +1274,9 @@ Iter _fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Convert
         }
     }
 
-#define WJR_TO_CHARS_IMPL(BASE, TABLE, CALL)                                                       \
-    constexpr auto _fast_container_inserter_v =                                                    \
-        charconv_detail::is_fast_container_inserter_v<Iter>;                                       \
-    if constexpr (_fast_container_inserter_v != 0) {                                               \
-        WJR_PP_BOOL_IF(WJR_PP_EQ(BASE, 10), const int n = count_digits<10>(uVal), );               \
-        auto &cont = get_inserter_container(ptr);                                                  \
-        if constexpr (_fast_container_inserter_v == 1) {                                           \
-            resize(cont, cont.size() + n + sign);                                                  \
-        } else {                                                                                   \
-            append(cont, n + sign, default_construct);                                             \
-        }                                                                                          \
-        auto *const _end = cont.data() + cont.size();                                              \
-        WJR_MAYBE_UNUSED auto _ptr =                                                               \
-            (charconv_detail::fast_buffer_t<Iter> *)_unsigned_to_chars_backward_unchecked<BASE>(   \
-                (uint8_t *)_end, WJR_PP_QUEUE_EXPAND(CALL), conv);                                 \
-                                                                                                   \
-        if constexpr (is_signed) {                                                                 \
-            if (sign) {                                                                            \
-                *--_ptr = '-';                                                                     \
-            }                                                                                      \
-        }                                                                                          \
-                                                                                                   \
-        return ptr;                                                                                \
-    } else {                                                                                       \
-        charconv_detail::fast_buffer_t<Iter> buffer[TABLE + is_signed];                            \
-        const auto _end = buffer + TABLE + is_signed;                                              \
-        auto _ptr =                                                                                \
-            (charconv_detail::fast_buffer_t<Iter> *)_unsigned_to_chars_backward_unchecked<BASE>(   \
-                (uint8_t *)_end, WJR_PP_QUEUE_EXPAND(CALL), conv);                                 \
-                                                                                                   \
-        if constexpr (is_signed) {                                                                 \
-            if (sign) {                                                                            \
-                *--_ptr = '-';                                                                     \
-            }                                                                                      \
-        }                                                                                          \
-                                                                                                   \
-        return wjr::copy(_ptr, _end, ptr);                                                         \
-    }
-
-    const unsigned int base = ibase;
-    switch (base) {
-    case 2: {
-        const int n = count_digits<2>(uVal);
-        WJR_TO_CHARS_IMPL(2, base_2_table, (n, uVal));
-    }
-    case 8: {
-        const int n = count_digits<8>(uVal);
-        WJR_TO_CHARS_IMPL(8, (base_2_table + 2) / 3, (n, uVal));
-    }
-    case 16: {
-        const int n = count_digits<16>(uVal);
-        WJR_TO_CHARS_IMPL(16, (base_2_table + 3) / 4, (n, uVal));
-    }
-    case 4:
-    case 32: {
-        const int bits = base == 4 ? 2 : 5;
-        const int n = count_digits<1>(uVal, bits);
-        WJR_TO_CHARS_IMPL(1, (base_2_table + 1) / 2, (n, uVal, bits));
-    }
-    case 10: {
-        WJR_TO_CHARS_IMPL(10, base_10_table, (uVal));
-    }
-    default: {
-        WJR_UNREACHABLE();
-        break;
-    }
-    }
-
-#undef WJR_TO_CHARS_IMPL
+    return charconv_detail::dispatch_magnitude<Value>(
+        ibase, uVal,
+        charconv_detail::unchecked_magnitude_output<Value, Iter, Converter>{ptr, uVal, sign, conv});
 }
 
 /// @private Internal to_chars_unchecked implementation dispatcher
