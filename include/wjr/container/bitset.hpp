@@ -259,9 +259,9 @@ public:
                               size_t n = size_t(-1), Char zero = Char('0'), Char one = Char('1'));
 
     template <typename Char>
-    constexpr explicit bitset(Char *str, size_t n = size_t(-1), Char zero = Char('0'),
+    constexpr explicit bitset(const Char *str, size_t n = size_t(-1), Char zero = Char('0'),
                               Char one = Char('1'))
-        : bitset(std::string_view(str), 0, n, zero, one) {}
+        : bitset(std::basic_string_view<Char>(str), 0, n, zero, one) {}
 
     friend constexpr bool operator==(const bitset &lhs, const bitset &rhs) noexcept {
         return std::equal(lhs.m_data, lhs.m_data + bytes_size, rhs.m_data);
@@ -556,50 +556,30 @@ template <typename Char, typename Traits>
 constexpr bitset<N>::bitset(std::basic_string_view<Char, Traits> str, size_t pos, size_t n,
                             Char zero, Char one) {
     str = str.substr(pos, n);
-    auto count = std::min<size_t>(N, str.size());
-    WJR_ASSUME(count <= N);
+    auto count = std::min(N, str.size());
+    const auto *last = str.data() + count;
+    const auto parse_word = [&](size_t width) {
+        bit_type word = 0;
+        for (size_t i = 0; i < width; ++i) {
+            const auto ch = *--last;
+            if (Traits::eq(ch, one)) {
+                word |= bit_type(1) << i;
+            } else if (!Traits::eq(ch, zero)) {
+                WJR_THROW(std::invalid_argument("invalid bitset char"));
+            }
+        }
+        return word;
+    };
 
-    size_t xpos = 0;
-
+    auto *out = m_data;
+    while (count >= bits) {
+        *out++ = parse_word(bits);
+        count -= bits;
+    }
     if (count != 0) {
-        const auto *ptr = str.data();
-        ptr += count;
-
-        while (count >= bits) {
-            uint64_t val = 0;
-            for (size_t i = 0; i < bits; ++i) {
-                const auto ch = ptr[-i - 1];
-                if (Traits::eq(ch, one)) {
-                    val |= static_cast<bit_type>(1) << i;
-                } else if (!Traits::eq(ch, zero)) {
-                    WJR_THROW(std::invalid_argument("invalid bitset char"));
-                }
-            }
-
-            ptr -= bits;
-            count -= bits;
-            m_data[xpos++] = val;
-        }
-
-        if (count != 0) {
-            uint64_t val = 0;
-
-            for (size_t i = 0; i < count; ++i) {
-                const auto ch = ptr[-i - 1];
-                if (Traits::eq(ch, one)) {
-                    val |= static_cast<bit_type>(1) << i;
-                } else if (!Traits::eq(ch, zero)) {
-                    WJR_THROW(std::invalid_argument("invalid bitset char"));
-                }
-            }
-
-            m_data[xpos++] = val;
-        }
+        *out++ = parse_word(count);
     }
-
-    for (; xpos < bytes_size; ++xpos) {
-        m_data[xpos] = 0;
-    }
+    std::fill(out, m_data + bytes_size, bit_type(0));
 }
 
 template <size_t N>
