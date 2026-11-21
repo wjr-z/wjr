@@ -7,6 +7,7 @@
 #include <deque>
 #include <iterator>
 #include <list>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -127,4 +128,13 @@ TEST(biginteger_to_chars_output, power_of_two_preserves_bounds_and_append_prefix
 TEST(biginteger_to_chars_output, generic_and_fast_output_agree_for_both_converters) {
     check_generic_output(wjr::char_converter_t{});
     check_generic_output(wjr::origin_converter_t{});
+}
+
+TEST(biginteger_to_chars_output, writes_multiple_limbs_to_a_stream_iterator) {
+    const std::array<uint64_t, 2> input = {3, 1};
+    std::ostringstream out;
+    auto next = wjr::biginteger_to_chars(std::ostreambuf_iterator<char>(out), input.data(),
+                                         input.size(), 10);
+    EXPECT_FALSE(next.failed());
+    EXPECT_EQ(out.str(), "18446744073709551619");
 }

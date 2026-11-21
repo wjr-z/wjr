@@ -1,5 +1,9 @@
+#include <iterator>
 #include <list>
+#include <sstream>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 #include <wjr/format/fastfloat.hpp>
 #include <wjr/vector.hpp>
@@ -62,3 +66,14 @@ static_assert(wjr::charconv_detail::is_fast_container_inserter_v<
                   std::back_insert_iterator<std::vector<char>>> == 1);
 
 } // namespace
+
+TEST(charconv, writes_unchecked_to_stream_iterators) {
+    std::ostringstream out;
+    auto next = wjr::to_chars_unchecked(std::ostreambuf_iterator<char>(out), -42);
+    EXPECT_FALSE(next.failed());
+    EXPECT_EQ(out.str(), "-42");
+
+    std::ostringstream delimited;
+    wjr::to_chars_unchecked(std::ostream_iterator<char>(delimited, "|"), 0xabc, 16);
+    EXPECT_EQ(delimited.str(), "a|b|c|");
+}
