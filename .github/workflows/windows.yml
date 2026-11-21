@@ -60,16 +60,21 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Setup MSVC
-        if: matrix.sys.compiler == 'msvc'
+      - name: Select the MSVC 14.44 toolset
         uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Setup clang
-        if: matrix.sys.compiler == 'clang'
-        uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "20.1"
-          env: true
+          toolset: "14.44"
+
+      - name: Select the hosted LLVM toolchain
+        if: matrix.sys.compiler == 'clang'
+        shell: pwsh
+        run: |
+          $llvm = Join-Path $env:ProgramFiles 'LLVM\bin'
+          & (Join-Path $llvm 'clang++.exe') --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $llvm >> $env:GITHUB_PATH
+          'CC=clang' >> $env:GITHUB_ENV
+          'CXX=clang++' >> $env:GITHUB_ENV
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
