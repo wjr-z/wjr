@@ -19,13 +19,14 @@ void *arena::_allocate_large(size_t n) noexcept {
     }
     }
 
-    if (n > m_cache / 4) {
+    const auto usable = align_down(static_cast<size_t>(m_cache), mem::default_new_alignment);
+    if (n > m_cache / 4 || n > usable) {
         return m_pool.allocate(n);
     }
 
     void *const raw = m_pool.allocate(m_cache);
     m_start = static_cast<std::byte *>(raw);
-    m_end = m_start + m_cache;
+    m_end = m_start + usable;
     m_start += align_up(n, mem::default_new_alignment);
     return raw;
 }
