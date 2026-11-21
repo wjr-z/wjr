@@ -205,6 +205,61 @@ TEST(vector_ranges, throwing_bulk_source_rolls_back_new_lifetimes) {
     EXPECT_EQ(counts.allocated, counts.released);
 }
 
+TEST(vector_ranges, counted_assignment_stages_growth_and_rolls_back_uncommitted_tail) {
+    for (const bool spare : {false, true}) {
+        range_allocations counts;
+        {
+            using vector_type = wjr::vector<modifier_value, modifier_allocator<modifier_value>>;
+            vector_type values{modifier_allocator<modifier_value>(counts)};
+            values.reserve(spare ? 8 : 1);
+            values.emplace_back(42);
+            auto *const storage = values.data();
+            const auto capacity = values.capacity();
+            const auto outstanding = counts.allocated - counts.released;
+            auto source = std::views::iota(0) |
+                          std::views::take_while([](int n) { return n < 6; }) |
+                          std::views::transform([](int n) -> modifier_value {
+                              if (n == 3)
+                                  throw std::runtime_error("source failed");
+                              return n;
+                          });
+            static_assert(std::ranges::forward_range<decltype(source)>);
+            static_assert(!std::ranges::common_range<decltype(source)>);
+
+            EXPECT_THROW(values.assign_range(source), std::runtime_error);
+            EXPECT_EQ(values.data(), storage);
+            EXPECT_EQ(values.capacity(), capacity);
+            ASSERT_EQ(values.size(), 1);
+            EXPECT_EQ(values.front().value, spare ? 0 : 42);
+            EXPECT_EQ(modifier_value::live, 1);
+            EXPECT_EQ(counts.allocated - counts.released, outstanding);
+        }
+        EXPECT_EQ(counts.allocated, counts.released);
+        EXPECT_EQ(modifier_value::live, 0);
+    }
+}
+
+struct throwing_assignment_value {
+    int value;
+    throwing_assignment_value &operator=(const throwing_assignment_value &other) {
+        if (other.value == 9)
+            throw std::runtime_error("assignment failed");
+        value = other.value;
+        return *this;
+    }
+};
+
+TEST(vector_ranges, iterator_pair_assign_propagates_element_assignment_failure) {
+    wjr::vector<throwing_assignment_value> values{{1}, {2}, {3}};
+    const throwing_assignment_value source[] = {{8}, {9}};
+
+    EXPECT_THROW(values.assign(source, source + 2), std::runtime_error);
+    ASSERT_EQ(values.size(), 3);
+    EXPECT_EQ(values[0].value, 8);
+    EXPECT_EQ(values[1].value, 2);
+    EXPECT_EQ(values[2].value, 3);
+}
+
 TEST(vector_ranges, unsized_failure_retains_owned_prefix) {
     wjr::vector<int> values{42};
     std::istringstream input("0 1 2 3 4");

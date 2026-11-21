@@ -66,11 +66,12 @@ inserted element, or the supplied position when the source is empty. Insertion
 also requires move construction/assignment and the actual source assignment
 expression; it does not impose the stronger `assignable_from` common-reference rule.
 
-Ordinary common-iterator assignment delegates to the existing assignment
-implementation. Other sources reuse live elements and capacity. A known larger
-replacement allocates before discarding old values, without first moving values
-that will immediately be overwritten. Unsized input is consumed once and grows
-through the existing insertion mechanism.
+Counted ranges and forward iterator pairs share assignment. When capacity
+suffices, assignment reuses live elements and rolls back an uncommitted extension
+if it throws. Growth fully constructs the new contents before discarding the old
+values. A sized single-pass range starts only after successful allocation when
+growth is needed. Unsized input is consumed once and retains its completed prefix
+if iteration fails.
 
 For append, sized or forward sources reserve the final capacity once and use the
 existing allocator-aware uninitialized-copy primitive. Forward ranges may be
