@@ -150,81 +150,42 @@ struct is_compressed
 template <typename T>
 inline constexpr bool is_compressed_v = is_compressed<T>::value;
 
-/// @private
-template <typename LP, typename RP, typename = void>
-struct _is_tuple_like_impl : std::false_type {};
-
-/// @private
-template <typename LP, typename RP>
-struct _is_tuple_like_impl<
-    LP, RP,
-    std::enable_if_t<!std::is_same_v<LP, RP> &&
-                     std::tuple_size_v<LP> == tp_defer_t<std::tuple_size, RP>::value>>
-    : std::true_type {};
-
-/**
- * @brief Use template<...>typename like to like all element of LP and RP.
- *
- * @details For example, like is std::is_assignable, LP is std::tuple<T0, U0>,
- * RP is std::tuple<T1, U1>. \n Then _is_tuple_like =
- * std::conjunction<std::is_assignable<T0, T1>, std::is_assignable<U0, U1>>.
- *
- */
-template <typename LP, typename RP>
-struct _is_tuple_like : _is_tuple_like_impl<LP, remove_cvref_t<RP>> {};
-
-/**
- * @brief Value of @ref _is_tuple_like.
- *
- */
-template <typename LP, typename RP>
-inline constexpr bool _is_tuple_like_v = _is_tuple_like<LP, RP>::value;
-
-/// @private
-template <template <typename...> typename Test, typename Seq, typename LP, typename RP,
-          typename = void>
-struct _is_tuple_test_impl : std::false_type {};
-
-/// @private
-template <template <typename...> typename Test, size_t... Idxs, typename LP, typename RP>
-struct _is_tuple_test_impl<Test, std::index_sequence<Idxs...>, LP, RP,
-                           std::void_t<std::enable_if_t<_is_tuple_like_v<LP, RP>>,
-                                       decltype(std::get<Idxs>(std::declval<RP>()))...>>
-    : std::conjunction<
-          Test<std::tuple_element_t<Idxs, LP>, decltype(std::get<Idxs>(std::declval<RP>()))>...> {};
-
-/**
- * @brief Use template<...>typename Test to test all element of LP and RP.
- *
- * @details For example, Test is std::is_assignable, LP is std::tuple<T0, U0>,
- * RP is std::tuple<T1, U1>. \n Then _is_tuple_test =
- * std::conjunction<std::is_assignable<T0, T1>, std::is_assignable<U0, U1>>.
- *
- */
-template <template <typename...> typename Test, typename LP, typename RP>
-struct _is_tuple_test
-    : _is_tuple_test_impl<Test, std::make_index_sequence<std::tuple_size_v<LP>>, LP, RP> {};
-
-/**
- * @brief Value of @ref _is_tuple_test.
- *
- */
-template <template <typename...> typename Test, typename LP, typename RP>
-inline constexpr bool _is_tuple_test_v = _is_tuple_test<Test, LP, RP>::value;
-
-/// @private
-template <typename T, typename U>
-struct _is_tuple_assignable : std::is_assignable<T &, U> {};
-
 namespace product_detail {
 
-/** @brief Test tuple construction lazily, including tuple size and get availability. */
+/// @private Require distinct products with equal arity before probing element access.
 template <typename Source, typename Destination>
-concept tuple_constructible_to = _is_tuple_test_v<std::is_constructible, Destination, Source &&>;
+concept same_tuple_arity = !std::same_as<remove_cvref_t<Source>, Destination> && requires {
+    std::tuple_size<Destination>::value;
+    std::tuple_size<remove_cvref_t<Source>>::value;
+} && (std::tuple_size_v<Destination> == std::tuple_size_v<remove_cvref_t<Source>>);
 
-/** @brief Test assignment through each destination element reference. */
+/// @private Test qualified element access and the requested operation together.
+template <template <typename...> typename Test, typename Source, typename Destination, size_t I>
+concept tuple_element_satisfies = requires {
+    requires Test<std::tuple_element_t<I, Destination>,
+                  decltype(std::get<I>(std::declval<Source>()))>::value;
+};
+
+template <template <typename...> typename Test, typename Source, typename Destination, size_t... I>
+constexpr bool tuple_elements_satisfy(std::index_sequence<I...>) {
+    return (tuple_element_satisfies<Test, Source, Destination, I> && ...);
+}
+
+template <template <typename...> typename Test, typename Source, typename Destination>
+concept tuple_satisfies = same_tuple_arity<Source, Destination> &&
+                          tuple_elements_satisfy<Test, Source, Destination>(
+                              std::make_index_sequence<std::tuple_size_v<Destination>>{});
+
+template <typename T, typename U>
+using element_assignable = std::is_assignable<T &, U>;
+
+/// @brief Test tuple construction lazily, including tuple size and get availability.
 template <typename Source, typename Destination>
-concept tuple_assignable_to = _is_tuple_test_v<_is_tuple_assignable, Destination, Source &&>;
+concept tuple_constructible_to = tuple_satisfies<std::is_constructible, Source &&, Destination>;
+
+/// @brief Test assignment through each destination element reference.
+template <typename Source, typename Destination>
+concept tuple_assignable_to = tuple_satisfies<element_assignable, Source &&, Destination>;
 
 } // namespace product_detail
 

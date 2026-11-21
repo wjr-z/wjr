@@ -435,9 +435,9 @@ public:
         : compressed_pair(tp1, tp2, std::index_sequence_for<Args1...>{},
                           std::index_sequence_for<Args2...>{}) {}
 
-    template <typename PairLike>
-    requires(_is_tuple_test_v<std::is_constructible, compressed_pair, PairLike &&>)
-    constexpr explicit(!_is_tuple_test_v<std::is_convertible, compressed_pair, PairLike &&>)
+    template <product_detail::tuple_constructible_to<compressed_pair> PairLike>
+    constexpr explicit(
+        !product_detail::tuple_satisfies<std::is_convertible, PairLike &&, compressed_pair>)
         compressed_pair(PairLike &&pr) noexcept(
             std::conjunction_v<
                 std::is_nothrow_constructible<T, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
@@ -446,8 +446,7 @@ public:
         : Mybase(std::get<0>(std::forward<PairLike>(pr)), std::get<1>(std::forward<PairLike>(pr))) {
     }
 
-    template <typename PairLike>
-    requires(_is_tuple_test_v<_is_tuple_assignable, compressed_pair, PairLike &&>)
+    template <product_detail::tuple_assignable_to<compressed_pair> PairLike>
     constexpr compressed_pair &operator=(PairLike &&pr) noexcept(
         std::conjunction_v<
             std::is_nothrow_assignable<T &, decltype(std::get<0>(std::forward<PairLike>(pr)))>,
