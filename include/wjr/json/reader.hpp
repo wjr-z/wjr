@@ -10,6 +10,7 @@ namespace wjr::json {
 static_assert(std::is_trivially_destructible_v<lexer>);
 
 class ondemand_reader {
+    friend class immutable_document;
     static constexpr size_t extra_memory = 64;
     static constexpr size_t threshold = 4 * 1024 - extra_memory;
 

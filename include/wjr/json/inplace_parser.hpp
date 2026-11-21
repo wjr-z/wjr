@@ -16,13 +16,6 @@
 
 namespace wjr::json {
 
-/// @brief JSON/type failure and its source byte offset.
-struct parse_error {
-    error_code code;
-    uint32_t offset;
-    friend constexpr bool operator==(const parse_error &, const parse_error &) = default;
-};
-
 namespace detail {
 class inplace_parser_context;
 }
