@@ -15,6 +15,7 @@
 #include <wjr/compressed_pair.hpp>
 #include <wjr/concept/ranges_base.hpp>
 #include <wjr/container/container_fn.hpp>
+#include <wjr/container/detail/range_size.hpp>
 #include <wjr/container/detail/storage_traits.hpp>
 #include <wjr/container/detail/vector_size_reference.hpp>
 #include <wjr/iterator/contiguous_iterator_adapter.hpp>
@@ -622,8 +623,9 @@ public:
     WJR_CONSTEXPR20 basic_ring_buffer(from_range_t, Range &&range,
                                       const allocator_type &al = allocator_type())
         : m_pair(std::piecewise_construct, wjr::forward_as_tuple(al), wjr::forward_as_tuple()) {
-        if constexpr (std::ranges::sized_range<Range> || std::ranges::forward_range<Range>) {
-            const auto count = static_cast<size_type>(std::ranges::distance(range));
+        if constexpr (container_detail::countable_range<Range>) {
+            const auto count = container_detail::checked_range_size<size_type>(
+                range, max_size(), "ring_buffer::from_range: size overflow");
             _construct_n(count, std::ranges::begin(range), std::ranges::end(range));
         } else {
             _input_construction_rollback rollback(*this);
@@ -937,11 +939,9 @@ public:
     template <detail::_container_compatible_range<value_type> Range>
     WJR_CONSTEXPR20 void append_range(Range &&range) {
         if constexpr (std::ranges::sized_range<Range>) {
-            const auto count = std::ranges::size(range);
-            if (count > max_size() - size()) {
-                WJR_THROW(std::length_error("ring_buffer::append_range: size overflow"));
-            }
-            reserve(size() + static_cast<size_type>(count));
+            const auto count = container_detail::checked_range_size<size_type>(
+                range, max_size() - size(), "ring_buffer::append_range: size overflow");
+            reserve(size() + count);
         }
         for (auto &&value : range) {
             emplace_back(std::forward<decltype(value)>(value));

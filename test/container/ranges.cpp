@@ -1,10 +1,12 @@
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <forward_list>
 #include <iterator>
 #include <memory>
 #include <ranges>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -54,6 +56,17 @@ struct single_pass_range {
 
 struct sized_input_range : single_pass_range {
     auto size() const { return static_cast<std::size_t>(state->last - state->current); }
+};
+
+template <typename T>
+struct narrow_allocator {
+    using value_type = T;
+    using size_type = std::uint16_t;
+
+    T *allocate(size_type count) { return std::allocator<T>{}.allocate(count); }
+    void deallocate(T *ptr, size_type count) noexcept {
+        std::allocator<T>{}.deallocate(ptr, count);
+    }
 };
 
 struct common_input_iterator {
@@ -192,6 +205,21 @@ TEST(ranges, vector_preallocates_sized_and_forward_ranges) {
     wjr::vector<int> proxy(wjr::from_range, projected);
     EXPECT_EQ(proxy[0], 3);
     EXPECT_EQ(proxy[2], 7);
+}
+
+TEST(ranges, constructors_reject_count_that_exceeds_storage_size_type) {
+    using vector_type = wjr::vector<int, narrow_allocator<int>>;
+    using ring_type = wjr::ring_buffer<int, narrow_allocator<int>>;
+    static_assert(std::same_as<vector_type::size_type, std::uint16_t>);
+    static_assert(std::same_as<ring_type::size_type, std::uint16_t>);
+    std::vector<int> source(std::size_t{1} << 16);
+    input_state state{source.data(), source.data() + source.size()};
+    sized_input_range input{&state};
+
+    EXPECT_THROW((void)vector_type(wjr::from_range, input), std::length_error);
+    EXPECT_THROW((void)ring_type(wjr::from_range, input), std::length_error);
+    EXPECT_EQ(state.begins, 0);
+    EXPECT_EQ(state.increments, 0);
 }
 
 TEST(ranges, vector_accepts_noncommon_counted_ranges) {
