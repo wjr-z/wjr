@@ -129,6 +129,20 @@ TEST(BtreeAssociativeQuery, CountDuplicateRunsAcrossLeafBoundaries) {
     EXPECT_EQ(same_key.count(7), same_key.size());
 }
 
+TEST(BtreeAssociativeQuery, EqualRangeForEmbeddedKeys) {
+    for (const auto second : {1, 3}) {
+        wjr::btree_multiset<int> values;
+        std::multiset<int> reference;
+        check_queries(values, reference);
+        values.insert(1);
+        reference.insert(1);
+        check_queries(values, reference);
+        values.insert(second);
+        reference.insert(second);
+        check_queries(values, reference);
+    }
+}
+
 TEST(BtreeAssociativeQuery, EqualRangeSplitsAtEquivalentSeparators) {
     using tree_type = wjr::btree_multiset<int, std::greater<>, std::allocator<char>, 8>;
     tree_type values;

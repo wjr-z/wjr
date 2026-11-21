@@ -2390,7 +2390,20 @@ private:
         const auto &comp = key_comp();
         const node_type *current = _get_root();
         if (WJR_UNLIKELY(current == nullptr)) {
-            return {_search_embedded<false>(key, comp), _search_embedded<true>(key, comp)};
+            // Count the embedded keys strictly before each boundary.
+            const auto *base = _get_base();
+            const auto count = _get_size();
+            slot_usize_type lower = 0;
+            slot_usize_type upper = 0;
+            if (count != 0) {
+                lower = comp(base->get_key(0), key);
+                upper = !comp(key, base->get_key(0));
+                if (count == 2) {
+                    lower += comp(base->get_key(1), key);
+                    upper += !comp(key, base->get_key(1));
+                }
+            }
+            return {const_iterator(base, lower), const_iterator(base, upper)};
         }
 
         slot_size_type size = current->size();
