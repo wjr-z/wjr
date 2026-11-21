@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <string>
 
 #include <wjr/container/detail.hpp>
 #include <wjr/format/utf8/utf8.hpp>
@@ -106,7 +107,27 @@ result<void> decode_owned_string(String &output, const char *first, const char *
     if (*short_string) {
         return {};
     }
-    try_uninitialized_resize(output, static_cast<size_t>(last - first));
+    const auto length = static_cast<size_t>(last - first);
+#if defined(__cpp_lib_string_resize_and_overwrite) &&                                              \
+    __cpp_lib_string_resize_and_overwrite >= 202110L
+    error_code error = error_code::SUCCESS;
+    auto decode = [&](char *dst, size_t) noexcept -> size_t {
+        auto parsed = parse_string(dst, first, last);
+        if (WJR_UNLIKELY(!parsed)) {
+            error = parsed.error();
+            return 0;
+        }
+        return static_cast<size_t>(*parsed - dst);
+    };
+    if constexpr (requires { output.resize_and_overwrite(length, decode); }) {
+        output.resize_and_overwrite(length, decode);
+        if (WJR_UNLIKELY(error != error_code::SUCCESS)) {
+            return unexpected(error);
+        }
+        return {};
+    }
+#endif
+    try_uninitialized_resize(output, length);
     auto parsed = parse_string(output.data(), first, last);
     if (!parsed) {
         output.clear();

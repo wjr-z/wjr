@@ -2356,33 +2356,16 @@ private:
         }
     }
 
-    WJR_INTRINSIC_INLINE static result<void>
-    _fill_allocated_string(string_type &string, const char *first, const char *last) noexcept {
-        WJR_EXPECTED_INIT(short_string, try_decode_short_string(string, first, last));
-        if (*short_string) {
-            return {};
+    WJR_INTRINSIC_INLINE static result<string_type *>
+    _parse_string_payload(const document_type &owner, const char *first,
+                          const char *last) noexcept {
+        auto *str = owner.template _create_payload<string_type>();
+        auto ret = decode_owned_string(*str, first, last);
+        if (WJR_UNLIKELY(!ret)) {
+            owner._destroy_payload(str);
+            return unexpected(ret.error());
         }
-#if defined(__cpp_lib_string_resize_and_overwrite) &&                                              \
-    __cpp_lib_string_resize_and_overwrite >= 202110L
-        error_code error = error_code::SUCCESS;
-        string.resize_and_overwrite(static_cast<size_t>(last - first),
-                                    [&](char *output, size_t) noexcept -> size_t {
-                                        auto result = parse_string(output, first, last);
-                                        if (WJR_UNLIKELY(!result)) {
-                                            error = result.error();
-                                            return 0;
-                                        }
-                                        return static_cast<size_t>(*result - output);
-                                    });
-        if (WJR_UNLIKELY(error != error_code::SUCCESS)) {
-            return unexpected(error);
-        }
-#else
-        string.resize(static_cast<size_t>(last - first));
-        WJR_EXPECTED_INIT(result, parse_string(string.data(), first, last));
-        string.resize(static_cast<size_t>(*result - string.data()));
-#endif
-        return {};
+        return str;
     }
 
 protected:
@@ -2451,65 +2434,26 @@ protected:
 
     WJR_INTRINSIC_INLINE result<void> visit_root_string(const char *first,
                                                         const char *last) const noexcept {
-        string_type *str = current->template _create_payload<string_type>();
-        if constexpr (document_type::uses_allocator) {
-            auto ret = _fill_allocated_string(*str, first, last);
-            if (WJR_UNLIKELY(!ret)) {
-                current->_destroy_payload(str);
-                return unexpected(ret.error());
-            }
-        } else {
-            auto ret = decode_owned_string(*str, first, last);
-            if (WJR_UNLIKELY(!ret)) {
-                _document_destroy(str);
-                return unexpected(std::move(ret).error());
-            }
-        }
-        current->m_value.set(string_t(), str);
+        WJR_EXPECTED_INIT(str, _parse_string_payload(*current, first, last));
+        current->m_value.set(string_t(), *str);
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_object_string(const char *first,
                                                           const char *last) const noexcept {
-        string_type *str = element->template _create_payload<string_type>();
-        if constexpr (document_type::uses_allocator) {
-            auto ret = _fill_allocated_string(*str, first, last);
-            if (WJR_UNLIKELY(!ret)) {
-                element->_destroy_payload(str);
-                return unexpected(ret.error());
-            }
-        } else {
-            auto ret = decode_owned_string(*str, first, last);
-            if (WJR_UNLIKELY(!ret)) {
-                _document_destroy(str);
-                return unexpected(std::move(ret).error());
-            }
-        }
-        element->m_value.set(string_t(), str);
+        WJR_EXPECTED_INIT(str, _parse_string_payload(*element, first, last));
+        element->m_value.set(string_t(), *str);
         return {};
     }
 
     WJR_INTRINSIC_INLINE result<void> visit_array_string(const char *first,
                                                          const char *last) const noexcept {
-        string_type *str = current->template _create_payload<string_type>();
-        if constexpr (document_type::uses_allocator) {
-            auto ret = _fill_allocated_string(*str, first, last);
-            if (WJR_UNLIKELY(!ret)) {
-                current->_destroy_payload(str);
-                return unexpected(ret.error());
-            }
-        } else {
-            auto ret = decode_owned_string(*str, first, last);
-            if (WJR_UNLIKELY(!ret)) {
-                _document_destroy(str);
-                return unexpected(std::move(ret).error());
-            }
-        }
+        WJR_EXPECTED_INIT(str, _parse_string_payload(*current, first, last));
         if constexpr (document_type::uses_allocator) {
             auto &value = current->_get_array().emplace_back(default_construct);
-            value.m_value.set(string_t(), str);
+            value.m_value.set(string_t(), *str);
         } else {
-            current->_get_array().emplace_back(string_t(), str);
+            current->_get_array().emplace_back(string_t(), *str);
         }
         return {};
     }
@@ -2517,11 +2461,7 @@ protected:
     WJR_INTRINSIC_INLINE result<void> visit_object_key_string(const char *first,
                                                               const char *last) noexcept {
         auto str = _make_key_string();
-        if constexpr (document_type::uses_allocator) {
-            WJR_EXPECTED_TRY(_fill_allocated_string(str, first, last));
-        } else {
-            WJR_EXPECTED_TRY(decode_owned_string(str, first, last));
-        }
+        WJR_EXPECTED_TRY(decode_owned_string(str, first, last));
         const auto iter = current->_get_object().try_emplace(std::move(str), default_construct);
         element = std::addressof(iter.first->second);
         if (WJR_UNLIKELY(!iter.second)) {
