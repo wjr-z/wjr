@@ -194,24 +194,13 @@ struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {
 template <typename CharT, typename Traits>
 constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
                            std::basic_string_view<CharT, Traits> sv) noexcept {
-    const auto length = sv.size();
-    if (str.size() < length) {
-        return false;
-    }
-
-    return Traits::compare(str.data(), sv.data(), length) == 0;
+    return str.starts_with(sv);
 }
 
 template <typename CharT, typename Traits>
 constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
                          std::basic_string_view<CharT, Traits> sv) noexcept {
-    const auto n = str.size();
-    const auto length = sv.size();
-    if (n < length) {
-        return false;
-    }
-
-    return Traits::compare(str.data() + n - length, sv.data(), length) == 0;
+    return str.ends_with(sv);
 }
 
 template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
@@ -245,9 +234,10 @@ namespace string_detail {
 
 WJR_PURE constexpr int compare_nocase_n(const char *a, const char *b, size_t length) {
     for (size_t i = 0; i < length; ++i) {
-        const char diff = (a[i] ^ b[i]) & 0xDF;
-        if (diff != 0) {
-            return a[i] < b[i] ? -1 : 1;
+        const auto lhs = static_cast<unsigned char>(toLower(a[i]));
+        const auto rhs = static_cast<unsigned char>(toLower(b[i]));
+        if (lhs != rhs) {
+            return lhs < rhs ? -1 : 1;
         }
     }
 
@@ -256,6 +246,7 @@ WJR_PURE constexpr int compare_nocase_n(const char *a, const char *b, size_t len
 
 } // namespace string_detail
 
+/// @brief Compare bytes lexicographically after folding ASCII letters to lowercase.
 WJR_PURE constexpr int compare_insensitive(std::string_view lhs, std::string_view rhs) {
     if (int ret = string_detail::compare_nocase_n(lhs.data(), rhs.data(),
                                                   std::min(lhs.length(), rhs.length()))) {
@@ -271,8 +262,11 @@ WJR_PURE constexpr bool starts_with_insensitive(std::string_view base, std::stri
 }
 
 WJR_PURE constexpr bool ends_with_insensitive(std::string_view base, std::string_view sv) {
+    if (sv.empty()) {
+        return true;
+    }
     return base.size() >= sv.size() &&
-           string_detail::compare_nocase_n(base.data() + base.size() - sv.size(), sv.data(),
+           string_detail::compare_nocase_n(base.data() + (base.size() - sv.size()), sv.data(),
                                            sv.size()) == 0;
 }
 
