@@ -169,6 +169,45 @@ namespace expected_detail {
 
 struct converting_t {};
 
+struct in_place_invoke_t {};
+
+template <typename Result, typename Self, typename Func>
+constexpr Result transform(Self &&self, Func &&func) {
+    if (!self.has_value()) {
+        return Result(unexpect, std::forward<Self>(self).error());
+    }
+
+    auto invoke = [&]() -> decltype(auto) {
+        if constexpr (std::is_void_v<typename std::remove_reference_t<Self>::value_type>) {
+            return std::invoke(std::forward<Func>(func));
+        } else {
+            return std::invoke(std::forward<Func>(func), std::forward<Self>(self).m_val);
+        }
+    };
+
+    if constexpr (std::is_void_v<typename Result::value_type>) {
+        invoke();
+        return Result(std::in_place);
+    } else {
+        return Result(in_place_invoke_t{}, std::in_place, invoke);
+    }
+}
+
+template <typename Result, typename Self, typename Func>
+constexpr Result transform_error(Self &&self, Func &&func) {
+    if (WJR_UNLIKELY(!self.has_value())) {
+        return Result(in_place_invoke_t{}, unexpect, [&]() -> decltype(auto) {
+            return std::invoke(std::forward<Func>(func), std::forward<Self>(self).error());
+        });
+    }
+
+    if constexpr (std::is_void_v<typename Result::value_type>) {
+        return Result(std::in_place);
+    } else {
+        return Result(std::in_place, std::forward<Self>(self).m_val);
+    }
+}
+
 template <typename T, typename E,
           bool Destructor = is_void_or_v<T, std::is_trivially_destructible<T>> &&
                             std::is_trivially_destructible_v<E>>
@@ -181,10 +220,18 @@ struct expected_storage_base {
         std::is_nothrow_constructible_v<T, Args...>)
         : m_has_val(true), m_val(std::forward<Args>(args)...) {}
 
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, std::in_place_t, Factory &&factory)
+        : m_has_val(true), m_val(std::forward<Factory>(factory)()) {}
+
     template <typename... Args>
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_has_val(false), m_err(std::forward<Factory>(factory)()) {}
 
     template <typename Other>
     constexpr expected_storage_base(converting_t, bool has_val, Other &&other)
@@ -240,10 +287,18 @@ struct expected_storage_base<T, E, false> {
         std::is_nothrow_constructible_v<T, Args...>)
         : m_has_val(true), m_val(std::forward<Args>(args)...) {}
 
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, std::in_place_t, Factory &&factory)
+        : m_has_val(true), m_val(std::forward<Factory>(factory)()) {}
+
     template <typename... Args>
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_has_val(false), m_err(std::forward<Factory>(factory)()) {}
 
     template <typename Other>
     constexpr expected_storage_base(converting_t, bool has_val, Other &&other)
@@ -307,6 +362,10 @@ struct expected_storage_base<void, E, true> {
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
 
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_has_val(false), m_err(std::forward<Factory>(factory)()) {}
+
     template <typename Other>
     constexpr expected_storage_base(converting_t, bool has_val, Other &&other)
         : m_has_val(has_val) {
@@ -356,6 +415,10 @@ struct expected_storage_base<void, E, false> {
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_has_val(false), m_err(std::forward<Args>(args)...) {}
+
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_has_val(false), m_err(std::forward<Factory>(factory)()) {}
 
     template <typename Other>
     constexpr expected_storage_base(converting_t, bool has_val, Other &&other)
@@ -410,10 +473,20 @@ struct expected_storage_base<T, compressed_value<E, uniq_success>, true> {
         std::is_nothrow_constructible_v<T, Args...>)
         : m_val(std::forward<Args>(args)...), m_err(uniq_success) {}
 
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, std::in_place_t, Factory &&factory)
+        : m_val(std::forward<Factory>(factory)()), m_err(uniq_success) {}
+
     template <typename... Args>
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_err(std::forward<Args>(args)...) {
+        WJR_ASSERT_ASSUME_L2(!has_value());
+    }
+
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_err(std::forward<Factory>(factory)()) {
         WJR_ASSERT_ASSUME_L2(!has_value());
     }
 
@@ -471,10 +544,20 @@ struct expected_storage_base<T, compressed_value<E, uniq_success>, false> {
         std::is_nothrow_constructible_v<T, Args...>)
         : m_val(std::forward<Args>(args)...), m_err(uniq_success) {}
 
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, std::in_place_t, Factory &&factory)
+        : m_val(std::forward<Factory>(factory)()), m_err(uniq_success) {}
+
     template <typename... Args>
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_err(std::forward<Args>(args)...) {
+        WJR_ASSERT_ASSUME_L2(!has_value());
+    }
+
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_err(std::forward<Factory>(factory)()) {
         WJR_ASSERT_ASSUME_L2(!has_value());
     }
 
@@ -537,6 +620,12 @@ struct expected_storage_base<void, compressed_value<E, uniq_success>, true> {
     constexpr expected_storage_base(unexpect_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<E, Args...>)
         : m_err(std::forward<Args>(args)...) {
+        WJR_ASSERT_ASSUME_L2(!has_value());
+    }
+
+    template <typename Factory>
+    constexpr expected_storage_base(in_place_invoke_t, unexpect_t, Factory &&factory)
+        : m_err(std::forward<Factory>(factory)()) {
         WJR_ASSERT_ASSUME_L2(!has_value());
     }
 
@@ -842,6 +931,19 @@ class WJR_EMPTY_BASES expected
     template <typename T2, typename E2>
     friend class expected;
 
+    template <typename Result, typename Self, typename Func>
+    friend constexpr Result expected_detail::transform(Self &&self, Func &&func);
+
+    template <typename Result, typename Self, typename Func>
+    friend constexpr Result expected_detail::transform_error(Self &&self, Func &&func);
+
+    /// @private Construct the active member directly from the factory result.
+    template <typename State, typename Factory>
+    constexpr explicit expected(expected_detail::in_place_invoke_t tag, State state,
+                                Factory &&factory)
+        : Mybase(tag, state, std::forward<Factory>(factory)),
+          EnableBase(enable_default_constructor) {}
+
 public:
     using value_type = T;
     using error_type = typename Mybase::error_type;
@@ -1134,96 +1236,46 @@ public:
 
     template <typename Func, typename U = _expected_result<Func, T &>>
     constexpr expected<U, E> transform(Func &&func) & {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), this->m_val);
-            } else {
-                std::invoke(std::forward<Func>(func), this->m_val);
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, error());
+        return expected_detail::transform<expected<U, E>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _expected_result<Func, const T &>>
     constexpr expected<U, E> transform(Func &&func) const & {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), this->m_val);
-            } else {
-                std::invoke(std::forward<Func>(func), this->m_val);
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, error());
+        return expected_detail::transform<expected<U, E>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _expected_result<Func, T &&>>
     constexpr expected<U, E> transform(Func &&func) && {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), std::move(this->m_val));
-            } else {
-                std::invoke(std::forward<Func>(func), std::move(this->m_val));
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, std::move(error()));
+        return expected_detail::transform<expected<U, E>>(std::move(*this),
+                                                          std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _expected_result<Func, const T &&>>
     constexpr expected<U, E> transform(Func &&func) const && {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func), std::move(this->m_val));
-            } else {
-                std::invoke(std::forward<Func>(func), std::move(this->m_val));
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, std::move(error()));
+        return expected_detail::transform<expected<U, E>>(std::move(*this),
+                                                          std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, error_type &>>
     constexpr expected<T, G> transform_error(Func &&func) & {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<T, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
-        }
-
-        return expected<T, G>(std::in_place, this->m_val);
+        return expected_detail::transform_error<expected<T, G>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, const error_type &>>
     constexpr expected<T, G> transform_error(Func &&func) const & {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<T, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
-        }
-
-        return expected<T, G>(std::in_place, this->m_val);
+        return expected_detail::transform_error<expected<T, G>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, error_type &&>>
     constexpr expected<T, G> transform_error(Func &&func) && {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<T, G>(unexpect,
-                                  std::invoke(std::forward<Func>(func), std::move(error())));
-        }
-
-        return expected<T, G>(std::in_place, std::move(this->m_val));
+        return expected_detail::transform_error<expected<T, G>>(std::move(*this),
+                                                                std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, const error_type &&>>
     constexpr expected<T, G> transform_error(Func &&func) const && {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<T, G>(unexpect,
-                                  std::invoke(std::forward<Func>(func), std::move(error())));
-        }
-
-        return expected<T, G>(std::in_place, std::move(this->m_val));
+        return expected_detail::transform_error<expected<T, G>>(std::move(*this),
+                                                                std::forward<Func>(func));
     }
 
     template <typename... Args>
@@ -1370,6 +1422,18 @@ class WJR_EMPTY_BASES expected<void, E>
 
     template <typename T2, typename E2>
     friend class expected;
+
+    template <typename Result, typename Self, typename Func>
+    friend constexpr Result expected_detail::transform(Self &&self, Func &&func);
+
+    template <typename Result, typename Self, typename Func>
+    friend constexpr Result expected_detail::transform_error(Self &&self, Func &&func);
+
+    template <typename Factory>
+    constexpr explicit expected(expected_detail::in_place_invoke_t tag, unexpect_t state,
+                                Factory &&factory)
+        : Mybase(tag, state, std::forward<Factory>(factory)),
+          EnableBase(enable_default_constructor) {}
 
 public:
     using value_type = void;
@@ -1576,96 +1640,46 @@ public:
 
     template <typename Func, typename U = _expected_result<Func>>
     constexpr expected<U, E> transform(Func &&func) & {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func));
-            } else {
-                std::invoke(std::forward<Func>(func));
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, error());
+        return expected_detail::transform<expected<U, E>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _expected_result<Func>>
     constexpr expected<U, E> transform(Func &&func) const & {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func));
-            } else {
-                std::invoke(std::forward<Func>(func));
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, error());
+        return expected_detail::transform<expected<U, E>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _expected_result<Func>>
     constexpr expected<U, E> transform(Func &&func) && {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func));
-            } else {
-                std::invoke(std::forward<Func>(func));
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, std::move(error()));
+        return expected_detail::transform<expected<U, E>>(std::move(*this),
+                                                          std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _expected_result<Func>>
     constexpr expected<U, E> transform(Func &&func) const && {
-        if (has_value()) {
-            if constexpr (!std::is_void_v<U>) {
-                return std::invoke(std::forward<Func>(func));
-            } else {
-                std::invoke(std::forward<Func>(func));
-                return {};
-            }
-        }
-
-        return expected<U, E>(unexpect, std::move(error()));
+        return expected_detail::transform<expected<U, E>>(std::move(*this),
+                                                          std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, error_type &>>
     constexpr expected<void, G> transform_error(Func &&func) & {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<void, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
-        }
-
-        return expected<void, G>(std::in_place);
+        return expected_detail::transform_error<expected<void, G>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, const error_type &>>
     constexpr expected<void, G> transform_error(Func &&func) const & {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<void, G>(unexpect, std::invoke(std::forward<Func>(func), error()));
-        }
-
-        return expected<void, G>(std::in_place);
+        return expected_detail::transform_error<expected<void, G>>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, error_type &&>>
     constexpr expected<void, G> transform_error(Func &&func) && {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<void, G>(unexpect,
-                                     std::invoke(std::forward<Func>(func), std::move(error())));
-        }
-
-        return expected<void, G>(std::in_place);
+        return expected_detail::transform_error<expected<void, G>>(std::move(*this),
+                                                                   std::forward<Func>(func));
     }
 
     template <typename Func, typename G = _expected_result<Func, const error_type &&>>
     constexpr expected<void, G> transform_error(Func &&func) const && {
-        if (WJR_UNLIKELY(!has_value())) {
-            return expected<void, G>(unexpect,
-                                     std::invoke(std::forward<Func>(func), std::move(error())));
-        }
-
-        return expected<void, G>(std::in_place);
+        return expected_detail::transform_error<expected<void, G>>(std::move(*this),
+                                                                   std::forward<Func>(func));
     }
 
     constexpr void emplace() noexcept {
