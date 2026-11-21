@@ -1,6 +1,7 @@
 #include <wjr/memory/uninitialized.hpp>
 
 #include <cstddef>
+#include <iterator>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -17,7 +18,9 @@ struct typed_destroy_allocator {
     }
 };
 
-void verify_relocation(bool counted) {
+enum class range_kind { common, count, sentinel };
+
+void verify_relocation(range_kind kind) {
     typed_destroy_allocator alloc;
     std::allocator<int> storage;
     auto *source = storage.allocate(3);
@@ -25,8 +28,12 @@ void verify_relocation(bool counted) {
     for (int i = 0; i != 3; ++i) {
         std::construct_at(source + i, 10 + i);
     }
-    if (counted) {
+    if (kind == range_kind::count) {
         EXPECT_EQ(wjr::uninitialized_relocate_n_using_allocator(source, 3, destination, alloc),
+                  destination + 3);
+    } else if (kind == range_kind::sentinel) {
+        EXPECT_EQ(wjr::uninitialized_relocate_using_allocator(
+                      std::counted_iterator(source, 3), std::default_sentinel, destination, alloc),
                   destination + 3);
     } else {
         EXPECT_EQ(
@@ -45,5 +52,11 @@ void verify_relocation(bool counted) {
 
 } // namespace
 
-TEST(memory, relocation_calls_typed_allocator_destroy) { verify_relocation(false); }
-TEST(memory, counted_relocation_calls_typed_allocator_destroy) { verify_relocation(true); }
+TEST(memory, relocation_calls_typed_allocator_destroy) { verify_relocation(range_kind::common); }
+TEST(memory, counted_relocation_calls_typed_allocator_destroy) {
+    verify_relocation(range_kind::count);
+}
+
+TEST(memory, sentinel_relocation_calls_typed_allocator_destroy) {
+    verify_relocation(range_kind::sentinel);
+}

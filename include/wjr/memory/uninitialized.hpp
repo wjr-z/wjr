@@ -233,17 +233,33 @@ WJR_CONSTEXPR20 OutputIt uninitialized_copy_n_restrict_using_allocator(InputIt f
                                                    _add_restrict(wjr::_iter_base(dest)), alloc));
 }
 
+namespace lifetime_detail {
+
+/// @brief Preserve the common-iterator path while adapting a distinct range end.
+template <typename Iter, typename Sentinel>
+constexpr auto make_move_end(Sentinel last) {
+    if constexpr (std::is_same_v<Iter, Sentinel>) {
+        return std::make_move_iterator(std::move(last));
+    } else {
+        return std::move_sentinel<Sentinel>(std::move(last));
+    }
+}
+
+} // namespace lifetime_detail
+
 template <typename InputItInit, typename InputItSe, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_move(InputItInit first, InputItSe last, OutputIt dest) {
-    return wjr::uninitialized_copy(std::make_move_iterator(first), std::make_move_iterator(last),
+    return wjr::uninitialized_copy(std::make_move_iterator(std::move(first)),
+                                   lifetime_detail::make_move_end<InputItInit>(std::move(last)),
                                    dest);
 }
 
 template <typename InputItInit, typename InputItSe, typename OutputIt>
 WJR_CONSTEXPR20 OutputIt uninitialized_move_restrict(InputItInit first, InputItSe last,
                                                      OutputIt dest) {
-    return uninitialized_copy_restrict(std::make_move_iterator(first),
-                                       std::make_move_iterator(last), dest);
+    return wjr::uninitialized_copy_restrict(
+        std::make_move_iterator(std::move(first)),
+        lifetime_detail::make_move_end<InputItInit>(std::move(last)), dest);
 }
 
 template <typename InputIt, typename Size, typename OutputIt>
@@ -256,19 +272,21 @@ WJR_CONSTEXPR20 OutputIt uninitialized_move_n_restrict(InputIt first, Size n, Ou
     return uninitialized_copy_n_restrict(std::make_move_iterator(first), n, dest);
 }
 
-template <typename InputItnit, typename InputItSe, typename OutputIt, typename Alloc>
-WJR_CONSTEXPR20 OutputIt uninitialized_move_using_allocator(InputItnit first, InputItSe last,
+template <typename InputItInit, typename InputItSe, typename OutputIt, typename Alloc>
+WJR_CONSTEXPR20 OutputIt uninitialized_move_using_allocator(InputItInit first, InputItSe last,
                                                             OutputIt dest, Alloc &alloc) {
-    return uninitialized_copy_using_allocator(std::make_move_iterator(first),
-                                              std::make_move_iterator(last), dest, alloc);
+    return wjr::uninitialized_copy_using_allocator(
+        std::make_move_iterator(std::move(first)),
+        lifetime_detail::make_move_end<InputItInit>(std::move(last)), dest, alloc);
 }
 
 template <typename InputItInit, typename InputItSe, typename OutputIt, typename Alloc>
 WJR_CONSTEXPR20 OutputIt uninitialized_move_restrict_using_allocator(InputItInit first,
                                                                      InputItSe last, OutputIt dest,
                                                                      Alloc &alloc) {
-    return uninitialized_copy_restrict_using_allocator(std::make_move_iterator(first),
-                                                       std::make_move_iterator(last), dest, alloc);
+    return wjr::uninitialized_copy_restrict_using_allocator(
+        std::make_move_iterator(std::move(first)),
+        lifetime_detail::make_move_end<InputItInit>(std::move(last)), dest, alloc);
 }
 
 template <typename InputIt, typename Size, typename OutputIt, typename Alloc>
@@ -477,8 +495,8 @@ WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) {
 
 template <typename IterInit, typename InitSe>
 WJR_CONSTEXPR20 void destroy(IterInit first, InitSe last) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<InitSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
     if constexpr (std::is_same_v<IterInit, InitSe>) {
         std::destroy(_first, _last);
     } else {
@@ -490,8 +508,8 @@ WJR_CONSTEXPR20 void destroy(IterInit first, InitSe last) {
 
 template <typename IterInit, typename InitSe, typename Alloc>
 WJR_CONSTEXPR20 void destroy_using_allocator(IterInit first, InitSe last, Alloc &alloc) {
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<InitSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<IterInit>(std::move(last));
     if constexpr (is_trivially_allocator_destroy_v<Alloc, iterator_value_t<IterInit>>) {
         wjr::destroy(_first, _last);
     } else {
@@ -547,8 +565,8 @@ OutputIt uninitialized_relocate(InputItInit first, InputItSe last, OutputIt dest
     using InputValue = iterator_value_t<InputItInit>;
     using OutputValue = iterator_value_t<OutputIt>;
 
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<InputItSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<InputItInit>(std::move(last));
     auto _dest = wjr::_iter_base(dest);
 
     if constexpr (std::is_same_v<InputItInit, InputItSe> &&
@@ -568,7 +586,7 @@ OutputIt uninitialized_relocate(InputItInit first, InputItSe last, OutputIt dest
         return wjr::_iter_wrap(dest, _dest);
     } else {
         _dest = wjr::uninitialized_move(_first, _last, _dest);
-        std::destroy(_first, _last);
+        wjr::destroy(std::move(_first), std::move(_last));
         return wjr::_iter_wrap(dest, _dest);
     }
 }
@@ -586,8 +604,8 @@ OutputIt uninitialized_relocate_using_allocator(InputItInit first, InputItSe las
     using InputValue = iterator_value_t<InputItInit>;
     using OutputValue = iterator_value_t<OutputIt>;
 
-    auto _first = wjr::_iter_base(first);
-    auto _last = wjr::_iter_base(last);
+    auto _first = _uninitialized_iter_base<InputItSe>(std::move(first));
+    auto _last = _uninitialized_iter_base<InputItInit>(std::move(last));
     auto _dest = wjr::_iter_base(dest);
 
     if constexpr (is_trivially_allocator_construct_v<
