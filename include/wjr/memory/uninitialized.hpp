@@ -467,7 +467,15 @@ WJR_CONSTEXPR20 void uninitialized_fill_n_using_allocator(Iter first, Size n, Al
 }
 
 template <typename Iter, typename Alloc>
-WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) {
+WJR_CONSTEXPR20 void destroy_at_using_allocator(Iter iter, Alloc &alloc) noexcept([] {
+    using pointer = decltype(wjr::to_address(std::declval<Iter &>()));
+    if constexpr (is_trivially_allocator_destroy_v<Alloc, iterator_value_t<Iter>>) {
+        return std::is_nothrow_destructible_v<std::remove_pointer_t<pointer>>;
+    } else {
+        return noexcept(std::allocator_traits<Alloc>::destroy(std::declval<Alloc &>(),
+                                                              std::declval<pointer>()));
+    }
+}()) {
     if constexpr (is_trivially_allocator_destroy_v<Alloc, iterator_value_t<Iter>>) {
         std::destroy_at(wjr::to_address(iter));
     } else {
@@ -514,8 +522,9 @@ WJR_CONSTEXPR20 void destroy_n_using_allocator(Iter first, Size n, Alloc &alloc)
 }
 
 template <typename T>
-T *relocate_at(T *src, T *dst) noexcept(std::is_nothrow_move_constructible_v<T> &&
-                                        std::is_nothrow_destructible_v<T>) {
+T *relocate_at(T *src, T *dst) noexcept(get_relocate_mode_v<T> == relocate_t::trivial ||
+                                        (std::is_nothrow_move_constructible_v<T> &&
+                                         std::is_nothrow_destructible_v<T>)) {
     if constexpr (get_relocate_mode_v<T> == relocate_t::trivial) {
         builtin_memcpy(dst, src, sizeof(T));
     } else {
@@ -526,9 +535,17 @@ T *relocate_at(T *src, T *dst) noexcept(std::is_nothrow_move_constructible_v<T> 
     return dst;
 }
 
+/// @note Once constructed, the destination stays live if destroying the source throws.
 template <typename T, typename Alloc>
-T *uninitialized_relocate_at_using_allocator(T *src, T *dst, Alloc &alloc) noexcept(
-    std::is_nothrow_move_constructible_v<T> && std::is_nothrow_destructible_v<T>) {
+T *uninitialized_relocate_at_using_allocator(T *src, T *dst, Alloc &alloc) noexcept([] {
+    if constexpr (is_trivially_allocator_v<Alloc>) {
+        return noexcept(relocate_at(std::declval<T *>(), std::declval<T *>()));
+    } else {
+        return noexcept(wjr::uninitialized_construct_using_allocator(
+                   std::declval<T *>(), std::declval<Alloc &>(), std::declval<T &&>())) &&
+               noexcept(destroy_at_using_allocator(std::declval<T *>(), std::declval<Alloc &>()));
+    }
+}()) {
     if constexpr (is_trivially_allocator_v<Alloc>) {
         return relocate_at(src, dst);
     } else {
