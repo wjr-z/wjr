@@ -800,7 +800,7 @@ uint8_t *_fast_to_chars_backward_unchecked_impl(uint8_t *ptr, Value val, IBase i
     if constexpr (std::is_signed_v<Value>) {
         if (val < 0) {
             sign = 1;
-            uVal = -val;
+            uVal = static_cast<decltype(uVal)>(0 - uVal);
         }
     }
 
@@ -928,7 +928,7 @@ to_chars_result<uint8_t *> _fast_to_chars_impl(uint8_t *first, uint8_t *last, Va
             }
 
             *first++ = '-';
-            uVal = -val;
+            uVal = static_cast<decltype(uVal)>(0 - uVal);
         }
     }
 
@@ -1002,7 +1002,7 @@ template <typename Iter, typename Value, typename IBase, typename Converter>
 to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, IBase ibase,
                                               Converter conv) noexcept {
     constexpr auto is_signed = std::is_signed_v<Value>;
-    constexpr auto base_2_table = std::numeric_limits<Value>::digits;
+    constexpr auto base_2_table = std::numeric_limits<std::make_unsigned_t<Value>>::digits;
     constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
     constexpr auto is_random_access = is_random_access_iterator_v<Iter>;
 
@@ -1026,7 +1026,7 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
                 }
 
                 sign = 1;
-                uVal = -val;
+                uVal = static_cast<decltype(uVal)>(0 - uVal);
             }
         } else {
             if (val < 0) {
@@ -1035,7 +1035,7 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
                 }
 
                 *first++ = '-';
-                uVal = -val;
+                uVal = static_cast<decltype(uVal)>(0 - uVal);
             }
         }
     }
@@ -1085,7 +1085,7 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
             }                                                                                      \
         }                                                                                          \
                                                                                                    \
-        return wjr::copy(_ptr, _end, first);                                                       \
+        return {wjr::copy(_ptr, _end, first), std::errc{}};                                        \
     } else {                                                                                       \
         charconv_detail::fast_buffer_t<Iter> buffer[TABLE];                                        \
         const auto _end = buffer + TABLE;                                                          \
@@ -1162,7 +1162,7 @@ uint8_t *_fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
     if constexpr (std::is_signed_v<Value>) {
         if (val < 0) {
             *ptr++ = '-';
-            uVal = -val;
+            uVal = static_cast<decltype(uVal)>(0 - uVal);
         }
     }
 
@@ -1211,7 +1211,8 @@ uint8_t *_fast_to_chars_unchecked_impl(uint8_t *ptr, Value val, IBase ibase,
 template <typename Iter, typename Value, typename IBase, typename Converter>
 Iter _fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Converter conv) noexcept {
     constexpr auto is_signed = std::is_signed_v<Value>;
-    WJR_MAYBE_UNUSED constexpr auto base_2_table = std::numeric_limits<Value>::digits;
+    WJR_MAYBE_UNUSED constexpr auto base_2_table =
+        std::numeric_limits<std::make_unsigned_t<Value>>::digits;
     WJR_MAYBE_UNUSED constexpr auto base_10_table = std::numeric_limits<Value>::digits10 + 1;
 
     if (WJR_UNLIKELY(val == 0)) {
@@ -1225,7 +1226,7 @@ Iter _fallback_to_chars_unchecked_impl(Iter ptr, Value val, IBase ibase, Convert
     if constexpr (is_signed) {
         if (val < 0) {
             sign = 1;
-            uVal = -val;
+            uVal = static_cast<decltype(uVal)>(0 - uVal);
         }
     }
 
