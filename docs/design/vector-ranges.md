@@ -150,12 +150,13 @@ without first materializing a source container. The positions must be ordered
 and belong to the target; the source must not overlap its live elements. The
 element conversion and move/assignment requirements match range insertion.
 
-A sized or forward source obtains its count before modifying the target. Final
-size is checked before narrowing, and a sized oversized source is rejected before
-calling begin. An unsized forward source may need a distance pass. The operation
-assigns the common prefix, then either shifts the existing suffix left or inserts
-the excess through the existing counted insertion core. A known count grows the
-target at most once and reuses storage when capacity suffices.
+A sized or forward source obtains its count before modifying the target. Both
+`replace_range` and forward iterator-pair `replace` check the final size before
+narrowing and share the same replacement implementation. A sized oversized range
+is rejected before calling `begin`. An unsized forward source may need a distance
+pass. With spare capacity, replacement assigns the common prefix and shifts the
+surviving suffix as needed. Matching trivially copyable pointer sources can copy
+and shift bytes directly when allocator hooks require no element operations.
 
 Unsized input is consumed once. After filling the old interval, any remaining
 input appends through that same counted core before rotation into position. This
@@ -167,10 +168,11 @@ narrow allocator size type near its limit does not degrade to repeated single
 element reallocations. The existing maximum-size and fixed-capacity contracts
 remain in effect.
 
-Replacement provides a basic exception guarantee. Assignment, construction or
-source iteration may already have changed values; allocation failure after
-prefix assignment need not restore that prefix. All live elements remain owned,
-uncommitted construction/allocation is cleaned up, and the vector stays usable.
+When counted replacement must grow, it allocates once and constructs the whole
+incoming interval before transferring any surviving element. Allocation and
+incoming construction failure preserve the old values. With spare capacity,
+assignment or source iteration failure may leave a modified prefix. All live
+elements remain owned and uncommitted storage is released.
 Input failure can leave its completed tail at the old end before rotation. A
 throwing rotation can leave values partly permuted, without abandoning live
 elements. Destruction and deallocation must not throw, as for insertion.
@@ -210,12 +212,9 @@ is introduced.
 
 ## Bulk insertion and replacement ownership
 
-Count/value insertion and the legacy fill/forward-range `replace` overloads use
-that same transaction when growth can unwind. Replacement skips the removed old
-interval during transfer and destroys those old objects on commit. Its incoming
-range is still constructed in full before any old element is moved; allocation
-failure therefore does not assign an old prefix. This preserves the legacy
-ordering, distinct from the prefix-first `replace_range` contract above.
+Count/value insertion and counted replacement reuse the bulk growth transaction.
+Replacement transfers only the surviving prefix and suffix. It destroys the
+removed interval on commit.
 
 With spare capacity, both shift layouts guard the complete newly constructed
 tail until all construction and assignment finishes. A later allocator hook,

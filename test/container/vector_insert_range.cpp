@@ -391,7 +391,10 @@ struct insertion_state_scope {
     ~insertion_state_scope() { insertion_value::state = nullptr; }
 };
 
-WJR_NOINLINE void check_replacement_failure(bool grow, replacement_failure failure, int point) {
+WJR_NOINLINE void check_replacement_failure(bool range_api, bool grow, replacement_failure failure,
+                                            int point) {
+    SCOPED_TRACE(testing::Message() << "range API: " << range_api << ", failure: "
+                                    << static_cast<int>(failure) << ", point: " << point);
     insertion_state state;
     insertion_state_scope observer(state);
     {
@@ -407,12 +410,23 @@ WJR_NOINLINE void check_replacement_failure(bool grow, replacement_failure failu
         state.moves = failure == replacement_failure::move ? point : -1;
         state.assignments = failure == replacement_failure::assignment ? point : -1;
         state.hooks = failure == replacement_failure::hook ? point : -1;
+        auto replace = [&] {
+            if (range_api) {
+                values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input);
+            } else {
+                values.replace(values.cbegin() + 1, values.cbegin() + 2, input.begin(),
+                               input.end());
+            }
+        };
         if (state.fail_allocation) {
-            EXPECT_THROW(values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input),
-                         std::bad_alloc);
+            EXPECT_THROW(replace(), std::bad_alloc);
         } else {
-            EXPECT_THROW(values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input),
-                         std::runtime_error);
+            EXPECT_THROW(replace(), std::runtime_error);
+        }
+        if (grow &&
+            (failure == replacement_failure::allocation || failure == replacement_failure::copy)) {
+            for (int i = 0; i != 4; ++i)
+                EXPECT_EQ(values[i].value, i);
         }
         state.fail_allocation = false;
         state.copies = state.moves = state.assignments = state.hooks = -1;
@@ -427,7 +441,7 @@ WJR_NOINLINE void check_replacement_failure(bool grow, replacement_failure failu
             expected.push_back(value.value);
         expected.erase(expected.begin() + 1);
         expected.insert(expected.begin() + 1, {10, 11, 12});
-        values.replace_range(values.cbegin() + 1, values.cbegin() + 2, input);
+        replace();
         ASSERT_EQ(values.size(), expected.size());
         for (std::size_t i = 0; i != expected.size(); ++i)
             EXPECT_EQ(values[i].value, expected[i]);
@@ -450,18 +464,20 @@ std::istream &operator>>(std::istream &stream, insertion_value &value) {
 } // namespace
 
 TEST(vector_replace_range, construction_assignment_and_allocation_failures_keep_ownership) {
-    check_replacement_failure(true, replacement_failure::allocation, 0);
-    for (int point = 0; point != 2; ++point) {
-        check_replacement_failure(true, replacement_failure::copy, point);
-        check_replacement_failure(false, replacement_failure::move, point);
-        check_replacement_failure(false, replacement_failure::hook, point);
+    for (bool range_api : {false, true}) {
+        check_replacement_failure(range_api, true, replacement_failure::allocation, 0);
+        for (int point = 0; point != 2; ++point) {
+            check_replacement_failure(range_api, false, replacement_failure::move, point);
+            check_replacement_failure(range_api, false, replacement_failure::hook, point);
+        }
+        for (int point = 0; point != 3; ++point) {
+            check_replacement_failure(range_api, true, replacement_failure::copy, point);
+            check_replacement_failure(range_api, true, replacement_failure::move, point);
+            check_replacement_failure(range_api, false, replacement_failure::assignment, point);
+        }
+        for (int point = 0; point != 6; ++point)
+            check_replacement_failure(range_api, true, replacement_failure::hook, point);
     }
-    for (int point = 0; point != 4; ++point)
-        check_replacement_failure(true, replacement_failure::move, point);
-    for (int point = 0; point != 6; ++point)
-        check_replacement_failure(true, replacement_failure::hook, point);
-    for (int point = 0; point != 3; ++point)
-        check_replacement_failure(false, replacement_failure::assignment, point);
 }
 
 TEST(vector_replace_range, sized_move_only_input_is_not_preconsumed) {
