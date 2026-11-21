@@ -120,6 +120,54 @@ TEST(ring_buffer_ranges, append_wrap_and_assign_reuse_storage) {
     EXPECT_TRUE(result.empty());
 }
 
+TEST(ring_buffer_ranges, pointer_append_at_and_across_physical_end) {
+    queue result(8, wjr::in_place_reserve);
+    result.append_range(std::array{0, 1, 2, 3, 4, 5});
+    for (int i = 0; i < 3; ++i) {
+        result.pop_front();
+    }
+
+    result.append_range(std::array{6, 7});
+    EXPECT_EQ(result.array_two().size(), 0);
+    result.append_range(std::array{8, 9, 10});
+    EXPECT_TRUE(result.full());
+    EXPECT_TRUE(std::ranges::equal(result, std::views::iota(3, 11)));
+
+    result.pop_front();
+    result.pop_back();
+    EXPECT_EQ(result.front(), 4);
+    EXPECT_EQ(result.back(), 9);
+    result.append_range(std::array<int, 0>{});
+    EXPECT_EQ(result.size(), 6);
+
+    result.append_range(std::array{10, 11, 12, 13});
+    EXPECT_TRUE(std::ranges::equal(result, std::views::iota(4, 14)));
+}
+
+template <typename T>
+struct throwing_int_allocator : range_allocator<T> {
+    using range_allocator<T>::range_allocator;
+    template <typename U>
+    throwing_int_allocator(const throwing_int_allocator<U> &other)
+        : range_allocator<T>(*other.counts) {}
+
+    void construct(T *ptr, const T &value) {
+        if (value == 3) {
+            throw std::runtime_error("allocator construction failed");
+        }
+        std::construct_at(ptr, value);
+    }
+};
+
+TEST(ring_buffer_ranges, pointer_append_preserves_allocator_hooks_and_prefix) {
+    allocation_counts counts;
+    using custom_queue = wjr::ring_buffer<int, throwing_int_allocator<int>>;
+    custom_queue values{throwing_int_allocator<int>(counts)};
+    const int input[] = {1, 2, 3, 4};
+    EXPECT_THROW(values.append_range(input), std::runtime_error);
+    EXPECT_TRUE(std::ranges::equal(values, std::array{1, 2}));
+}
+
 TEST(ring_buffer_ranges, partial_append_and_failed_construction_cleanup) {
     for (bool single_pass : {false, true}) {
         allocation_counts counts;

@@ -942,6 +942,29 @@ public:
             const auto count = container_detail::checked_range_size<size_type>(
                 range, max_size() - size(), "ring_buffer::append_range: size overflow");
             reserve(size() + count);
+            using iter = std::ranges::iterator_t<Range>;
+            using source = std::remove_pointer_t<iter>;
+            using reference = std::ranges::range_reference_t<Range>;
+            if constexpr (std::ranges::common_range<Range> && std::is_pointer_v<iter> &&
+                          std::same_as<pointer, value_type *> && !std::is_volatile_v<source> &&
+                          std::same_as<std::remove_cv_t<source>, value_type> &&
+                          std::is_trivially_copyable_v<value_type> &&
+                          std::is_trivially_constructible_v<value_type, reference> &&
+                          is_trivially_allocator_construct_v<_Alty, value_type, reference>) {
+                if (!std::is_constant_evaluated()) {
+                    const auto first = std::ranges::begin(range);
+                    (void)std::ranges::end(range);
+                    if (count == 1) {
+                        auto &tail = _get_tail();
+                        wjr::construct_at(tail, *first);
+                        increment(tail);
+                        ++_get_size();
+                    } else if (count > 1) {
+                        _append_trivial_range(first, count);
+                    }
+                    return;
+                }
+            }
         }
         for (auto &&value : range) {
             emplace_back(std::forward<decltype(value)>(value));
@@ -1250,6 +1273,33 @@ private:
     WJR_CONSTEXPR20 void _range_construct(Iter first, Iter last, std::forward_iterator_tag) {
         const auto n = static_cast<size_type>(std::distance(first, last));
         _construct_n(n, first, last);
+    }
+
+    /// @pre count is positive and the ring has room for all count elements.
+    template <typename Source>
+    void _append_trivial_range(Source *first, size_type count) noexcept {
+        auto &tail = _get_tail();
+        const auto contiguous = static_cast<size_type>(_get_buf_end() - tail);
+        if (count <= 4) {
+            // Keep short dynamic copies inline instead of calling memcpy.
+            const auto last = first + count;
+            do {
+                wjr::construct_at(tail, *first);
+                increment(tail);
+            } while (++first != last);
+        } else if (count < contiguous) {
+            builtin_memcpy(tail, first, count * sizeof(value_type));
+            tail += count;
+        } else {
+            builtin_memcpy(tail, first, contiguous * sizeof(value_type));
+            const auto remainder = count - contiguous;
+            auto *const start = data();
+            if (remainder != 0) {
+                builtin_memcpy(start, first + contiguous, remainder * sizeof(value_type));
+            }
+            tail = start + remainder;
+        }
+        _get_size() += count;
     }
 
     template <typename... Args>
