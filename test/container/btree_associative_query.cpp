@@ -97,6 +97,38 @@ void ordered_queries_and_key_erase() {
     }
 }
 
+TEST(BtreeAssociativeQuery, CountDuplicateRunsAcrossLeafBoundaries) {
+    wjr::btree_multiset<int, std::less<>> values;
+    EXPECT_EQ(values.count(0), 0u);
+
+    for (int key : {0, 0, 1, 2, 2}) {
+        values.insert(key);
+    }
+    EXPECT_EQ(values.count(0), 2u);
+    EXPECT_EQ(values.count(1), 1u);
+    EXPECT_EQ(values.count(2L), 2u);
+    EXPECT_EQ(values.count(3), 0u);
+
+    for (int i = 0; i != 2048; ++i) {
+        values.insert(0);
+        values.insert(2);
+        values.insert(4);
+    }
+    EXPECT_EQ(values.count(-1), 0u);
+    EXPECT_EQ(values.count(0), 2050u);
+    EXPECT_EQ(values.count(1), 1u);
+    EXPECT_EQ(values.count(2L), 2050u);
+    EXPECT_EQ(values.count(3), 0u);
+    EXPECT_EQ(values.count(4L), 2048u);
+    EXPECT_EQ(values.count(5), 0u);
+
+    wjr::btree_multiset<int> same_key;
+    for (int i = 0; i != 2048; ++i) {
+        same_key.insert(7);
+    }
+    EXPECT_EQ(same_key.count(7), same_key.size());
+}
+
 TEST(BtreeAssociativeQuery, ComparatorEquivalenceConstnessAndAllAdapters) {
     ordered_queries_and_key_erase<wjr::btree_map<int, int, grouped_order>,
                                   std::map<int, int, grouped_order>>();

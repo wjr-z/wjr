@@ -675,7 +675,7 @@ protected:
     }
 
 private:
-    /// @brief Node access is reserved for the owning tree's mutation paths.
+    /// @brief Node access is reserved for the owning tree.
     WJR_PURE leaf_node_type *get_leaf() const noexcept { return m_leaf; }
 
     leaf_node_type *m_leaf = nullptr;
@@ -1597,7 +1597,7 @@ public:
     requires multi
     {
         const auto range = _equal_keys(key);
-        return static_cast<size_type>(std::distance(range.first, range.second));
+        return _range_count(range.first, range.second);
     }
 
     /// @copydoc count(const key_type &)
@@ -1605,7 +1605,7 @@ public:
     requires multi && btree_detail::transparent_lookup<key_compare, key_type, Lookup>
     size_type count(const Lookup &key) const noexcept {
         const auto range = _equal_keys(key);
-        return static_cast<size_type>(std::distance(range.first, range.second));
+        return _range_count(range.first, range.second);
     }
 
     /// @brief Insert a single-pass range, retaining unique/duplicate-key container semantics.
