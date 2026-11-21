@@ -2007,7 +2007,7 @@ private:
 
         std::swap(_get_root(), other._get_root());
         std::swap(_get_size(), other._get_size());
-        swap_with(_get_sentry(), other._get_sentry());
+        _swap_nonadjacent_linked_nodes(_get_sentry(), other._get_sentry());
     }
 
     /// @brief Build a fresh branch, inserting its leaves before marker.

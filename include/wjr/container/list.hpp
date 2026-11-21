@@ -237,11 +237,36 @@ public:
         from->m_prev->m_next = to;
     }
 
+    /**
+     * @brief Exchange positions of two live nodes in constant time.
+     * @note Supports adjacent nodes and singleton rings. Exchanging sentinels
+     * from separate rings swaps the rings. Exchanging a node with itself has no effect.
+     */
     friend constexpr void swap_with(list_node_base *lhs, list_node_base *rhs) noexcept {
-        list_node_base tmp;
-        tmp.copy_from(lhs);
-        replace(rhs, lhs);
-        replace(&tmp, rhs);
+        if (lhs == rhs) {
+            return;
+        }
+        if (lhs->empty()) {
+            if (!rhs->empty()) {
+                replace(rhs, lhs);
+                rhs->init_self();
+            }
+            return;
+        }
+        if (rhs->empty()) {
+            replace(lhs, rhs);
+            lhs->init_self();
+            return;
+        }
+        if (lhs->m_next == rhs) {
+            lhs->splice_before(rhs);
+            return;
+        }
+        if (rhs->m_next == lhs) {
+            rhs->splice_before(lhs);
+            return;
+        }
+        _swap_nonadjacent_linked_nodes(lhs, rhs);
     }
 
     constexpr T *self() noexcept { return static_cast<T *>(this); }
@@ -253,6 +278,16 @@ public:
     constexpr void copy_from(list_node_base *node) {
         m_next = node->m_next;
         m_prev = node->m_prev;
+    }
+
+private:
+    /// @private Exchange nodes with distinct positions and no links to each other or themselves.
+    friend constexpr void _swap_nonadjacent_linked_nodes(list_node_base *lhs,
+                                                         list_node_base *rhs) noexcept {
+        list_node_base tmp;
+        tmp.copy_from(lhs);
+        replace(rhs, lhs);
+        replace(&tmp, rhs);
     }
 
 protected:
