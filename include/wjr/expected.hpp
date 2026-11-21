@@ -811,7 +811,9 @@ template <typename T, typename E, typename U, typename VU = remove_cvref_t<U>>
 struct expected_construct_with_arg
     : std::conjunction<std::negation<std::is_same<VU, std::in_place_t>>,
                        std::negation<std::is_same<VU, expected<T, E>>>, std::is_constructible<T, U>,
-                       is_not_unexpected<VU>> {};
+                       is_not_unexpected<VU>,
+                       std::disjunction<std::negation<std::is_same<std::remove_cv_t<T>, bool>>,
+                                        is_not_expected<VU>>> {};
 
 template <typename T, typename E, typename U>
 inline constexpr bool expected_construct_with_arg_v = expected_construct_with_arg<T, E, U>::value;

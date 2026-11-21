@@ -25,6 +25,11 @@ struct get_relocate_mode<std::unique_ptr<T, D>> {
     static constexpr relocate_t value = relocate_t::maybe_trivial;
 };
 
+/// @brief Obtain a placement-construction address from a cv-qualified object pointer.
+WJR_CONST WJR_INTRINSIC_CONSTEXPR void *voidify(const volatile void *ptr) noexcept {
+    return const_cast<void *>(ptr);
+}
+
 #if defined(WJR_CPP_20)
 using std::to_address;
 #else
