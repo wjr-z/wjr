@@ -1,6 +1,7 @@
 #ifndef WJR_ARCH_X86_MATH_SET_HPP__
 #define WJR_ARCH_X86_MATH_SET_HPP__
 
+#include <concepts>
 #include <cstring>
 
 #include <wjr/arch/x86/simd/simd.hpp>
@@ -14,6 +15,11 @@ namespace wjr {
 #if WJR_HAS_BUILTIN(SET_N)
 
 namespace set_detail {
+/// @brief Match the element types instantiated by the out-of-line fill kernel.
+template <typename T>
+concept simd_element =
+    std::same_as<T, uint16_t> || std::same_as<T, uint32_t> || std::same_as<T, uint64_t>;
+
 inline constexpr bool is_avx = WJR_HAS_SIMD(AVX);
 using simd = std::conditional_t<is_avx, avx, sse>;
 } // namespace set_detail
@@ -28,7 +34,7 @@ extern template void large_builtin_set_n<set_detail::simd, uint32_t>(uint32_t *,
 extern template void large_builtin_set_n<set_detail::simd, uint64_t>(uint64_t *, uint64_t,
                                                                      size_t) noexcept;
 
-template <typename T>
+template <set_detail::simd_element T>
 WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
     constexpr auto nd = std::numeric_limits<T>::digits;
     constexpr auto is_avx = set_detail::is_avx;
@@ -90,23 +96,6 @@ WJR_INTRINSIC_INLINE void builtin_set_n(T *dst, T val, size_t n) noexcept {
             sse::storeu(dst + n - sse_loop, y);
             return;
         }
-    }
-
-    if constexpr (sse_loop == 2) {
-        builtin_memcpy(dst, &x, 8);
-        return;
-    } else {
-        if (WJR_UNLIKELY(n >= sse_loop / 2)) {
-            builtin_memcpy(dst, &x, 8);
-            builtin_memcpy(dst + n - sse_loop / 2, &x, 8);
-            return;
-        }
-    }
-
-    if (WJR_UNLIKELY(n >= sse_loop)) {
-        sse::storeu(dst, y);
-        sse::storeu(dst + n - sse_loop, y);
-        return;
     }
 
     if constexpr (sse_loop == 2) {

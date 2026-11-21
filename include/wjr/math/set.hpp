@@ -48,23 +48,17 @@ WJR_INTRINSIC_CONSTEXPR void fallback_set_n(T *dst, T val, size_t n) noexcept {
  * @param[in] val Value to fill
  * @param[in] n Number of elements to fill
  *
- * @todo Test for T = uint16_t/uint32_t when using builtin_set_n
  */
 template <nonbool_unsigned_integral T>
 WJR_INTRINSIC_CONSTEXPR20 void set_n(T *dst, type_identity_t<T> val, size_t n) noexcept {
 #if WJR_HAS_BUILTIN(SET_N)
-    if constexpr (sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8) {
-        if (is_constant_evaluated()) {
-            return fallback_set_n(dst, val, n);
+    if constexpr (set_detail::simd_element<T>) {
+        if (!is_constant_evaluated()) {
+            return builtin_set_n(dst, val, n);
         }
-
-        return builtin_set_n(dst, val, n);
-    } else {
-        return fallback_set_n(dst, val, n);
     }
-#else
-    return fallback_set_n(dst, val, n);
 #endif
+    return fallback_set_n(dst, val, n);
 }
 
 } // namespace wjr
