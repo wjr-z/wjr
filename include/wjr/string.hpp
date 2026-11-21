@@ -232,6 +232,7 @@ constant_length_strncaseequal(const char *a, const char *b,
 
 namespace string_detail {
 
+/// @private Use the same bit mask as the fixed-width comparison for block matching.
 WJR_PURE constexpr int compare_nocase_n(const char *a, const char *b, size_t length) {
     for (size_t i = 0; i < length; ++i) {
         const char diff = (a[i] ^ b[i]) & 0xDF;

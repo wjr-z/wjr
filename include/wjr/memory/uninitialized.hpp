@@ -34,8 +34,8 @@ construct_at(T *ptr, Args &&...args) noexcept(std::is_nothrow_constructible_v<T,
                   requires { std::construct_at(ptr, std::forward<Args>(args)...); }) {
         (void)std::construct_at(ptr, std::forward<Args>(args)...);
     } else {
-        // Keep arrays and constructors accessible only to this WJR customization.
-        ::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
+        /// @note Keep arrays, cv-qualified objects, and WJR-only constructors on this path.
+        ::new (wjr::voidify(ptr)) T(std::forward<Args>(args)...);
     }
 }
 
@@ -43,7 +43,7 @@ template <typename T>
 requires(!lifetime_detail::constructible_from<T, default_construct_t>)
 WJR_CONSTEXPR20 void
 construct_at(T *ptr, default_construct_t) noexcept(std::is_nothrow_default_constructible_v<T>) {
-    ::new (static_cast<void *>(ptr)) T;
+    ::new (wjr::voidify(ptr)) T;
 }
 
 template <typename Iter, typename Alloc, typename... Args>

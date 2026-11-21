@@ -20,6 +20,12 @@ constexpr bool constexpr_construction() {
 }
 
 static_assert(constexpr_construction());
+static_assert(wjr::voidify(nullptr) == nullptr);
+static_assert(noexcept(wjr::voidify(static_cast<const volatile int *>(nullptr))));
+static_assert([] {
+    int value = 7;
+    return wjr::voidify(static_cast<const volatile int *>(&value)) == static_cast<void *>(&value);
+}());
 static_assert(std::is_same_v<decltype(wjr::construct_at(static_cast<int *>(nullptr), 0)), void>);
 static_assert(noexcept(wjr::construct_at(static_cast<int *>(nullptr), 0)));
 static_assert(static_cast<int>(wjr::endian::little) == 0);
@@ -57,6 +63,17 @@ private:
 static_assert(!std::is_constructible_v<friend_value, int>);
 
 } // namespace
+
+TEST(memory_primitives, voidify_preserves_cv_pointer_addresses) {
+    int value = 7;
+    void *address = &value;
+    EXPECT_EQ(wjr::voidify(&value), address);
+    EXPECT_EQ(wjr::voidify(static_cast<const int *>(&value)), address);
+    EXPECT_EQ(wjr::voidify(static_cast<volatile int *>(&value)), address);
+    EXPECT_EQ(wjr::voidify(static_cast<const volatile int *>(&value)), address);
+    int values[3] = {};
+    EXPECT_EQ(wjr::voidify(&values), static_cast<void *>(&values));
+}
 
 TEST(memory_primitives, forwards_move_only_construction) {
     std::allocator<std::unique_ptr<int>> allocator;

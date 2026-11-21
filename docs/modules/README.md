@@ -72,6 +72,9 @@ target_link_libraries(my_app PRIVATE wjr::json)
 
 ## `wjr::json`
 
+[Direct typed parsing](json-direct-parser.md) builds owning registered records and
+nested vectors through the existing JSON grammar.
+
 [Serializer concepts](json-concepts.md) describe C++20 capabilities and exact source categories.
 
 JSON 数据结构和解析、序列化相关功能。
