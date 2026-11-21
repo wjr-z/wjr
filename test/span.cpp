@@ -1,6 +1,7 @@
 #include <array>
 #include <deque>
 #include <initializer_list>
+#include <iterator>
 #include <list>
 #include <ranges>
 #include <span>
@@ -58,6 +59,59 @@ struct throwing_size_range : nonthrowing_range {
 #endif
     }
 };
+
+struct pointer_sentinel {
+    const int *end = nullptr;
+    bool fail = false;
+
+    friend constexpr bool operator==(const int *it, pointer_sentinel last) noexcept {
+        return it == last.end;
+    }
+    friend constexpr std::ptrdiff_t operator-(pointer_sentinel last, const int *it) {
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        if (last.fail) {
+            throw std::runtime_error("sentinel subtraction failed");
+        }
+#endif
+        return last.end - it;
+    }
+    friend constexpr std::ptrdiff_t operator-(const int *it, pointer_sentinel last) noexcept {
+        return it - last.end;
+    }
+};
+
+struct count_sentinel : pointer_sentinel {
+    constexpr operator std::size_t() const noexcept { return 1; }
+
+    friend constexpr std::ptrdiff_t operator-(count_sentinel last, int *it) noexcept {
+        return last.end - it;
+    }
+    friend constexpr std::ptrdiff_t operator-(int *it, count_sentinel last) noexcept {
+        return it - last.end;
+    }
+};
+
+static_assert(std::sized_sentinel_for<pointer_sentinel, int *>);
+static_assert(std::sized_sentinel_for<count_sentinel, int *>);
+static_assert(std::is_nothrow_constructible_v<span<int>, int *, int *>);
+static_assert(std::is_nothrow_constructible_v<span<int>, int *, count_sentinel>);
+static_assert(std::is_constructible_v<span<int>, int *, pointer_sentinel>);
+static_assert(!std::is_nothrow_constructible_v<span<int>, int *, pointer_sentinel>);
+static_assert(!std::is_constructible_v<span<int>, int *, std::unreachable_sentinel_t>);
+static_assert(
+    std::is_constructible_v<span<int>, std::move_iterator<int *>, std::move_iterator<int *>>);
+
+constexpr bool check_sized_sentinel_views() {
+    int values[] = {3, 5, 7};
+    auto first = std::counted_iterator(values + 1, 2);
+    span view(first, std::default_sentinel);
+    static_assert(std::same_as<decltype(view), span<int>>);
+    const span<const int, 2> read_only(first, std::default_sentinel);
+    const span count(values, count_sentinel{{values + 3}});
+    view[0] = 11;
+    return read_only.data() == values + 1 && read_only[0] == 11 && count.size() == 1;
+}
+static_assert(check_sized_sentinel_views());
 
 static_assert(std::default_initializable<span<int>>);
 static_assert(std::default_initializable<span<int, 0>>);
@@ -172,6 +226,28 @@ TEST(span, range_access_exceptions_propagate) {
     throwing_size_range size;
     EXPECT_THROW((void)wjr::span<int>(data), std::runtime_error);
     EXPECT_THROW((void)wjr::span<int>(size), std::runtime_error);
+}
+#endif
+
+TEST(span, sized_endpoints_construct_without_traversal) {
+    int values[] = {2, 3, 5, 7};
+    wjr::span mixed(values, static_cast<const int *>(values + 4));
+    EXPECT_EQ(mixed.data(), values);
+    EXPECT_EQ(mixed.size(), 4);
+
+    wjr::span empty(std::counted_iterator(values + 4, 0), std::default_sentinel);
+    EXPECT_EQ(empty.data(), values + 4);
+    EXPECT_TRUE(empty.empty());
+
+    wjr::span<int, 2> fixed(values + 1, pointer_sentinel{values + 3});
+    EXPECT_EQ(fixed[1], 5);
+}
+
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+TEST(span, distinct_sentinel_subtraction_can_throw) {
+    int values[] = {2, 3, 5};
+    auto last = pointer_sentinel{values + 3, true};
+    EXPECT_THROW((void)wjr::span(values, last), std::runtime_error);
 }
 #endif
 
