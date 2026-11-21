@@ -5,6 +5,8 @@
 SSO、自定义 comparator 和其他形态沿用既有元素转移逻辑。experimental compact 的普通 merge 沿用其原选择策略。
 [拼接协议](../design/btree-disjoint-append.md)定义占用、生命周期和 hook 可观察状态。
 
+[不等高分片结果](btree-unequal-merge.md)覆盖后续 spine 连接能力及持续分片导入的四 profile 对照。
+
 ## 固定操作区间
 
 ![4096+4096 等高不交叠 merge 的四 profile 计时](assets/btree-disjoint-merge.svg)
