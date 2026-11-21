@@ -1055,6 +1055,53 @@ WJR_INTRINSIC_INLINE Byte *write_signed_magnitude(Byte *end, Unsigned value, int
     return out;
 }
 
+/// @private Write a magnitude to a bounded range.
+template <typename Value, typename Iter, typename Converter>
+struct checked_magnitude_output {
+    Iter first;
+    Iter last;
+    std::make_unsigned_t<Value> magnitude;
+    int sign;
+    WJR_NO_UNIQUE_ADDRESS Converter conv;
+
+    template <unsigned int Base, size_t Capacity>
+    WJR_INTRINSIC_INLINE to_chars_result<Iter> operator()(int digits, int bits) {
+        constexpr auto is_signed = std::is_signed_v<Value>;
+        constexpr auto is_random_access = is_random_access_iterator_v<Iter>;
+        if constexpr (is_random_access && Base != 10) {
+            if (WJR_UNLIKELY(digits + sign > std::distance(first, last))) {
+                return {last, std::errc::value_too_large};
+            }
+        }
+
+        std::array<charconv_detail::fast_buffer_t<Iter>, Capacity + (is_signed && is_random_access)>
+            buffer;
+        auto *const end = buffer.data() + buffer.size();
+        auto *out = charconv_detail::write_magnitude<Base>(end, magnitude, digits, bits, conv);
+        if constexpr (is_random_access) {
+            if constexpr (Base == 10) {
+                if (WJR_UNLIKELY(end - out + sign > std::distance(first, last))) {
+                    return {last, std::errc::value_too_large};
+                }
+            }
+            if constexpr (is_signed) {
+                if (sign) {
+                    *--out = '-';
+                }
+            }
+            return {wjr::copy(out, end, first), std::errc{}};
+        } else {
+            do {
+                if (WJR_UNLIKELY(first == last)) {
+                    return {last, std::errc::value_too_large};
+                }
+                *first++ = *out++;
+            } while (out != end);
+            return {first, std::errc{}};
+        }
+    }
+};
+
 /// @private Write a formatted magnitude to an insertion iterator or a scratch buffer.
 template <typename Value, typename Iter, typename Converter>
 struct unchecked_magnitude_output {
@@ -1146,41 +1193,10 @@ to_chars_result<Iter> _fallback_to_chars_impl(Iter first, Iter last, Value val, 
         }
     }
 
-    auto write = [&]<unsigned int Base, size_t Capacity>(int digits,
-                                                         int bits) -> to_chars_result<Iter> {
-        if constexpr (is_random_access && Base != 10) {
-            if (WJR_UNLIKELY(digits + sign > std::distance(first, last))) {
-                return {last, std::errc::value_too_large};
-            }
-        }
-
-        std::array<charconv_detail::fast_buffer_t<Iter>, Capacity + (is_signed && is_random_access)>
-            buffer;
-        auto *const end = buffer.data() + buffer.size();
-        auto *out = charconv_detail::write_magnitude<Base>(end, uVal, digits, bits, conv);
-        if constexpr (is_random_access) {
-            if constexpr (Base == 10) {
-                if (WJR_UNLIKELY(end - out + sign > std::distance(first, last))) {
-                    return {last, std::errc::value_too_large};
-                }
-            }
-            if constexpr (is_signed) {
-                if (sign) {
-                    *--out = '-';
-                }
-            }
-            return {wjr::copy(out, end, first), std::errc{}};
-        } else {
-            do {
-                if (WJR_UNLIKELY(first == last)) {
-                    return {last, std::errc::value_too_large};
-                }
-                *first++ = *out++;
-            } while (out != end);
-            return {first, std::errc{}};
-        }
-    };
-    return charconv_detail::dispatch_magnitude<Value>(ibase, uVal, write);
+    return charconv_detail::dispatch_magnitude<Value>(
+        ibase, uVal,
+        charconv_detail::checked_magnitude_output<Value, Iter, Converter>{first, last, uVal, sign,
+                                                                          conv});
 }
 
 /// @private Internal to_chars implementation dispatcher
