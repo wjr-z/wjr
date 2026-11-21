@@ -798,6 +798,13 @@ enum class relocate_t {
     trivial = 2,       /** use single memcpy. */
 };
 
+/// @brief Customize relocation, optionally permitting replacement of existing slots.
+/// @details A specialization may additionally define `static constexpr bool
+/// is_replaceable = true`. This permits containers to replace assignment from T
+/// with reconstruction and relocation, including overlapping bulk shifts.
+/// The specialization promises equivalent owned values and valid lifetimes under
+/// that replacement. Slot identity, assignment side effects and storage reuse
+/// must not be required. The opt-in is independent of the relocation mode.
 template <typename T>
 struct get_relocate_mode {
     static constexpr relocate_t value =
