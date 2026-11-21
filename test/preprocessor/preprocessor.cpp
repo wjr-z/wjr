@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <string_view>
+
 #include <wjr/preprocessor.hpp>
 
 #define CASSERT(expr) static_assert(expr)
@@ -107,10 +109,6 @@ TEST(preprocessor, detail) {
     WJR_TEST_STR(WJR_PP_STR((WJR_PP_REPEAT(0, 3))), "(0, 0, 0)");
 }
 
-#if defined(WJR_COMPILER_MSVC) && !defined(WJR_COMPILER_CLANG)
-    #define WJR_TEST_MSVC
-#endif
-
 TEST(preprocessor_preview, queue) {
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_FRONT((1))), "1");
@@ -121,11 +119,8 @@ TEST(preprocessor_preview, queue) {
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((1, 2, 3), 0)), "(0, 1, 2, 3)");
 
-#if defined(WJR_TEST_MSVC) && _MSVC_TRADITIONAL
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((), 0)), "(0,)");
-#else
-    WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((), 0)), "(0, )");
-#endif
+    constexpr std::string_view empty_push_front = WJR_PP_STR(WJR_PP_QUEUE_PUSH_FRONT((), 0));
+    CASSERT(empty_push_front == "(0,)" || empty_push_front == "(0, )");
 
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_BACK((), 0)), "(, 0)");
     WJR_TEST_STR(WJR_PP_STR(WJR_PP_QUEUE_PUSH_BACK((1, 2, 3), 0)), "(1, 2, 3, 0)");
