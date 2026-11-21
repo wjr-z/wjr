@@ -64,9 +64,9 @@ WJR_INTRINSIC_CONSTEXPR T fallback_left(T *dst, const T *src, size_t n, unsigned
                                         T lo) noexcept {
     constexpr auto digits = std::numeric_limits<T>::digits;
     const T carry = src[n - 1] >> (digits - c);
-    for (size_t i = n - 1; i != 0; --i) {
-        const T value = shld(src[i], src[i - 1], c);
-        dst[i] = Complement ? static_cast<T>(~value) : value;
+    for (size_t i = 0; i < n - 1; ++i) {
+        const T value = shld(src[n - i - 1], src[n - i - 2], c);
+        dst[n - i - 1] = Complement ? static_cast<T>(~value) : value;
     }
     const T first = shld(src[0], lo, c);
     dst[0] = Complement ? static_cast<T>(~first) : first;
