@@ -101,6 +101,12 @@ template <typename Range, typename T>
 concept insertable_range = detail::_container_compatible_range<Range, T> &&
                            std::is_move_constructible_v<T> && std::is_move_assignable_v<T> &&
                            std::is_assignable_v<T &, std::ranges::range_reference_t<Range>>;
+/// @brief A standard counted pointer has no traversal effects beyond advancing its address.
+template <typename Iter>
+inline constexpr bool counted_pointer_iterator_v = false;
+
+template <typename T>
+inline constexpr bool counted_pointer_iterator_v<std::counted_iterator<T *>> = true;
 } // namespace vector_detail
 
 template <typename T, typename Alloc>
@@ -951,7 +957,11 @@ public:
             _assign_counted(count, [&range] {
                 auto first = std::ranges::begin(range);
                 (void)std::ranges::end(range);
-                return first;
+                if constexpr (vector_detail::counted_pointer_iterator_v<decltype(first)>) {
+                    return first.base();
+                } else {
+                    return first;
+                }
             });
         } else {
             auto first = std::ranges::begin(range);
