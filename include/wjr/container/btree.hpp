@@ -1816,10 +1816,10 @@ private:
     template <typename Lookup>
     std::pair<const_iterator, const_iterator> _equal_keys(const Lookup &key) const noexcept {
         const auto &lookup = _borrow_lookup(key);
-        auto first = lower_bound(lookup);
         if constexpr (multi) {
-            return {first, upper_bound(lookup)};
+            return _equal_keys_multi(lookup);
         } else {
+            auto first = lower_bound(lookup);
             auto last = first;
             if (first != cend() && !key_comp()(lookup, Traits::get_key(*first)))
                 ++last;
@@ -2321,23 +2321,33 @@ private:
     static_assert(_search_mask > node_size);
 
     template <bool Upper, typename Lookup>
+    WJR_INTRINSIC_INLINE const_iterator _search_embedded(const Lookup &key,
+                                                         const key_compare &comp) const noexcept {
+        const slot_usize_type size = _get_size();
+        if (size == 0 || _compare<Upper>(_get_base()->get_key(0), key, comp)) {
+            return const_iterator(_get_sentry(), 0);
+        }
+
+        if (size == 1 || _compare<Upper>(_get_base()->get_key(1), key, comp)) {
+            return const_iterator(_get_sentry(), 1);
+        }
+
+        return const_iterator(_get_sentry(), 2);
+    }
+
+    template <bool Upper, typename Lookup>
     WJR_NOINLINE WJR_HOT WJR_FLATTEN const_iterator _search_impl(const Lookup &key) const noexcept {
         const auto &comp = key_comp();
         const node_type *current = _get_root();
-
         if (WJR_UNLIKELY(current == nullptr)) {
-            slot_usize_type size = _get_size();
-            if (size == 0 || _compare<Upper>(_get_base()->get_key(0), key, comp)) {
-                return const_iterator(_get_sentry(), 0);
-            }
-
-            if (size == 1 || _compare<Upper>(_get_base()->get_key(1), key, comp)) {
-                return const_iterator(_get_sentry(), 1);
-            }
-
-            return const_iterator(_get_sentry(), 2);
+            return _search_embedded<Upper>(key, comp);
         }
+        return _search_from<Upper>(current, key, comp);
+    }
 
+    template <bool Upper, typename Lookup>
+    WJR_INTRINSIC_INLINE static const_iterator
+    _search_from(const node_type *current, const Lookup &key, const key_compare &comp) noexcept {
         slot_size_type cur_size = current->size();
         slot_usize_type pos;
 
@@ -2360,14 +2370,70 @@ private:
         const_iterator iter = _search_impl<Upper>(lookup);
 
         if constexpr (Adjust) {
-            if (WJR_LIKELY(!(iter.pos() & _search_mask))) {
-                return iter;
-            }
-
-            return const_iterator(iter.get_leaf()->next()->self(), 0);
+            return _adjust_search_end(iter);
         } else {
             return const_iterator(iter.get_leaf(), iter.pos() & ~_search_mask);
         }
+    }
+
+    WJR_INTRINSIC_INLINE static const_iterator _adjust_search_end(const_iterator iter) noexcept {
+        if (WJR_LIKELY(!(iter.pos() & _search_mask))) {
+            return iter;
+        }
+        return const_iterator(iter.get_leaf()->next()->self(), 0);
+    }
+
+    /// @brief Descend shared children until an equivalent separator splits the bounds.
+    template <typename Lookup>
+    WJR_NOINLINE WJR_HOT WJR_FLATTEN std::pair<const_iterator, const_iterator>
+    _equal_keys_multi(const Lookup &key) const noexcept {
+        const auto &comp = key_comp();
+        const node_type *current = _get_root();
+        if (WJR_UNLIKELY(current == nullptr)) {
+            // Count the embedded keys strictly before each boundary.
+            const auto *base = _get_base();
+            const auto count = _get_size();
+            slot_usize_type lower = 0;
+            slot_usize_type upper = 0;
+            if (count != 0) {
+                lower = comp(base->get_key(0), key);
+                upper = !comp(key, base->get_key(0));
+                if (count == 2) {
+                    lower += comp(base->get_key(1), key);
+                    upper += !comp(key, base->get_key(1));
+                }
+            }
+            return {const_iterator(base, lower), const_iterator(base, upper)};
+        }
+
+        slot_size_type size = current->size();
+        for (; size >= 0; size = current->size()) {
+            const auto *inner = current->as_inner();
+            const auto lower = _search<false, 1>(inner, size, key, comp);
+            if (lower != size && !comp(key, from_ikey(inner->m_keys[lower]))) {
+                const auto upper = _search<true, 1>(inner, size, key, comp);
+                return {_adjust_search_end(_search_from<false>(inner->m_sons[lower], key, comp)),
+                        _adjust_search_end(_search_from<true>(inner->m_sons[upper], key, comp))};
+            }
+            current = inner->m_sons[lower];
+        }
+
+        const auto *leaf = current->as_leaf();
+        const slot_usize_type count = -size;
+        const auto lower = _search<false, 1>(leaf, count, key, comp);
+        if (lower == count) {
+            const_iterator next(leaf->next()->self(), 0);
+            return {next, next};
+        }
+
+        const_iterator first(leaf, lower);
+        if (comp(key, leaf->get_key(lower))) {
+            return {first, first};
+        }
+
+        const auto upper = _search<true, 1>(leaf, count, key, comp);
+        return {first, _adjust_search_end(
+                           const_iterator(leaf, upper | (upper == count ? _search_mask : 0)))};
     }
 
     template <bool Upper, typename Lookup>
