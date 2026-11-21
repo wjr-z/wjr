@@ -68,7 +68,10 @@ jobs:
         if: matrix.sys.compiler == 'clang'
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "20.1"
+          # Visual Studio 2026's MSVC STL requires Clang 22 on the hosted image.
+          version: "22.1.8"
+          force-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.8/LLVM-22.1.8-win64.exe
+          directory: ${{ runner.temp }}/wjr-llvm
           env: true
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
