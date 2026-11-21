@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
+#include <iterator>
+#include <memory>
 #include <vector>
 #include <wjr/memory/uninitialized.hpp>
 
@@ -124,4 +127,59 @@ TEST(memory, trivial_relocation_returns_destination_end) {
     int *empty = nullptr;
     EXPECT_EQ(uninitialized_relocate(empty, empty, empty), empty);
     EXPECT_EQ(uninitialized_relocate_n(empty, 0, empty), empty);
+}
+
+TEST(memory, uninitialized_move_from_a_counted_range) {
+    using pointer = std::unique_ptr<int>;
+    std::allocator<pointer> alloc;
+    auto *dest = alloc.allocate(2);
+    for (int operation = 0; operation < 4; ++operation) {
+        SCOPED_TRACE(operation);
+        std::array source = {std::make_unique<int>(7), std::make_unique<int>(11)};
+        auto first = std::counted_iterator(source.data(), 2);
+        constexpr auto last = std::default_sentinel;
+        pointer *end;
+        switch (operation) {
+        case 0:
+            end = wjr::uninitialized_move(first, last, dest);
+            break;
+        case 1:
+            end = wjr::uninitialized_move_restrict(first, last, dest);
+            break;
+        case 2:
+            end = wjr::uninitialized_move_using_allocator(first, last, dest, alloc);
+            break;
+        default:
+            end = wjr::uninitialized_move_restrict_using_allocator(first, last, dest, alloc);
+            break;
+        }
+        EXPECT_EQ(end, dest + 2);
+        EXPECT_EQ(source[0], nullptr);
+        EXPECT_EQ(source[1], nullptr);
+        EXPECT_EQ(*dest[0], 7);
+        EXPECT_EQ(*dest[1], 11);
+        wjr::destroy(std::counted_iterator(dest, 2), last);
+    }
+    alloc.deallocate(dest, 2);
+}
+
+TEST(memory, relocate_from_a_counted_range_destroys_the_original_objects) {
+    int destroyed = 0;
+    struct element {
+        int *destroyed;
+        ~element() { ++*destroyed; }
+    };
+    std::allocator<element> alloc;
+    auto *source = alloc.allocate(2);
+    auto *dest = alloc.allocate(2);
+    std::construct_at(source, &destroyed);
+    std::construct_at(source + 1, &destroyed);
+    EXPECT_EQ(
+        wjr::uninitialized_relocate(std::counted_iterator(source, 2), std::default_sentinel, dest),
+        dest + 2);
+    EXPECT_EQ(destroyed, 2);
+    wjr::destroy(dest, dest + 2);
+    EXPECT_EQ(destroyed, 4);
+    alloc.deallocate(source, 2);
+    alloc.deallocate(dest, 2);
 }

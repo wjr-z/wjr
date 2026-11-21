@@ -121,12 +121,18 @@ WJR_NOINLINE void check_input_failure(int algorithm, input_operation operation, 
         if (algorithm == 1) {
             return wjr::uninitialized_copy_using_allocator(first, last, dest, alloc);
         }
-        return wjr::uninitialized_copy_n_using_allocator(first, source.size(), dest, alloc);
+        if (algorithm == 2) {
+            return wjr::uninitialized_copy_n_using_allocator(first, source.size(), dest, alloc);
+        }
+        if (algorithm == 3) {
+            return wjr::uninitialized_move(first, last, dest);
+        }
+        return wjr::uninitialized_move_restrict_using_allocator(first, last, dest, alloc);
     };
     EXPECT_THROW(construct(), failure);
     EXPECT_EQ(value::live, static_cast<int>(source.size()));
     const int completed = throw_at - (operation == input_operation::increment ? 0 : 1);
-    if (algorithm != 0) {
+    if (algorithm != 0 && algorithm != 3) {
         EXPECT_EQ(alloc.constructed, completed);
         EXPECT_EQ(alloc.destroyed, completed);
     }
@@ -193,7 +199,7 @@ WJR_NOINLINE void check_traits_construction(int operation, int throw_at) {
 
 TEST(uninitialized_rollback, input_operations_may_throw) {
     using namespace rollback_test;
-    for (int algorithm = 0; algorithm < 3; ++algorithm) {
+    for (int algorithm = 0; algorithm < 5; ++algorithm) {
         SCOPED_TRACE(algorithm);
         for (auto operation :
              {input_operation::dereference, input_operation::increment, input_operation::compare}) {
