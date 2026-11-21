@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <limits>
 #include <random>
 
 #include <wjr/math/compare.hpp>
@@ -24,6 +25,26 @@ WJR_NOINLINE comparison_result asm_compare_preserving_inputs(uint64_t lo0, uint6
     return {less, less_equal, {lo0, hi0, lo1, hi1}};
 }
 #endif
+
+template <typename T>
+void check_unsigned_array_comparison() {
+    std::array<T, 40> lhs{};
+    auto rhs = lhs;
+    for (size_t n = 0; n <= lhs.size(); ++n) {
+        SCOPED_TRACE(n);
+        EXPECT_EQ(compare_n(lhs.data(), rhs.data(), n), 0);
+        EXPECT_EQ(reverse_compare_n(lhs.data(), rhs.data(), n), 0);
+        for (size_t pos = 0; pos < n; ++pos) {
+            SCOPED_TRACE(pos);
+            rhs[pos] = std::numeric_limits<T>::max();
+            EXPECT_EQ(compare_n(lhs.data(), rhs.data(), n), -1);
+            EXPECT_EQ(compare_n(rhs.data(), lhs.data(), n), 1);
+            EXPECT_EQ(reverse_compare_n(lhs.data(), rhs.data(), n), -1);
+            EXPECT_EQ(reverse_compare_n(rhs.data(), lhs.data(), n), 1);
+            rhs[pos] = 0;
+        }
+    }
+}
 
 void check_128_comparison(uint64_t lo0, uint64_t hi0, uint64_t lo1, uint64_t hi1) {
     const bool less = hi0 < hi1 || (hi0 == hi1 && lo0 < lo1);
@@ -68,6 +89,11 @@ TEST(compare, forward_and_reverse_arrays) {
     static_assert(reverse_compare_n(signed_left, signed_right, 3) == -1);
     EXPECT_EQ(compare_n(signed_left, signed_right, 3), -1);
     EXPECT_EQ(reverse_compare_n(signed_left, signed_right, 3), -1);
+}
+
+TEST(compare, standard_unsigned_array_types) {
+    check_unsigned_array_comparison<unsigned long>();
+    check_unsigned_array_comparison<unsigned long long>();
 }
 
 TEST(compare, compare_128_helpers) {
