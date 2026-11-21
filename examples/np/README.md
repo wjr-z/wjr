@@ -243,6 +243,13 @@ selected shape: 2x3, strides: 8,2, total: 222
 Python's stop coordinate. See the [slice contract](../../docs/design/tensor-slices.md)
 for examples, layout preservation and trusted-input preconditions.
 
+## Concatenate borrowed arrays
+
+`wjr_np_concatenate` appends a column to a borrowed matrix directly into an
+existing output buffer. Source views can have different lengths along the axis.
+See [concatenate.cpp](concatenate.cpp) and the
+[concatenation contract](../../docs/design/tensor-concatenate.md).
+
 ## Fused prefix sums
 
 `wjr_np_expression_scan` broadcasts a row baseline and scans squared residuals
