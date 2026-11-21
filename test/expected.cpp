@@ -1017,3 +1017,48 @@ TEST(expected, macros) {
     EXPECT_EQ(set_value(true).value(), 42);
     EXPECT_EQ(set_value(false).error(), 5);
 }
+
+namespace {
+
+struct immovable_mapping_result {
+    int value;
+    constexpr explicit immovable_mapping_result(int v) : value(v) {}
+    immovable_mapping_result(const immovable_mapping_result &) = delete;
+    immovable_mapping_result(immovable_mapping_result &&) = delete;
+};
+
+struct immovable_mapping_error {
+    int &destructions;
+    explicit immovable_mapping_error(int &n) : destructions(n) {}
+    immovable_mapping_error(const immovable_mapping_error &) = delete;
+    immovable_mapping_error(immovable_mapping_error &&) = delete;
+    ~immovable_mapping_error() { ++destructions; }
+};
+
+} // namespace
+
+TEST(expected, maps_immovable_results_into_the_active_member) {
+    constexpr expected<int, non_default_value> value(std::in_place, 3);
+    constexpr auto mapped =
+        value.transform([](const int &v) { return immovable_mapping_result(v + 1); });
+    static_assert(mapped.has_value() && mapped->value == 4);
+
+    constexpr compressed_expected<void, int, 0> ready;
+    constexpr auto from_void = ready.transform([] { return immovable_mapping_result(6); });
+    static_assert(from_void.has_value() && from_void->value == 6);
+
+    constexpr expected<void, int> error(unexpect, 5);
+    constexpr auto mapped_error =
+        error.transform_error([](const int &v) { return immovable_mapping_result(v + 2); });
+    static_assert(!mapped_error.has_value() && mapped_error.error().value == 7);
+
+    int destructions = 0;
+    {
+        const auto owning_error = expected<int, int>(unexpect, 7).transform_error([&](int &&) {
+            return immovable_mapping_error(destructions);
+        });
+        EXPECT_FALSE(owning_error.has_value());
+        EXPECT_EQ(destructions, 0);
+    }
+    EXPECT_EQ(destructions, 1);
+}
