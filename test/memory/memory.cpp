@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <memory>
 #include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/memory/object_pool.hpp>
 #include <wjr/memory/stack_allocator.hpp>
@@ -107,4 +108,51 @@ TEST(object_pool, move_transfers_free_list_ownership) {
     EXPECT_NE(owned, independent);
     assigned.deallocate(owned, 1);
     destination.deallocate(independent, 1);
+}
+
+namespace {
+
+struct alignas(4 * wjr::mem::default_new_alignment) aligned_pool_value {
+    int value;
+};
+
+struct padded_aligned_pool_traits
+    : wjr::mem::detail::single_object_pool_traits<aligned_pool_value> {
+    static constexpr std::pair<size_t, size_t> get(size_t size) noexcept {
+        return {0, size + wjr::mem::default_new_alignment};
+    }
+};
+
+} // namespace
+
+TEST(object_pool, padded_size_class_preserves_value_alignment) {
+    dynamic_object_pool<padded_aligned_pool_traits> pool;
+    auto *first = pool.allocate(1);
+    auto *second = pool.allocate(1);
+    ASSERT_EQ(reinterpret_cast<uintptr_t>(first) % alignof(aligned_pool_value), 0);
+    ASSERT_EQ(reinterpret_cast<uintptr_t>(second) % alignof(aligned_pool_value), 0);
+    std::construct_at(first, 17);
+    std::construct_at(second, 29);
+    EXPECT_EQ(first->value, 17);
+    EXPECT_EQ(second->value, 29);
+    std::destroy_at(first);
+    std::destroy_at(second);
+    pool.deallocate(first, 1);
+    pool.deallocate(second, 1);
+}
+
+TEST(object_pool, overaligned_slots_survive_move_and_reuse) {
+    object_pool<aligned_pool_value> source;
+    auto *initial = source.allocate(1);
+    ASSERT_EQ(reinterpret_cast<uintptr_t>(initial) % alignof(aligned_pool_value), 0);
+    source.deallocate(initial, 1);
+
+    object_pool<aligned_pool_value> target(std::move(source));
+    auto *reused = target.allocate(1);
+    EXPECT_EQ(reused, initial);
+    auto *fresh = source.allocate(1);
+    EXPECT_NE(fresh, reused);
+    EXPECT_EQ(reinterpret_cast<uintptr_t>(fresh) % alignof(aligned_pool_value), 0);
+    target.deallocate(reused, 1);
+    source.deallocate(fresh, 1);
 }

@@ -1,6 +1,8 @@
 #ifndef WJR_MEMORY_OBJECT_POOL_HPP__
 #define WJR_MEMORY_OBJECT_POOL_HPP__
 
+#include <limits>
+
 #include <wjr/container/forward_list.hpp>
 #include <wjr/memory/arena.hpp>
 
@@ -29,12 +31,21 @@ public:
 
     ~_dynamic_object_pool_impl() = default;
 
-    WJR_MALLOC void *allocate(arena &m_arena, size_t n) noexcept {
+    template <size_t Alignment>
+    WJR_MALLOC void *allocate(arena &storage, size_t n) noexcept {
         if (m_head.next() != nullptr) {
             return m_head.pop_front();
         }
 
-        return m_arena.allocate(n);
+        if constexpr (Alignment <= mem::default_new_alignment) {
+            return storage.allocate(n);
+        } else {
+            // Arena blocks already have the default alignment.
+            constexpr size_t padding = Alignment - mem::default_new_alignment;
+            WJR_ASSERT_ASSUME_L2(n <= (std::numeric_limits<size_t>::max)() - padding);
+            auto *raw = static_cast<std::byte *>(storage.allocate(n + padding));
+            return raw + align_up_offset(reinterpret_cast<uintptr_t>(raw), Alignment);
+        }
     }
 
     void deallocate(void *ptr) noexcept { m_head.push_front(static_cast<node_type *>(ptr)); }
@@ -44,6 +55,8 @@ private:
 };
 } // namespace mem::detail
 
+/// @brief Reuse cached slots with the alignment of the configured value type.
+/// @note Allocation hooks for noncached sizes provide their own alignment.
 template <typename Traits>
 class dynamic_object_pool {
     static constexpr size_t tableSize = Traits::size;
@@ -79,7 +92,8 @@ public:
 
         n *= sizeof(value_type);
         if (auto [idx, size] = Traits::get(n); WJR_LIKELY(idx != tableSize)) {
-            return static_cast<value_type *>(m_pool[idx].allocate(m_arena, size));
+            return static_cast<value_type *>(
+                m_pool[idx].template allocate<alignof(value_type)>(m_arena, size));
         }
 
         return static_cast<value_type *>(Traits::allocate_large(n));
