@@ -73,12 +73,15 @@ values. A sized single-pass range starts only after successful allocation when
 growth is needed. Unsized input is consumed once and retains its completed prefix
 if iteration fails.
 
-For append, sized or forward sources reserve the final capacity once and use the
-existing allocator-aware uninitialized-copy primitive. Forward ranges may be
-traversed once to obtain their distance; input ranges are never pre-consumed.
-Bulk-copy failure destroys the new prefix before publishing its size. A failed
-unsized single-pass append retains its completed prefix. Reservation follows the
-existing vector relocation and exception contract and may invalidate iterators.
+Counted append uses the iterator-pair growth transaction whenever incoming
+construction or source access can throw. Growth constructs the incoming block
+before moving any old element. A disjoint contiguous source with nonthrowing
+access and trivial construction can grow first and then bulk copy.
+Allocation or incoming construction failure leaves the original storage and
+values intact. With spare capacity, a failed construction rolls back the
+uncommitted block. A forward range can require a distance pass. A sized
+single-pass source is started once, and an unsized source keeps its completed
+prefix if iteration fails.
 When move construction or allocator hooks can throw, `reserve` and heap
 `shrink_to_fit` keep old lifetimes intact until transfer succeeds and release
 uncommitted storage on failure. Size, capacity and allocation ownership are
