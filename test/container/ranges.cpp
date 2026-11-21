@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <forward_list>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <ranges>
 #include <span>
@@ -228,6 +229,39 @@ TEST(ranges, ring_assign_checks_count_before_discarding_existing_elements) {
 
     EXPECT_THROW(target.assign(source.data(), source.data() + source.size()), std::length_error);
     EXPECT_TRUE(std::ranges::equal(target, std::array{13, 17}));
+}
+
+TEST(ranges, vector_iterator_pairs_reject_counts_before_narrowing) {
+    using narrow_vector = wjr::vector<int, narrow_allocator<int>>;
+    const std::vector<int> source(std::size_t{1} << 16);
+    const auto first = source.data();
+    const auto last = first + source.size();
+
+    EXPECT_THROW((void)narrow_vector(first, last), std::length_error);
+    narrow_vector target{13, 17};
+    EXPECT_THROW(target.assign(first, last), std::length_error);
+    EXPECT_THROW(target.assign_range(std::span(source)), std::length_error);
+    EXPECT_THROW(target.append(first, last), std::length_error);
+    EXPECT_THROW(target.insert(target.cbegin() + 1, first, last), std::length_error);
+    EXPECT_THROW(target.replace(target.cbegin(), target.cbegin() + 1, first, last),
+                 std::length_error);
+    EXPECT_TRUE(std::ranges::equal(target, std::array{13, 17}));
+}
+
+TEST(ranges, vector_iterator_pair_growth_checks_total_size) {
+    using narrow_vector = wjr::vector<int, narrow_allocator<int>>;
+    constexpr auto max = std::numeric_limits<std::uint16_t>::max();
+    narrow_vector target(max - 1, 7);
+    const int source[] = {3, 5, 11};
+    auto *const storage = target.data();
+
+    EXPECT_THROW(target.append(source, source + 2), std::length_error);
+    EXPECT_THROW(target.insert(target.cend(), source, source + 2), std::length_error);
+    EXPECT_THROW(target.replace(target.cbegin(), target.cbegin() + 1, source, source + 3),
+                 std::length_error);
+    EXPECT_EQ(target.data(), storage);
+    EXPECT_EQ(target.size(), max - 1);
+    EXPECT_TRUE(std::ranges::all_of(target, [](int value) { return value == 7; }));
 }
 
 TEST(ranges, vector_accepts_noncommon_counted_ranges) {
