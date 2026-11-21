@@ -13,6 +13,7 @@
 #define WJR_OPTIONAL_HPP__
 
 #include <exception>
+#include <functional>
 
 #include <wjr/assert.hpp>
 #include <wjr/container/compressed_value.hpp>
@@ -59,6 +60,18 @@ class optional;
 namespace optional_detail {
 
 struct converting_t {};
+struct in_place_invoke_t {};
+
+template <typename U, typename Func, typename... Args>
+constexpr optional<U> invoke_to_optional(Func &&func, Args &&...args) {
+    if constexpr (std::is_void_v<U>) {
+        std::invoke(std::forward<Func>(func), std::forward<Args>(args)...);
+        return optional<U>(std::in_place);
+    } else {
+        return optional<U>(in_place_invoke_t{}, std::forward<Func>(func),
+                           std::forward<Args>(args)...);
+    }
+}
 
 template <typename T, bool Destructor = is_void_or_v<T, std::is_trivially_destructible<T>>>
 struct optional_storage_base {
@@ -68,6 +81,11 @@ struct optional_storage_base {
     constexpr optional_storage_base(std::in_place_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
         : m_has_val(true), m_val(std::forward<Args>(args)...) {}
+
+    template <typename Func, typename... Args>
+    constexpr optional_storage_base(in_place_invoke_t, Func &&func, Args &&...args)
+        : m_has_val(true),
+          m_val(std::invoke(std::forward<Func>(func), std::forward<Args>(args)...)) {}
 
     constexpr optional_storage_base(nullopt_t) noexcept : m_has_val(false) {}
 
@@ -118,6 +136,11 @@ struct optional_storage_base<T, false> {
     constexpr optional_storage_base(std::in_place_t, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
         : m_has_val(true), m_val(std::forward<Args>(args)...) {}
+
+    template <typename Func, typename... Args>
+    constexpr optional_storage_base(in_place_invoke_t, Func &&func, Args &&...args)
+        : m_has_val(true),
+          m_val(std::invoke(std::forward<Func>(func), std::forward<Args>(args)...)) {}
 
     constexpr optional_storage_base(nullopt_t) noexcept : m_has_val(false) {}
 
@@ -194,6 +217,12 @@ struct optional_storage_base<compressed_value<T, uniq_failed>, true> {
     template <typename... Args>
     constexpr optional_storage_base(std::in_place_t, Args &&...args) noexcept
         : m_val(std::forward<Args>(args)...) {
+        WJR_ASSERT_ASSUME_L2(has_value());
+    }
+
+    template <typename Func, typename... Args>
+    constexpr optional_storage_base(in_place_invoke_t, Func &&func, Args &&...args)
+        : m_val(std::invoke(std::forward<Func>(func), std::forward<Args>(args)...)) {
         WJR_ASSERT_ASSUME_L2(has_value());
     }
 
@@ -392,6 +421,24 @@ class WJR_EMPTY_BASES optional : optional_detail::optional_storage<T>,
 
     template <typename OT>
     friend class optional;
+
+    template <typename U, typename Func, typename... Args>
+    friend constexpr optional<U> optional_detail::invoke_to_optional(Func &&func, Args &&...args);
+
+    /// @private Initialize the contained object directly from the callable result.
+    template <typename Func, typename... Args>
+    constexpr explicit optional(optional_detail::in_place_invoke_t tag, Func &&func, Args &&...args)
+        : Mybase(tag, std::forward<Func>(func), std::forward<Args>(args)...) {}
+
+    template <typename U, typename Self, typename Func>
+    static constexpr optional<U> _transform(Self &&self, Func &&func) {
+        if (self.has_value()) {
+            return optional_detail::invoke_to_optional<U>(std::forward<Func>(func),
+                                                          std::forward<Self>(self).m_val);
+        }
+
+        return {};
+    }
 
 public:
     using value_type = typename Mybase::value_type;
@@ -632,38 +679,22 @@ public:
 
     template <typename Func, typename U = _optional_result<Func, value_type &>>
     constexpr optional<U> transform(Func &&func) & {
-        if (has_value()) {
-            return std::invoke(std::forward<Func>(func), this->m_val);
-        }
-
-        return optional<U>{};
+        return _transform<U>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _optional_result<Func, const value_type &>>
     constexpr optional<U> transform(Func &&func) const & {
-        if (has_value()) {
-            return std::invoke(std::forward<Func>(func), this->m_val);
-        }
-
-        return optional<U>{};
+        return _transform<U>(*this, std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _optional_result<Func, value_type &&>>
     constexpr optional<U> transform(Func &&func) && {
-        if (has_value()) {
-            return std::invoke(std::forward<Func>(func), std::move(this->m_val));
-        }
-
-        return optional<U>{};
+        return _transform<U>(std::move(*this), std::forward<Func>(func));
     }
 
     template <typename Func, typename U = _optional_result<Func, const value_type &&>>
     constexpr optional<U> transform(Func &&func) const && {
-        if (has_value()) {
-            return std::invoke(std::forward<Func>(func), std::move(this->m_val));
-        }
-
-        return optional<U>{};
+        return _transform<U>(std::move(*this), std::forward<Func>(func));
     }
 
     /**
@@ -831,10 +862,10 @@ public:
     template <typename Func, typename U = _optional_result<Func>>
     constexpr optional<U> transform(Func &&func) const {
         if (has_value()) {
-            return std::invoke(std::forward<Func>(func));
+            return optional_detail::invoke_to_optional<U>(std::forward<Func>(func));
         }
 
-        return optional<U>{};
+        return {};
     }
 
     constexpr void emplace() noexcept { this->set_valid(); }
