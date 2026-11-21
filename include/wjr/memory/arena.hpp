@@ -43,7 +43,8 @@ public:
     ~arena() = default;
 
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        if (WJR_UNLIKELY(m_start == nullptr || to_unsigned(m_end - m_start) < n)) {
+        // A fresh arena has two null cursors and zero remaining bytes.
+        if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n || (n == 0 && m_start == nullptr))) {
             return _allocate_large(n);
         }
 

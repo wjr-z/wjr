@@ -42,6 +42,13 @@ TEST(arena, unaligned_cache_size) {
     }
 }
 
+TEST(arena, empty_arena_allocates_zero_bytes) {
+    arena pool;
+    auto *initial = pool.allocate(0);
+    ASSERT_NE(initial, nullptr);
+    EXPECT_EQ(pool.allocate(0), initial);
+}
+
 TEST(arena, cached_capacity_below_one_alignment_unit) {
     constexpr auto alignment = mem::default_new_alignment;
     if constexpr (alignment <= 4) {
