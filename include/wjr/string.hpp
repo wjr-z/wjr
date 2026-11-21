@@ -194,24 +194,13 @@ struct get_relocate_mode<std::basic_string<Char, Traits, Alloc>> {
 template <typename CharT, typename Traits>
 constexpr bool starts_with(std::basic_string_view<CharT, Traits> str,
                            std::basic_string_view<CharT, Traits> sv) noexcept {
-    const auto length = sv.size();
-    if (str.size() < length) {
-        return false;
-    }
-
-    return Traits::compare(str.data(), sv.data(), length) == 0;
+    return str.starts_with(sv);
 }
 
 template <typename CharT, typename Traits>
 constexpr bool ends_with(std::basic_string_view<CharT, Traits> str,
                          std::basic_string_view<CharT, Traits> sv) noexcept {
-    const auto n = str.size();
-    const auto length = sv.size();
-    if (n < length) {
-        return false;
-    }
-
-    return Traits::compare(str.data() + n - length, sv.data(), length) == 0;
+    return str.ends_with(sv);
 }
 
 template <unsigned int Length, WJR_REQUIRES(Length <= 8)>
@@ -243,6 +232,7 @@ constant_length_strncaseequal(const char *a, const char *b,
 
 namespace string_detail {
 
+/// @private Use the same bit mask as the fixed-width comparison for block matching.
 WJR_PURE constexpr int compare_nocase_n(const char *a, const char *b, size_t length) {
     for (size_t i = 0; i < length; ++i) {
         const char diff = (a[i] ^ b[i]) & 0xDF;
