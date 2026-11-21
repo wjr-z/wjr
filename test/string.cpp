@@ -18,6 +18,9 @@ void expect_constant_case_equal(const char *lhs, const char *rhs, bool expected)
 } // namespace
 
 TEST(string, prefix_and_suffix) {
+    EXPECT_TRUE(starts_with(std::string_view{}, std::string_view{}));
+    EXPECT_TRUE(ends_with(std::string_view{}, std::string_view{}));
+
     EXPECT_TRUE(starts_with("wjr-string"sv, "wjr"sv));
     EXPECT_TRUE(starts_with("wjr-string"sv, "wjr-string"sv));
     EXPECT_TRUE(starts_with("wjr-string"sv, ""sv));
