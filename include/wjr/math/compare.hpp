@@ -51,18 +51,14 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int compare_n(const T *src0, const T *src1, s
     }
 
 #if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8 && std::is_unsigned_v<T>) {
-        if (is_constant_evaluated()) {
-            return fallback_compare_n(src0, src1, n);
+    // The x86 block comparison backend instantiates uint64_t only.
+    if constexpr (std::is_same_v<T, uint64_t>) {
+        if (!is_constant_evaluated()) {
+            return builtin_compare_n(src0, src1, n);
         }
-
-        return builtin_compare_n(src0, src1, n);
-    } else {
-        return fallback_compare_n(src0, src1, n);
     }
-#else
-    return fallback_compare_n(src0, src1, n);
 #endif
+    return fallback_compare_n(src0, src1, n);
 }
 
 template <typename T>
@@ -99,19 +95,14 @@ WJR_PURE WJR_INTRINSIC_CONSTEXPR20 int reverse_compare_n(const T *src0, const T 
         return 0;
     }
 
-#if WJR_HAS_BUILTIN(COMPARE_N)
-    if constexpr (sizeof(T) == 8 && std::is_unsigned_v<T>) {
-        if (is_constant_evaluated()) {
-            return fallback_reverse_compare_n(src0, src1, n);
+#if WJR_HAS_BUILTIN(REVERSE_COMPARE_N)
+    if constexpr (std::is_same_v<T, uint64_t>) {
+        if (!is_constant_evaluated()) {
+            return builtin_reverse_compare_n(src0, src1, n);
         }
-
-        return builtin_reverse_compare_n(src0, src1, n);
-    } else {
-        return fallback_reverse_compare_n(src0, src1, n);
     }
-#else
-    return fallback_reverse_compare_n(src0, src1, n);
 #endif
+    return fallback_reverse_compare_n(src0, src1, n);
 }
 
 WJR_CONST WJR_INTRINSIC_CONSTEXPR20 bool _equal_128_64(uint64_t lo0, uint64_t hi0,

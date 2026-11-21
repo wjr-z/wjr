@@ -96,7 +96,8 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n_impl(const T *src0, const T *src1,
     }
 
 #if WJR_HAS_BUILTIN(FIND_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    // The x86 block search backend instantiates uint64_t only.
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_find_n(src0, src1, n);
         }
@@ -122,7 +123,7 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n_impl(const T *src0, const 
     }
 
 #if WJR_HAS_BUILTIN(REVERSE_FIND_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_reverse_find_n(src0, src1, n);
         }
@@ -148,7 +149,8 @@ template <typename Iter, typename T>
 constexpr size_t _large_fallback_find_n_iter_val_impl(Iter src, T val, size_t n) noexcept {
     constexpr bool reverse = _find_is_reverse_iter_v<Iter>;
 
-    constexpr uint64_t repeated_one = broadcast<T, uint64_t>(0x01);
+    constexpr auto repeat = broadcast<uint_t<std::numeric_limits<T>::digits>, uint64_t>;
+    constexpr uint64_t repeated_one = repeat(0x01);
     constexpr int shift = std::numeric_limits<T>::digits - 1;
     constexpr size_t step = sizeof(uint64_t) / sizeof(T);
 
@@ -162,7 +164,7 @@ constexpr size_t _large_fallback_find_n_iter_val_impl(Iter src, T val, size_t n)
     size_t idx = 2;
     do {
         if (n - idx >= step) {
-            const uint64_t repeated_c = broadcast<T, uint64_t>(val);
+            const uint64_t repeated_c = repeat(val);
             do {
                 WJR_FIND_U64(idx);
                 idx += step;
@@ -222,7 +224,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n_impl(const T *src, type_identity_t<T> val,
                                                    size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_find_n(src, val, n);
         }
@@ -243,8 +245,8 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_n(const T *src, T val, size_t n) noe
 template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_n_impl(const T *src, type_identity_t<T> val,
                                                            size_t n) noexcept {
-#if WJR_HAS_BUILTIN(FIND_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+#if WJR_HAS_BUILTIN(REVERSE_FIND_N)
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_reverse_find_n(src, val, n);
         }
@@ -288,7 +290,7 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n_impl(const T *src0, const T *s
     }
 
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_find_not_n(src0, src1, n);
         }
@@ -314,7 +316,7 @@ WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n_impl(const T *src0, co
     }
 
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_reverse_find_not_n(src0, src1, n);
         }
@@ -351,7 +353,8 @@ constexpr size_t _large_fallback_find_not_n_iter_val_impl(Iter src, T val, size_
     size_t idx = 2;
     do {
         if (n - idx >= step) {
-            const uint64_t repeated_c = broadcast<T, uint64_t>(val);
+            using limb = uint_t<std::numeric_limits<T>::digits>;
+            const uint64_t repeated_c = broadcast<limb, uint64_t>(val);
             do {
                 WJR_FIND_U64(idx);
                 idx += step;
@@ -411,7 +414,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_find_not_n_impl(const T *src, type_identity_t<T> val,
                                                        size_t n) noexcept {
 #if WJR_HAS_BUILTIN(FIND_NOT_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_find_not_n(src, val, n);
         }
@@ -433,7 +436,7 @@ template <typename T>
 WJR_INTRINSIC_CONSTEXPR size_t resolve_reverse_find_not_n_impl(const T *src, type_identity_t<T> val,
                                                                size_t n) noexcept {
 #if WJR_HAS_BUILTIN(REVERSE_FIND_NOT_N)
-    if constexpr (sizeof(T) == 8 && is_nonbool_integral_v<T>) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (!is_constant_evaluated()) {
             return builtin_reverse_find_not_n(src, val, n);
         }
