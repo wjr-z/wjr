@@ -181,6 +181,46 @@ TEST(iterator, wrapped_and_volatile_outputs_remain_usable) {
     EXPECT_EQ(appended, (std::vector<int>{1, 3, 5}));
 }
 
+TEST(iterator, copy_returns_position_after_the_inserted_range) {
+    const int first[] = {2, 3, 4};
+    const int second[] = {5, 6};
+    const auto check = [&](auto output) {
+        auto position = std::inserter(output, std::next(output.begin()));
+        position = wjr::copy(std::begin(first), std::end(first), position);
+        position = wjr::copy_n(std::begin(second), 2, position);
+        *position = 7;
+        EXPECT_EQ(std::vector<int>(output.begin(), output.end()),
+                  (std::vector<int>{1, 2, 3, 4, 5, 6, 7, 9}));
+    };
+    check(std::vector<int>{1, 9});
+    check(wjr::vector<int>{1, 9});
+    check(std::list<int>{1, 9});
+}
+
+TEST(iterator, nonpositive_bulk_copy_n_does_not_advance_input_or_output) {
+    const int value = 42;
+    std::vector<int> output{1, 9};
+    auto position = std::inserter(output, std::next(output.begin()));
+    position = wjr::copy_n(&value, -1, position);
+    position = wjr::copy_n(static_cast<const int *>(nullptr), 0, position);
+    *position = value;
+    EXPECT_EQ(output, (std::vector<int>{1, 42, 9}));
+}
+
+#ifndef WJR_DISABLE_EXCEPTIONS
+TEST(iterator, restricted_bulk_copy_propagates_append_exceptions) {
+    struct output {
+        using value_type = int;
+        void push_back(int) {}
+        void append(const int *, const int *) { throw 42; }
+    } destination;
+    const int source[] = {1, 2};
+    EXPECT_THROW(
+        wjr::copy_restrict(std::begin(source), std::end(source), std::back_inserter(destination)),
+        int);
+}
+#endif
+
 TEST(iterator, nontrivial_moves_keep_move_semantics) {
     std::array<std::unique_ptr<int>, 2> source{std::make_unique<int>(7), std::make_unique<int>(9)};
     std::array<std::unique_ptr<int>, 2> destination;

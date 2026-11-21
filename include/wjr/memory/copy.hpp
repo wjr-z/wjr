@@ -22,35 +22,59 @@
 
 namespace wjr {
 
-/// @private Internal implementation for optimized copy operation
+namespace copy_detail {
+
+template <typename Container, typename InputIt>
+concept bulk_appendable = appendable_container<Container, InputIt &, InputIt &> ||
+                          requires(Container &cont, InputIt &first, InputIt &last) {
+                              cont.insert(cont.cend(), first, last);
+                          };
+
+template <typename Container, typename InputIt>
+requires bulk_appendable<Container, InputIt>
+WJR_INTRINSIC_INLINE constexpr std::back_insert_iterator<Container>
+copy_to_inserter(InputIt first, InputIt last, std::back_insert_iterator<Container> out) {
+    auto &cont = get_inserter_container(out);
+    if constexpr (appendable_container<Container, InputIt &, InputIt &>) {
+        append(cont, first, last);
+    } else {
+        cont.insert(cont.cend(), first, last);
+    }
+    return out;
+}
+
+template <typename Container, typename InputIt>
+concept bulk_position_insertable =
+    std::ranges::random_access_range<Container> && std::ranges::sized_range<Container> &&
+    requires(Container &cont, std::ranges::iterator_t<Container> pos, InputIt &first,
+             InputIt &last) {
+        { cont.insert(pos, first, last) } -> std::same_as<std::ranges::iterator_t<Container>>;
+    };
+
+template <typename Container, typename InputIt>
+requires bulk_position_insertable<Container, InputIt>
+WJR_INTRINSIC_INLINE constexpr std::insert_iterator<Container>
+copy_to_inserter(InputIt first, InputIt last, std::insert_iterator<Container> out) {
+    auto &cont = get_inserter_container(out);
+    const auto old_size = std::ranges::size(cont);
+    const auto inserted = cont.insert(get_inserter_iterator(out), first, last);
+    const auto count = std::ranges::size(cont) - old_size;
+    // The original position may have been invalidated by insert.
+    return std::inserter(cont,
+                         inserted + static_cast<std::ranges::range_difference_t<Container>>(count));
+}
+
+template <typename InputIt, typename OutputIt>
+concept bulk_copyable =
+    requires(InputIt first, OutputIt out) { copy_detail::copy_to_inserter(first, first, out); };
+
+} // namespace copy_detail
+
+/// @private Internal implementation for optimized copy operation.
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt _copy_impl(InputIt first, InputIt last, OutputIt d_first) {
-    using Out = remove_cvref_t<OutputIt>;
-
-    if constexpr (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>) {
-        using Container = typename Out::container_type;
-
-        if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (has_container_append_v<Container, InputIt, InputIt>) {
-                append(get_inserter_container(d_first), first, last);
-                return d_first;
-            } else if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                cont.insert(cont.cend(), first, last);
-                return d_first;
-            } else {
-                return std::copy(first, last, d_first);
-            }
-        } else {
-            if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                const auto pos = get_inserter_iterator(d_first);
-                cont.insert(pos, first, last);
-                return d_first;
-            } else {
-                return std::copy(first, last, d_first);
-            }
-        }
+    if constexpr (copy_detail::bulk_copyable<InputIt, OutputIt>) {
+        return copy_detail::copy_to_inserter(first, last, d_first);
     } else {
         return std::copy(first, last, d_first);
     }
@@ -71,13 +95,13 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 /// @private
 template <typename InputIt, typename OutputIt>
 constexpr OutputIt _copy_restrict_aux(add_restrict_t<InputIt> first, InputIt last,
-                                      add_restrict_t<OutputIt> d_first) noexcept {
+                                      add_restrict_t<OutputIt> d_first) {
     return wjr::copy(first, last, d_first);
 }
 
 /// @private
 template <typename InputIt, typename OutputIt>
-constexpr OutputIt _copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) noexcept {
+constexpr OutputIt _copy_restrict_impl(InputIt first, InputIt last, OutputIt d_first) {
     return _copy_restrict_aux<InputIt, OutputIt>(first, last, d_first);
 }
 
@@ -104,33 +128,12 @@ constexpr OutputIt copy_restrict(InputIt first, InputIt last, OutputIt d_first) 
 /// @private Internal implementation for optimized copy_n operation
 template <typename InputIt, typename Size, typename OutputIt>
 constexpr OutputIt _copy_n_impl(InputIt first, Size count, OutputIt d_first) {
-    using Out = remove_cvref_t<OutputIt>;
-
     if constexpr (is_random_access_iterator_v<InputIt> &&
-                  (is_back_insert_iterator_v<Out> || is_insert_iterator_v<Out>)) {
-        using Container = typename Out::container_type;
-
-        if constexpr (is_back_insert_iterator_v<Out>) {
-            if constexpr (has_container_append_v<Container, InputIt, InputIt>) {
-                append(get_inserter_container(d_first), first, std::next(first, count));
-                return d_first;
-            } else if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                cont.insert(cont.cend(), first, std::next(first, count));
-                return d_first;
-            } else {
-                return std::copy_n(first, count, d_first);
-            }
-        } else {
-            if constexpr (has_container_insert_v<Container, InputIt, InputIt>) {
-                auto &cont = get_inserter_container(d_first);
-                const auto pos = get_inserter_iterator(d_first);
-                cont.insert(pos, first, std::next(first, count));
-                return d_first;
-            } else {
-                return std::copy_n(first, count, d_first);
-            }
+                  copy_detail::bulk_copyable<InputIt, OutputIt>) {
+        if (count <= 0) {
+            return d_first;
         }
+        return copy_detail::copy_to_inserter(first, std::next(first, count), d_first);
     } else {
         return std::copy_n(first, count, d_first);
     }
