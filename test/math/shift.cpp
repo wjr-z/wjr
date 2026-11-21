@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <array>
+#include <limits>
+
 #include <gtest/gtest.h>
 
 #include <wjr/math/shift.hpp>
@@ -48,4 +52,56 @@ TEST(shift, complemented_array_shifts) {
     EXPECT_EQ(rshiftc_n(right, source, 2, 4, 0xb0000000u), 0x70000000u);
     EXPECT_EQ(right[0], 0x0fedcba9u);
     EXPECT_EQ(right[1], 0xf7654321u);
+}
+
+namespace {
+
+template <typename T>
+void verify_overlapping_shifts() {
+    constexpr auto width = std::numeric_limits<T>::digits;
+    constexpr T fill = static_cast<T>(0xaabbccddeeff1357ull);
+    for (size_t n : {1u, 6u, 7u, 17u}) {
+        std::array<T, 18> original{};
+        for (size_t i = 0; i != n; ++i) {
+            original[i] = static_cast<T>(0xfedcba9876543210ull - i * 0x1234567u);
+        }
+        for (unsigned int shift : {1, width / 2, width - 1}) {
+            SCOPED_TRACE(n);
+            SCOPED_TRACE(shift);
+            auto left = original;
+            auto left_complement = original;
+            EXPECT_EQ(lshift_n(left.data() + 1, left.data(), n, shift, fill),
+                      static_cast<T>(original[n - 1] >> (width - shift)));
+            EXPECT_EQ(lshiftc_n(left_complement.data() + 1, left_complement.data(), n, shift, fill),
+                      static_cast<T>(original[n - 1] >> (width - shift)));
+
+            std::array<T, 18> right{};
+            std::copy_n(original.data(), n, right.data() + 1);
+            auto right_complement = right;
+            EXPECT_EQ(rshift_n(right.data(), right.data() + 1, n, shift, fill),
+                      static_cast<T>(original[0] << (width - shift)));
+            EXPECT_EQ(
+                rshiftc_n(right_complement.data(), right_complement.data() + 1, n, shift, fill),
+                static_cast<T>(original[0] << (width - shift)));
+
+            for (size_t i = 0; i != n; ++i) {
+                const auto below = i == 0 ? fill : original[i - 1];
+                const auto above = i + 1 == n ? fill : original[i + 1];
+                const auto l = static_cast<T>((original[i] << shift) | (below >> (width - shift)));
+                const auto r = static_cast<T>((original[i] >> shift) | (above << (width - shift)));
+                EXPECT_EQ(left[i + 1], l);
+                EXPECT_EQ(left_complement[i + 1], static_cast<T>(~l));
+                EXPECT_EQ(right[i], r);
+                EXPECT_EQ(right_complement[i], static_cast<T>(~r));
+            }
+        }
+    }
+}
+
+} // namespace
+
+TEST(shift, overlapping_buffers_for_standard_unsigned_types) {
+    verify_overlapping_shifts<uint16_t>();
+    verify_overlapping_shifts<unsigned long>();
+    verify_overlapping_shifts<unsigned long long>();
 }
