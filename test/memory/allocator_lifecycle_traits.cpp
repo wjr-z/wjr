@@ -4,7 +4,7 @@
 #include <type_traits>
 
 #include <wjr/crtp/trivially_allocator_base.hpp>
-#include <wjr/memory/uninitialized.hpp>
+#include <wjr/memory/temporary_value_allocator.hpp>
 
 namespace {
 
@@ -118,6 +118,92 @@ void verify_hooks() {
 }
 
 } // namespace
+
+namespace {
+
+struct copy_assign_only {
+    copy_assign_only() = default;
+    copy_assign_only(const copy_assign_only &) = delete;
+    copy_assign_only &operator=(const copy_assign_only &) = default;
+};
+
+static_assert(wjr::get_relocate_mode_v<copy_assign_only> == wjr::relocate_t::trivial);
+static_assert(!std::is_move_constructible_v<copy_assign_only>);
+static_assert(noexcept(wjr::relocate_at(std::declval<copy_assign_only *>(),
+                                        std::declval<copy_assign_only *>())));
+
+struct hook_failure {};
+
+struct throwing_relocation_allocator : std::allocator<int> {
+    bool fail_construct = false;
+    bool fail_destroy = false;
+
+    void construct(int *ptr, int &&value) {
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        if (fail_construct) {
+            throw hook_failure{};
+        }
+#endif
+        std::construct_at(ptr, value);
+    }
+
+    void destroy(int *ptr) {
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+        if (fail_destroy) {
+            throw hook_failure{};
+        }
+#endif
+        std::destroy_at(ptr);
+    }
+};
+
+static_assert(noexcept(wjr::destroy_at_using_allocator(std::declval<int *>(),
+                                                       std::declval<std::allocator<int> &>())));
+static_assert(std::is_nothrow_destructible_v<wjr::temporary_value_allocator<std::allocator<int>>>);
+static_assert(
+    !std::is_nothrow_destructible_v<wjr::temporary_value_allocator<throwing_relocation_allocator>>);
+static_assert(noexcept(wjr::uninitialized_relocate_at_using_allocator(
+    std::declval<int *>(), std::declval<int *>(), std::declval<std::allocator<int> &>())));
+static_assert(!noexcept(wjr::uninitialized_relocate_at_using_allocator(
+    std::declval<int *>(), std::declval<int *>(),
+    std::declval<throwing_relocation_allocator &>())));
+
+} // namespace
+
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+TEST(allocator_lifecycle_traits, relocation_construct_failure_preserves_source) {
+    throwing_relocation_allocator alloc;
+    auto *source = alloc.allocate(1);
+    auto *dest = alloc.allocate(1);
+    std::construct_at(source, 37);
+
+    alloc.fail_construct = true;
+    EXPECT_THROW(wjr::uninitialized_relocate_at_using_allocator(source, dest, alloc), hook_failure);
+    EXPECT_EQ(*source, 37);
+
+    alloc.fail_construct = false;
+    EXPECT_EQ(wjr::uninitialized_relocate_at_using_allocator(source, dest, alloc), dest);
+    EXPECT_EQ(*dest, 37);
+    std::destroy_at(dest);
+    alloc.deallocate(dest, 1);
+    alloc.deallocate(source, 1);
+}
+
+TEST(allocator_lifecycle_traits, relocation_destroy_failure_leaves_destination_live) {
+    throwing_relocation_allocator alloc;
+    auto *source = alloc.allocate(1);
+    auto *dest = alloc.allocate(1);
+    std::construct_at(source, 53);
+
+    alloc.fail_destroy = true;
+    EXPECT_THROW(wjr::uninitialized_relocate_at_using_allocator(source, dest, alloc), hook_failure);
+    EXPECT_EQ(*dest, 53);
+    std::destroy_at(dest);
+    std::destroy_at(source);
+    alloc.deallocate(dest, 1);
+    alloc.deallocate(source, 1);
+}
+#endif
 
 namespace allocator_lifecycle_customization {
 struct detected_hooks {};
