@@ -26,6 +26,7 @@
 #define WJR_SPANSTREAM_HPP__
 
 #include <istream>
+#include <limits>
 #include <ostream>
 #include <streambuf>
 
@@ -98,7 +99,7 @@ public:
         if (_M_mode & std::ios_base::out) {
             this->setp(_s.data(), _s.data() + _s.size());
             if (_M_mode & std::ios_base::ate)
-                this->pbump(_s.size());
+                _bump_put(_s.size());
         }
         if (_M_mode & std::ios_base::in)
             this->setg(_s.data(), _s.data(), _s.data() + _s.size());
@@ -112,61 +113,51 @@ protected:
         return this;
     }
 
-    pos_type seekoff(off_type _off, std::ios_base::seekdir _way,
-                     std::ios_base::openmode _which = std::ios_base::in |
-                                                      std::ios_base::out) override {
-        pos_type _ret = pos_type(off_type(-1));
+    pos_type seekoff(off_type offset, std::ios_base::seekdir way,
+                     std::ios_base::openmode which = std::ios_base::in |
+                                                     std::ios_base::out) override {
+        const pos_type failure(off_type(-1));
+        const bool input = (which & std::ios_base::in) != 0;
+        const bool output = (which & std::ios_base::out) != 0;
 
-        if (_way == std::ios_base::beg) {
-            if (0 <= _off && to_unsigned(_off) <= _M_buf.size()) {
-                if (_which & std::ios_base::in)
-                    this->setg(this->eback(), this->eback() + _off, this->egptr());
-
-                if (_which & std::ios_base::out) {
-                    this->setp(this->pbase(), this->epptr());
-                    this->pbump(_off);
-                }
-
-                _ret = pos_type(_off);
-            }
-        } else {
-            off_type _base{};
-            _which &= (std::ios_base::in | std::ios_base::out);
-
-            if (_which == std::ios_base::out)
-                _base = this->pptr() - this->pbase();
-            else if (_way == std::ios_base::cur) {
-                if (_which == std::ios_base::in)
-                    _base = this->gptr() - this->eback();
-                else
-                    return _ret;
-            } else if (_way == std::ios_base::end)
-                _base = _M_buf.size();
-            else /* way is not ios::beg, ios::cur, or ios::end */ /* [[unlikely]] */
-                return _ret;
-
-            WJR_ASSERT(_base >= 0);
-
-            off_type _offset;
-            if (WJR_UNLIKELY(add_overflow(_base, _off, _offset)))
-                return _ret;
-
-            if (WJR_UNLIKELY(_offset < 0 || to_unsigned(_offset) > _M_buf.size()))
-                return _ret;
-
-            _off = _offset;
-
-            if (_which & std::ios_base::in)
-                this->setg(this->eback(), this->eback() + _off, this->egptr());
-
-            if (_which & std::ios_base::out) {
-                this->setp(this->pbase(), this->epptr());
-                this->pbump(_off);
-            }
-
-            _ret = pos_type(_off);
+        off_type base = 0;
+        switch (way) {
+        case std::ios_base::beg:
+            break;
+        case std::ios_base::cur:
+            if (input == output)
+                return failure;
+            base = input ? this->gptr() - this->eback() : this->pptr() - this->pbase();
+            break;
+        case std::ios_base::end:
+            // The buffer's open mode, rather than the requested sequence, determines the end.
+            base = (_M_mode & (std::ios_base::in | std::ios_base::out)) == std::ios_base::out
+                       ? this->pptr() - this->pbase()
+                       : static_cast<off_type>(_M_buf.size());
+            break;
+        default:
+            return failure;
         }
-        return _ret;
+
+        off_type position;
+        if (WJR_UNLIKELY(add_overflow(base, offset, position) || position < 0 ||
+                         to_unsigned(position) > _M_buf.size())) {
+            return failure;
+        }
+
+        if (position != 0 &&
+            ((input && this->gptr() == nullptr) || (output && this->pptr() == nullptr))) {
+            return failure;
+        }
+
+        if (input)
+            this->setg(this->eback(), this->eback() + position, this->egptr());
+
+        if (output) {
+            this->setp(this->pbase(), this->epptr());
+            _bump_put(static_cast<size_t>(position));
+        }
+        return pos_type(position);
     }
 
     pos_type seekpos(pos_type _sp, std::ios_base::openmode _which = std::ios_base::in |
@@ -175,6 +166,16 @@ protected:
     }
 
 private:
+    /// @brief Advance the output cursor without narrowing a span-sized offset.
+    void _bump_put(size_t count) noexcept {
+        constexpr auto max_step = static_cast<size_t>((std::numeric_limits<int>::max)());
+        while (WJR_UNLIKELY(count > max_step)) {
+            this->pbump(static_cast<int>(max_step));
+            count -= max_step;
+        }
+        this->pbump(static_cast<int>(count));
+    }
+
     std::ios_base::openmode _M_mode;
     wjr::span<_CharT> _M_buf;
 };

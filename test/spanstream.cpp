@@ -1,3 +1,5 @@
+#include <limits>
+
 #include <gtest/gtest.h>
 
 #include <wjr/spanstream.hpp>
@@ -119,6 +121,59 @@ TEST(spanstream, spanbuf_output_position_and_setbuf) {
     char at_data[4] = {};
     spanbuf at_buffer(span<char>(at_data, 4), std::ios_base::out | std::ios_base::ate);
     EXPECT_EQ(at_buffer.span().size(), 4);
+}
+
+TEST(spanstream, end_seek_uses_buffer_mode) {
+    using ios = std::ios_base;
+    char data[] = "abcdef";
+    spanbuf both(span<char>(data, 6), ios::in | ios::out);
+    EXPECT_EQ(both.pubseekpos(1, ios::in), spanbuf::pos_type(1));
+    EXPECT_EQ(both.sputn("AB", 2), 2);
+    EXPECT_EQ(both.pubseekoff(-1, ios::end, ios::out), spanbuf::pos_type(5));
+    EXPECT_EQ(both.sgetc(), 'B');
+    EXPECT_EQ(both.sputc('X'), 'X');
+    EXPECT_EQ(std::string_view(data, 6), "ABcdeX");
+
+    spanbuf output(span<char>(data, 6), ios::out);
+    EXPECT_EQ(output.sputn("pq", 2), 2);
+    EXPECT_EQ(output.pubseekoff(-1, ios::end, ios::out), spanbuf::pos_type(1));
+    EXPECT_EQ(output.span().size(), 1);
+}
+
+TEST(spanstream, failed_seek_does_not_update_either_sequence) {
+    using ios = std::ios_base;
+    const spanbuf::pos_type failure(spanbuf::off_type(-1));
+    char data[] = "abcdef";
+    spanbuf output(span<char>(data, 6), ios::out);
+    EXPECT_EQ(output.sputn("AB", 2), 2);
+    EXPECT_EQ(output.pubseekpos(3, ios::in | ios::out), failure);
+    EXPECT_EQ(output.pubseekoff(0, ios::cur, ios::out), spanbuf::pos_type(2));
+    EXPECT_EQ(output.pubseekoff(1, ios::end, ios::in), failure);
+
+    spanbuf input(span<char>(data, 6), ios::in);
+    EXPECT_EQ(input.pubseekpos(1, ios::in), spanbuf::pos_type(1));
+    EXPECT_EQ(input.pubseekpos(3, ios::in | ios::out), failure);
+    EXPECT_EQ(input.sgetc(), 'B');
+    EXPECT_EQ(input.pubseekpos(0, ios::out), spanbuf::pos_type(0));
+    EXPECT_EQ(input.sgetc(), 'B');
+
+    spanbuf both(span<char>(data, 6));
+    EXPECT_EQ(both.pubseekpos(2, ios::in | ios::out), spanbuf::pos_type(2));
+    EXPECT_EQ(both.pubseekoff((std::numeric_limits<spanbuf::off_type>::max)(), ios::end), failure);
+    EXPECT_EQ(both.pubseekoff((std::numeric_limits<spanbuf::off_type>::min)(), ios::end), failure);
+    EXPECT_EQ(both.sgetc(), 'c');
+    EXPECT_EQ(both.span().size(), 2);
+}
+
+TEST(spanstream, empty_buffer_can_seek_to_zero) {
+    using ios = std::ios_base;
+    const spanbuf::pos_type failure(spanbuf::off_type(-1));
+    spanbuf empty;
+    EXPECT_EQ(empty.pubseekpos(0), spanbuf::pos_type(0));
+    EXPECT_EQ(empty.pubseekoff(0, ios::end), spanbuf::pos_type(0));
+    EXPECT_EQ(empty.pubseekoff(1, ios::beg), failure);
+    EXPECT_EQ(empty.pubseekoff(0, ios::cur), failure);
+    EXPECT_TRUE(empty.span().empty());
 }
 
 #endif
