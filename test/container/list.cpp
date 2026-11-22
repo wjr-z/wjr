@@ -111,3 +111,60 @@ TEST(intrusive_list, entry_macros_handle_empty_final_and_const_links) {
         EXPECT_EQ(visited, count);
     }
 }
+TEST(intrusive_list, swap_adjacent_and_nonadjacent_nodes) {
+    intrusive::list_node<> head, first, second, third;
+    head.push_back(&first);
+    head.push_back(&second);
+    head.push_back(&third);
+
+    const auto expect_ring = [&](auto &a, auto &b, auto &c) {
+        EXPECT_EQ(head.next(), &a);
+        EXPECT_EQ(a.next(), &b);
+        EXPECT_EQ(b.next(), &c);
+        EXPECT_EQ(c.next(), &head);
+        EXPECT_EQ(head.prev(), &c);
+        EXPECT_EQ(c.prev(), &b);
+        EXPECT_EQ(b.prev(), &a);
+        EXPECT_EQ(a.prev(), &head);
+    };
+
+    swap_with(&first, &second);
+    expect_ring(second, first, third);
+    swap_with(&first, &second);
+    expect_ring(first, second, third);
+    swap_with(&first, &third);
+    expect_ring(third, second, first);
+    swap_with(&first, &first);
+    expect_ring(third, second, first);
+}
+
+TEST(intrusive_list, swap_singleton_and_nonempty_rings) {
+    intrusive::list_node<> empty, head, node;
+
+    swap_with(&empty, &head);
+    EXPECT_TRUE(empty.empty());
+    EXPECT_TRUE(head.empty());
+    head.push_back(&node);
+
+    swap_with(&empty, &head);
+    EXPECT_EQ(empty.next(), &node);
+    EXPECT_EQ(empty.prev(), &node);
+    EXPECT_EQ(node.next(), &empty);
+    EXPECT_EQ(node.prev(), &empty);
+    ASSERT_EQ(head.next(), &head);
+    ASSERT_EQ(head.prev(), &head);
+
+    swap_with(&empty, &head);
+    EXPECT_EQ(head.next(), &node);
+    EXPECT_EQ(head.prev(), &node);
+    EXPECT_EQ(node.next(), &head);
+    EXPECT_EQ(node.prev(), &head);
+    EXPECT_EQ(empty.next(), &empty);
+    EXPECT_EQ(empty.prev(), &empty);
+
+    swap_with(&head, &node);
+    EXPECT_EQ(head.next(), &node);
+    EXPECT_EQ(head.prev(), &node);
+    EXPECT_EQ(node.next(), &head);
+    EXPECT_EQ(node.prev(), &head);
+}
