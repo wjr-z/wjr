@@ -55,3 +55,10 @@ void check_boundaries() {
 TEST(set, uint16_boundaries) { check_boundaries<uint16_t>(); }
 TEST(set, uint32_boundaries) { check_boundaries<uint32_t>(); }
 TEST(set, uint64_boundaries) { check_boundaries<uint64_t>(); }
+
+TEST(set, standard_long_types) {
+    for (size_t n : {0, 1, 3, 5, 9, 17, 65, 257, 1025}) {
+        check_fill(n, 1, static_cast<unsigned long>(0xf1234567ul));
+        check_fill(n, 3, 0x8123456789abcdefull);
+    }
+}
