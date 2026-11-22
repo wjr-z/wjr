@@ -1536,21 +1536,38 @@ public:
      * owned; input failure may leave a completed tail appended before its final rotation.
      */
     template <vector_detail::insertable_range<value_type> Range>
-    WJR_CONSTEXPR20 basic_vector &replace_range(const_iterator from, const_iterator to,
-                                                Range &&range) {
+    WJR_INTRINSIC_CONSTEXPR20 basic_vector &replace_range(const_iterator from, const_iterator to,
+                                                          Range &&range) {
         auto *const old_first = _get_pointer(from);
         auto *const old_last = _get_pointer(to);
         const auto removed = static_cast<size_type>(old_last - old_first);
         if constexpr (container_detail::countable_range<Range>) {
-            const auto count = container_detail::checked_range_size<size_type>(
-                range, max_size() - (size() - removed), "vector::replace_range: size overflow");
-            auto first = [&] {
+            const auto incoming = container_detail::range_size(range);
+            const auto source = [&] {
                 if constexpr (std::copy_constructible<std::ranges::iterator_t<Range>>)
                     return wjr::_iter_base(std::ranges::begin(range));
                 else
                     return std::ranges::begin(range);
-            }();
-            _replace_range_n<decltype(first)>(old_first, old_last, first, count);
+            };
+
+            using Iter = decltype(source());
+            using ref = iterator_reference_t<Iter>;
+            if constexpr (std::unsigned_integral<decltype(incoming)> && std::is_pointer_v<Iter> &&
+                          std::same_as<pointer, value_type *> &&
+                          std::same_as<remove_cvref_t<ref>, value_type> &&
+                          !std::is_volatile_v<std::remove_reference_t<ref>> &&
+                          std::is_trivially_copyable_v<value_type> &&
+                          std::is_trivially_assignable_v<value_type &, ref>) {
+                if (!std::is_constant_evaluated() && incoming == removed) {
+                    maybe_null_memcpy(old_first, source(), removed * sizeof(value_type));
+                    return *this;
+                }
+            }
+
+            const auto count = container_detail::checked_count(
+                incoming, max_size() - (size() - removed), "vector::replace_range: size overflow");
+            auto first = source();
+            _replace_range_n<Iter>(old_first, old_last, first, count);
         } else {
             const auto original_size = size();
             const auto last_offset = static_cast<size_type>(old_last - data());
