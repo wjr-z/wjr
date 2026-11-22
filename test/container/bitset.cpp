@@ -2,6 +2,7 @@
 
 #include <wjr/bitset.hpp>
 
+#include <bitset>
 #include <sstream>
 
 using namespace wjr;
@@ -40,6 +41,38 @@ TEST(bitset, constructor) {
     EXPECT_TRUE(bs5.test(2));
     EXPECT_TRUE(bs5.test(4));
     EXPECT_TRUE(bs5.test(6));
+}
+
+TEST(bitset, text_construction_across_words) {
+    constexpr bitset<8> narrow(std::string_view("101"));
+    static_assert(narrow.test(0) && !narrow.test(1) && narrow.test(2));
+
+    constexpr auto *wide_text =
+        L"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+        L"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyn";
+    constexpr bitset<65> wide(wide_text, 65, L'n', L'y');
+    static_assert(wide.test(64) && wide.count() == 64 && !wide.test(0));
+    char mutable_text[] = "101";
+    EXPECT_EQ(bitset<8>(mutable_text, 3).to_string(), "00000101");
+
+    std::string digits(141, '0');
+    for (size_t i = 0; i < digits.size(); i += 3) {
+        digits[i] = '1';
+    }
+    for (size_t length : {0, 1, 63, 64, 65, 127, 128, 129, 139}) {
+        auto view = std::string_view(digits);
+        EXPECT_EQ(bitset<129>(view, 2, length).to_string(),
+                  std::bitset<129>(digits, 2, std::min(length, size_t(129))).to_string());
+    }
+
+#if !defined(WJR_DISABLE_EXCEPTIONS)
+    auto invalid = digits.substr(0, 129);
+    invalid.front() = 'x';
+    EXPECT_THROW((void)bitset<129>(std::string_view(invalid)), std::invalid_argument);
+    invalid.front() = '1';
+    invalid.back() = 'x';
+    EXPECT_THROW((void)bitset<129>(std::string_view(invalid)), std::invalid_argument);
+#endif
 }
 
 TEST(bitset, equality) {
