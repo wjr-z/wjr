@@ -42,9 +42,13 @@ public:
     }
     ~arena() = default;
 
+    /**
+     * @brief Allocate aligned storage from the arena.
+     * @pre n is positive.
+     */
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        // A fresh arena has two null cursors and zero remaining bytes.
-        if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n || (n == 0 && m_start == nullptr))) {
+        // A fresh or moved-from arena has two null cursors and zero remaining bytes.
+        if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n)) {
             return _allocate_large(n);
         }
 
