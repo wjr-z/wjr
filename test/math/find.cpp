@@ -79,3 +79,10 @@ TEST(math, find_integral_dispatch) {
     check_search_boundaries<int64_t>();
     check_search_boundaries<uint64_t>();
 }
+
+TEST(math, find_standard_long_types) {
+    check_search_boundaries<long>();
+    check_search_boundaries<unsigned long>();
+    check_search_boundaries<long long>();
+    check_search_boundaries<unsigned long long>();
+}
