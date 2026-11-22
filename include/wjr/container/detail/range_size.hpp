@@ -26,13 +26,18 @@ constexpr Size checked_count(Count count, Size limit, [[maybe_unused]] const cha
     return static_cast<Size>(count);
 }
 
+template <countable_range Range>
+constexpr auto range_size(Range &range) {
+    if constexpr (std::ranges::sized_range<Range>) {
+        return std::ranges::size(range);
+    } else {
+        return std::ranges::distance(range);
+    }
+}
+
 template <typename Size, countable_range Range>
 constexpr Size checked_range_size(Range &range, Size limit, const char *message) {
-    if constexpr (std::ranges::sized_range<Range>) {
-        return checked_count(std::ranges::size(range), limit, message);
-    } else {
-        return checked_count(std::ranges::distance(range), limit, message);
-    }
+    return checked_count(container_detail::range_size(range), limit, message);
 }
 
 } // namespace wjr::container_detail
