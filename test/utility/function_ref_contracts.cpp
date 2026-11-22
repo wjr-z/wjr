@@ -46,6 +46,17 @@ static_assert(!std::is_default_constructible_v<wjr::function_ref<int(int)>>);
 static_assert(sizeof(wjr::function_ref<int(int)>) == 2 * sizeof(void *));
 static_assert(sizeof(wjr::function_ref<int(int) const noexcept>) == 2 * sizeof(void *));
 
+struct incomplete_argument;
+using incomplete_reference = wjr::function_ref<int(incomplete_argument)>;
+static_assert(sizeof(incomplete_reference) == 2 * sizeof(void *));
+static_assert(std::is_trivially_copyable_v<incomplete_reference>);
+
+struct trivial_argument {
+    int first;
+    int second;
+};
+static_assert(std::is_same_v<wjr::func_detail::thunk_arg_t<trivial_argument>, trivial_argument>);
+
 template <typename Signature>
 void check_cv_dispatch(bool impose_const) {
     qualified_callable mutable_target;
@@ -67,6 +78,23 @@ void check_cv_dispatch(bool impose_const) {
 }
 
 int square(int value) noexcept { return value * value; }
+
+struct immobile_argument {
+    int value;
+    explicit immobile_argument(int v) noexcept : value(v) {}
+    immobile_argument(const immobile_argument &) = delete;
+    immobile_argument(immobile_argument &&) = delete;
+};
+
+int read_argument(const immobile_argument &arg) noexcept { return arg.value; }
+
+struct counted_argument {
+    int moves = 0;
+
+    counted_argument() = default;
+    counted_argument(const counted_argument &) = delete;
+    counted_argument(counted_argument &&other) noexcept : moves(other.moves + 1) {}
+};
 
 } // namespace
 
@@ -93,4 +121,21 @@ TEST(function_ref_contracts, retains_function_and_nontype_targets) {
     EXPECT_EQ(direct(4), 16);
     EXPECT_EQ(fixed(4), 16);
     EXPECT_EQ(constant(4), 16);
+}
+
+TEST(function_ref_contracts, borrows_existing_by_value_parameter) {
+    using reference_type = wjr::function_ref<int(immobile_argument) const noexcept>;
+    const auto callable = [](const immobile_argument &arg) noexcept { return arg.value + 1; };
+    const reference_type object = callable;
+    const reference_type pointer = &read_argument;
+    const reference_type fixed = wjr::nontype<&read_argument>;
+    EXPECT_EQ(object(immobile_argument(6)), 7);
+    EXPECT_EQ(pointer(immobile_argument(8)), 8);
+    EXPECT_EQ(fixed(immobile_argument(12)), 12);
+}
+
+TEST(function_ref_contracts, moves_by_value_parameter_only_into_target) {
+    const auto callable = [](counted_argument arg) noexcept { return arg.moves; };
+    const wjr::function_ref<int(counted_argument) noexcept> reference(callable);
+    EXPECT_EQ(reference(counted_argument()), 1);
 }

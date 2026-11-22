@@ -50,7 +50,8 @@ public:
     function_ref &operator=(Tp) = delete;
 
     Ret operator()(Args... args) const noexcept(WJR_FUNCREF_NOEXCEPT) {
-        return m_func(m_ptr, std::forward<Args>(args)...);
+        using thunk_ptr_t = typename Invoker::template thunk_ptr_t<Args...>;
+        return reinterpret_cast<thunk_ptr_t>(m_func)(m_ptr, std::forward<Args>(args)...);
     }
 
 private:
