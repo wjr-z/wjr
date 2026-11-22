@@ -57,6 +57,11 @@ class span;
 
 namespace span_detail {
 
+/// @brief Accept matching iterator types and distinct sized sentinels.
+template <typename End, typename It>
+concept sized_end_for = std::same_as<End, It> ||
+                        (std::sized_sentinel_for<End, It> && !std::is_convertible_v<End, size_t>);
+
 /// @private
 template <typename T>
 struct _is_std_array : std::false_type {};
@@ -138,14 +143,14 @@ public:
     requires(_is_dynamic || Extent == 0)
         : storage() {}
 
-    template <typename It>
-    requires _is_span_iterator<It, element_type>
+    template <_is_span_iterator<element_type> It>
     constexpr explicit(!_is_dynamic) span(It first, size_type count) noexcept
         : storage(wjr::to_address(first), count) {}
 
-    template <typename It>
-    requires _is_span_iterator<It, element_type>
-    constexpr explicit(!_is_dynamic) span(It first, It last) noexcept
+    /// @note Matching iterator pairs retain their noexcept contract.
+    template <_is_span_iterator<element_type> It, span_detail::sized_end_for<It> End>
+    constexpr explicit(!_is_dynamic)
+        span(It first, End last) noexcept(std::same_as<It, End> || noexcept(last - first))
         : storage(wjr::to_address(first), static_cast<size_type>(last - first)) {}
 
     template <size_t N>
@@ -198,16 +203,6 @@ public:
 private:
     WJR_PURE constexpr iterator _make_iterator(const_pointer ptr) const noexcept {
         return iterator(const_cast<pointer>(ptr), this);
-    }
-
-    WJR_PURE constexpr pointer _get_pointer(iterator ptr) const noexcept {
-        ptr.check_same_container(this);
-        return wjr::to_address(ptr);
-    }
-
-    WJR_PURE constexpr pointer _get_pointer(const_iterator ptr) const noexcept {
-        ptr.check_same_container(this);
-        return const_cast<pointer>(wjr::to_address(ptr));
     }
 
 public:
@@ -351,8 +346,8 @@ span(std::array<T, Size> &) -> span<T, Size>;
 template <typename T, size_t Size>
 span(const std::array<T, Size> &) -> span<const T, Size>;
 
-template <typename It, typename End>
-requires is_contiguous_iterator_v<It>
+template <contiguous_storage_iterator It, typename End>
+requires(std::is_convertible_v<End, size_t> || span_detail::sized_end_for<End, It>)
 span(It, End) -> span<std::remove_reference_t<std::iter_reference_t<It>>>;
 
 template <typename Range>
