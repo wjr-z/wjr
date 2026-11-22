@@ -102,7 +102,11 @@ WJR_INTRINSIC_INLINE void _small_copy_impl(const T *first, const T *last, T *dst
     }
 #endif
 
-    _simd_store(dst, _simd_load<sizeof(T)>(first));
+    if constexpr (std::is_scalar_v<T>) {
+        dst[0] = first[0];
+    } else {
+        _simd_store(dst, _simd_load<sizeof(T)>(first));
+    }
 }
 } // namespace detail
 
