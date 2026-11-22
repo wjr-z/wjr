@@ -668,7 +668,7 @@ OutputIt uninitialized_relocate_n(InputIt first, Size n, OutputIt dest) {
     if constexpr (std::is_same_v<InputValue, OutputValue> && is_contiguous_iterator_v<InputIt> &&
                   is_contiguous_iterator_v<OutputIt> &&
                   get_relocate_mode_v<InputValue> == relocate_t::trivial) {
-        std::memcpy(wjr::to_address(_dest), wjr::to_address(_first), n * sizeof(InputValue));
+        builtin_memcpy(wjr::to_address(_dest), wjr::to_address(_first), n * sizeof(InputValue));
         return wjr::_iter_wrap(dest, _dest + n);
     } else if constexpr (std::is_same_v<InputValue, OutputValue> &&
                          get_relocate_mode_v<InputValue> == relocate_t::maybe_trivial) {
