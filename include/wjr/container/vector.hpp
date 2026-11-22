@@ -107,6 +107,14 @@ inline constexpr bool counted_pointer_iterator_v = false;
 
 template <typename T>
 inline constexpr bool counted_pointer_iterator_v<std::counted_iterator<T *>> = true;
+
+/// @brief Standard subrange endpoints just copy the counted pointer and its sentinel.
+template <typename Range>
+inline constexpr bool counted_pointer_subrange_v = false;
+
+template <typename T, std::ranges::subrange_kind Kind>
+inline constexpr bool counted_pointer_subrange_v<
+    std::ranges::subrange<std::counted_iterator<T *>, std::default_sentinel_t, Kind>> = true;
 } // namespace vector_detail
 
 template <typename T, typename Alloc>
@@ -982,6 +990,20 @@ public:
                     wjr::uninitialized_copy_restrict_using_allocator(
                         std::ranges::begin(range), std::ranges::end(range), end_unsafe(),
                         _get_allocator());
+                    _get_size() += count;
+                }
+            } else if constexpr (vector_detail::counted_pointer_subrange_v<remove_cvref_t<Range>> &&
+                                 std::is_nothrow_copy_constructible_v<Iter> &&
+                                 _can_overwrite_by_copy<std::invoke_result_t<Source &>>) {
+                if (count != 0) {
+                    reserve(size() + count);
+                    auto first = _counted_source(range)();
+                    auto *const output = end_unsafe();
+                    if (count == 1) {
+                        wjr::construct_at(output, *first);
+                    } else {
+                        _construct_range_n(first, count, output);
+                    }
                     _get_size() += count;
                 }
             } else {
