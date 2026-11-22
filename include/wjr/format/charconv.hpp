@@ -37,38 +37,18 @@ namespace charconv_detail {
 
 WJR_CONST constexpr bool isspace(uint8_t ch) noexcept { return isSpace(ch); }
 
+/// @brief A complete byte-sized object type eligible for the contiguous conversion paths.
 template <typename T>
-struct _is_fast_convert_value
-    : std::conjunction<std::is_trivially_copyable<T>, std::bool_constant<sizeof(T) == 1>> {};
+concept fast_convert_value = std::is_object_v<T> && requires { sizeof(T); } && (sizeof(T) == 1) &&
+                             std::is_trivially_copyable_v<T>;
 
-template <typename T>
-inline constexpr bool _is_fast_convert_value_v = _is_fast_convert_value<T>::value;
-
-template <typename Iter, typename = void>
-struct _is_fast_convert_iterator_helper : std::false_type {};
+/// @brief A contiguous iterator whose elements can be accessed as bytes.
+template <typename Iter>
+concept fast_convert_iterator =
+    is_contiguous_iterator_v<Iter> && fast_convert_value<iterator_contiguous_value_t<Iter>>;
 
 template <typename Iter>
-requires(is_contiguous_iterator_v<Iter>)
-struct _is_fast_convert_iterator_helper<Iter>
-    : _is_fast_convert_value<iterator_contiguous_value_t<Iter>> {};
-
-template <typename Iter>
-struct _is_fast_convert_iterator : _is_fast_convert_iterator_helper<Iter> {};
-
-/**
- * @brief Iterator concept that can be used in fast_convert.
- *
- * @details The iterator must be contiguous iterator and the value_type must be
- * trivial and sizeof(value_type) == 1. Cast to_address(iter) to
- * uint8_t*(to_chars)/const uint8_t*(from_chars) in fast_convert.
- *
- */
-template <typename Iter>
-inline constexpr bool _is_fast_convert_iterator_v = _is_fast_convert_iterator<Iter>::value;
-
-/// @brief Contiguous byte iterators admitted by the existing conversion traits.
-template <typename Iter>
-concept fast_convert_iterator = _is_fast_convert_iterator_v<Iter>;
+inline constexpr bool _is_fast_convert_iterator_v = fast_convert_iterator<Iter>;
 
 template <typename Value, typename Converter>
 struct _is_valid_converter : std::false_type {};
@@ -97,27 +77,20 @@ WJR_REGISTER_HAS_TYPE(from_chars_fast_fn_fast_conv,
                       MyBase::_fast_conv(std::declval<const void *>(), std::declval<Args>()...),
                       MyBase);
 
-template <typename Iter, typename = void>
-struct fast_buffer {
-private:
-    using value_type = iterator_value_t<Iter>;
-
-public:
-    using type = std::conditional_t<_is_fast_convert_value_v<value_type>, value_type, char>;
-};
-
-// back_inserter or inserter
-template <insert_iterator Iter>
-struct fast_buffer<Iter> {
-private:
-    using value_type = typename Iter::container_type::value_type;
-
-public:
-    using type = std::conditional_t<_is_fast_convert_value_v<value_type>, value_type, char>;
-};
-
 template <typename Iter>
-using fast_buffer_t = typename fast_buffer<Iter>::type;
+struct output_value {
+    using type = iterator_value_t<Iter>;
+};
+
+template <insert_iterator Iter>
+struct output_value<Iter> {
+    using type = typename Iter::container_type::value_type;
+};
+
+/// @brief Store digits as chars when the output iterator has no suitable byte value type.
+template <typename Iter>
+using fast_buffer_t = std::conditional_t<fast_convert_value<typename output_value<Iter>::type>,
+                                         typename output_value<Iter>::type, char>;
 
 template <typename Container>
 struct _fast_container_inserter_test {
@@ -146,7 +119,7 @@ private:
 
 public:
     static constexpr int value =
-        _is_fast_convert_value_v<typename container_type::value_type> &&
+        fast_convert_value<typename container_type::value_type> &&
                 is_trivially_allocator_construct_v<typename container_type::allocator_type,
                                                    typename container_type::value_type,
                                                    charconv_detail::fast_buffer_t<Iter>>
