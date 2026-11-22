@@ -101,6 +101,12 @@ template <typename Range, typename T>
 concept insertable_range = detail::_container_compatible_range<Range, T> &&
                            std::is_move_constructible_v<T> && std::is_move_assignable_v<T> &&
                            std::is_assignable_v<T &, std::ranges::range_reference_t<Range>>;
+/// @brief A standard counted pointer has no traversal effects beyond advancing its address.
+template <typename Iter>
+inline constexpr bool counted_pointer_iterator_v = false;
+
+template <typename T>
+inline constexpr bool counted_pointer_iterator_v<std::counted_iterator<T *>> = true;
 } // namespace vector_detail
 
 template <typename T, typename Alloc>
@@ -943,28 +949,23 @@ public:
     requires requires(value_type &dst, std::ranges::iterator_t<Range> src) { dst = *src; }
     WJR_CONSTEXPR20 void assign_range(Range &&range) {
         if constexpr (std::ranges::common_range<Range> &&
-                      requires { typename iterator_category_t<std::ranges::iterator_t<Range>>; }) {
+                      is_forward_iterator_v<std::ranges::iterator_t<Range>>) {
             assign(std::ranges::begin(range), std::ranges::end(range));
-        } else {
-            if constexpr (container_detail::countable_range<Range>) {
-                const auto count = container_detail::checked_range_size<size_type>(
-                    range, max_size(), "vector::assign_range: size overflow");
-                clear_if_reserved(count);
-            }
-            auto first = std::ranges::begin(range);
-            const auto last = std::ranges::end(range);
-            size_type assigned = 0;
-            const auto original_size = size();
-            for (; assigned != original_size && first != last; ++assigned, ++first) {
-                (*this)[assigned] = *first;
-            }
-            if (first == last) {
-                _erase_at_end(data() + assigned);
-            } else {
-                for (; first != last; ++first) {
-                    emplace_back(*first);
+        } else if constexpr (container_detail::countable_range<Range>) {
+            const auto count = container_detail::checked_range_size<size_type>(
+                range, max_size(), "vector::assign_range: size overflow");
+            _assign_counted(count, [&range] {
+                auto first = std::ranges::begin(range);
+                (void)std::ranges::end(range);
+                if constexpr (vector_detail::counted_pointer_iterator_v<decltype(first)>) {
+                    return first.base();
+                } else {
+                    return first;
                 }
-            }
+            });
+        } else {
+            auto first = std::ranges::begin(range);
+            _range_assign(std::move(first), std::ranges::end(range), std::input_iterator_tag{});
         }
     }
 
@@ -2048,8 +2049,8 @@ private:
         allocation.release();
     }
 
-    template <typename Iter>
-    WJR_CONSTEXPR20 void _range_append(Iter first, Iter last, std::input_iterator_tag) {
+    template <typename Iter, typename Sentinel>
+    WJR_CONSTEXPR20 void _range_append(Iter first, Sentinel last, std::input_iterator_tag) {
         for (; first != last; ++first) {
             emplace_back(*first);
         }
@@ -2107,8 +2108,8 @@ private:
         }
     }
 
-    template <typename Iter>
-    WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::input_iterator_tag) {
+    template <typename Iter, typename Sentinel>
+    WJR_CONSTEXPR20 void _range_assign(Iter first, Sentinel last, std::input_iterator_tag) {
         pointer cur = data();
         const pointer _end = end_unsafe();
 
@@ -2119,7 +2120,7 @@ private:
         if (first == last) {
             _erase_at_end(cur);
         } else {
-            _range_append(first, last, std::input_iterator_tag());
+            _range_append(std::move(first), std::move(last), std::input_iterator_tag());
         }
     }
 
@@ -2127,49 +2128,89 @@ private:
     WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::forward_iterator_tag) {
         const auto n = container_detail::checked_count<size_type>(
             std::distance(first, last), max_size(), "vector::assign: size overflow");
-        auto &al = _get_allocator();
-        const pointer _begin = data();
-        const pointer _end = end_unsafe();
+        _assign_counted(
+            n, [&first]() noexcept(std::is_nothrow_copy_constructible_v<Iter>) { return first; });
+    }
 
-        if (n <= size()) {
-            wjr::copy_restrict(first, last, _begin);
-            _erase_at_end(_begin + n);
-        } else if (WJR_LIKELY(n <= capacity())) {
-            auto mid = first;
-            std::advance(mid, size());
-            wjr::copy_restrict(first, mid, data());
-            wjr::uninitialized_copy_restrict_using_allocator(mid, last, _end, al);
-            _get_size() = n;
-        } else {
-            if constexpr (is_reallocatable::value) {
-                size_type new_capacity = get_growth_capacity(capacity(), n);
+    template <typename Iter>
+    static constexpr bool _can_overwrite_by_copy = [] {
+        using ref = iterator_reference_t<Iter>;
+        return std::is_pointer_v<Iter> && std::same_as<pointer, value_type *> &&
+               std::same_as<remove_cvref_t<ref>, value_type> &&
+               !std::is_volatile_v<std::remove_reference_t<ref>> &&
+               std::is_trivially_copyable_v<value_type> &&
+               std::is_trivially_assignable_v<value_type &, ref> &&
+               std::is_trivially_constructible_v<value_type, ref> &&
+               is_trivially_allocator_construct_v<_Alty, value_type, ref> &&
+               is_trivially_allocator_destroy_v<_Alty, value_type>;
+    }();
 
-                _grow_storage_type new_storage;
-                uninitialized_construct(new_storage, n, new_capacity);
+    /// @brief Start the source after reserving any new storage.
+    template <typename Start>
+    WJR_CONSTEXPR20 void _assign_counted(size_type n, Start start) {
+        using Iter = std::invoke_result_t<Start &>;
+        const auto old_size = size();
+        if (n > old_size && WJR_UNLIKELY(n > capacity())) {
+            constexpr bool nothrow_incoming =
+                noexcept(start()) &&
+                noexcept(_construct_range_n(std::declval<Iter &>(), n, std::declval<pointer>()));
+            _grow_assignment<nothrow_incoming>(n, get_growth_capacity(capacity(), n),
+                                               [this, &start, n](pointer output, _Alty &) {
+                                                   auto first = start();
+                                                   _construct_range_n(first, n, output);
+                                               });
+            return;
+        }
 
-                const pointer _new_begin = new_storage.data();
-                if constexpr (std::is_pointer_v<Iter> &&
-                              is_trivially_allocator_construct_v<_Alty, value_type,
-                                                                 iterator_reference_t<Iter>> &&
-                              is_trivially_allocator_destroy_v<_Alty, value_type> &&
-                              std::is_nothrow_constructible_v<value_type,
-                                                              iterator_reference_t<Iter>>) {
-                    wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
-                } else {
-                    const auto deallocate = [&al](_grow_storage_type *storage) {
-                        storage->deallocate(al);
-                    };
-                    std::unique_ptr<_grow_storage_type, decltype(deallocate)> rollback(&new_storage,
-                                                                                       deallocate);
-                    wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
-                    rollback.release();
-                }
-
-                _destroy_and_deallocate();
-                _take_storage(new_storage);
-            } else {
-                _unreallocatable_unreachable(n);
+        auto first = start();
+        if constexpr (_can_overwrite_by_copy<Iter>) {
+            if (!std::is_constant_evaluated()) {
+                maybe_null_memcpy(data(), first, n * sizeof(value_type));
+                _get_size() = n;
+                return;
             }
+        }
+
+        const auto common = std::min(n, old_size);
+        if (common != 0) {
+            _assign_range_n(first, common, data());
+        }
+        if (n <= old_size) {
+            _erase_at_end(data() + n);
+        } else {
+            _construct_range_n(first, n - old_size, end_unsafe());
+            _get_size() = n;
+        }
+    }
+
+    template <bool NothrowIncoming, typename Construct>
+    WJR_CONSTEXPR20 void _grow_assignment(size_type n, size_type new_capacity,
+                                          Construct &&construct) {
+        if constexpr (is_reallocatable::value) {
+            auto &al = _get_allocator();
+            _grow_storage_type new_storage;
+            uninitialized_construct(new_storage, n, new_capacity);
+            constexpr bool nothrow_commit = noexcept(_destroy_and_deallocate()) &&
+                                            _is_nothrow_take_storage_impl<_grow_storage_type>;
+            const auto deallocate = [&al](_grow_storage_type *storage) { storage->deallocate(al); };
+            using allocation_guard =
+                std::conditional_t<NothrowIncoming && nothrow_commit, _no_storage_rollback,
+                                   std::unique_ptr<_grow_storage_type, decltype(deallocate)>>;
+            using element_guard = std::conditional_t<nothrow_commit, _no_storage_rollback,
+                                                     _uninitialized_rollback<pointer, _Alty>>;
+            allocation_guard allocation(&new_storage, deallocate);
+            const auto output = new_storage.data();
+            element_guard elements(output, &al);
+            construct(output, al);
+            if constexpr (!nothrow_commit) {
+                elements.current() = output + n;
+            }
+            _destroy_and_deallocate();
+            _take_storage(new_storage);
+            elements.release();
+            allocation.release();
+        } else {
+            _unreallocatable_unreachable(n);
         }
     }
 
@@ -2177,31 +2218,14 @@ private:
         auto &al = _get_allocator();
 
         if (WJR_UNLIKELY(n > capacity())) {
-            if constexpr (is_reallocatable::value) {
-                _grow_storage_type new_storage;
-                uninitialized_construct(new_storage, n, n);
-
-                if constexpr (std::is_nothrow_copy_constructible_v<value_type> &&
-                              is_trivially_allocator_construct_v<_Alty, value_type,
-                                                                 const value_type &> &&
-                              is_trivially_allocator_destroy_v<_Alty, value_type>) {
-                    wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
-                } else {
-                    const auto deallocate = [&al](_grow_storage_type *storage) {
-                        storage->deallocate(al);
-                    };
-                    std::unique_ptr<_grow_storage_type, decltype(deallocate)> rollback(&new_storage,
-                                                                                       deallocate);
-                    wjr::uninitialized_fill_n_using_allocator(new_storage.data(), n, al, val);
-                    rollback.release();
-                }
-
-                _destroy_and_deallocate();
-                _take_storage(new_storage);
-                return;
-            } else {
-                _unreallocatable_unreachable(n);
-            }
+            constexpr bool nothrow_incoming =
+                std::is_nothrow_copy_constructible_v<value_type> &&
+                is_trivially_allocator_construct_v<_Alty, value_type, const value_type &> &&
+                is_trivially_allocator_destroy_v<_Alty, value_type>;
+            _grow_assignment<nothrow_incoming>(n, n, [&val, n](pointer output, _Alty &allocator) {
+                wjr::uninitialized_fill_n_using_allocator(output, n, allocator, val);
+            });
+            return;
         }
 
         if (n > size()) {
@@ -2533,19 +2557,11 @@ private:
             return;
         }
 
-        using ref = iterator_reference_t<Iter>;
-        if constexpr (std::is_pointer_v<Iter> && std::same_as<pointer, value_type *> &&
-                      std::same_as<remove_cvref_t<ref>, value_type> &&
-                      !std::is_volatile_v<std::remove_reference_t<ref>> &&
-                      std::is_trivially_copyable_v<value_type> &&
+        if constexpr (_can_overwrite_by_copy<Iter> &&
                       get_relocate_mode_v<value_type> == relocate_t::trivial &&
                       std::is_trivially_move_constructible_v<value_type> &&
                       std::is_trivially_move_assignable_v<value_type> &&
-                      std::is_trivially_assignable_v<value_type &, ref> &&
-                      std::is_trivially_constructible_v<value_type, ref> &&
-                      is_trivially_allocator_construct_v<_Alty, value_type, ref> &&
-                      is_trivially_allocator_construct_v<_Alty, value_type, value_type &&> &&
-                      is_trivially_allocator_destroy_v<_Alty, value_type>) {
+                      is_trivially_allocator_construct_v<_Alty, value_type, value_type &&>) {
             if (!std::is_constant_evaluated()) {
                 const auto end = end_unsafe();
                 if (old_last != end) {
