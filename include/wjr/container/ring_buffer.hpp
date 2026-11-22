@@ -937,7 +937,7 @@ public:
      * element construction throws. The source is traversed only once.
      */
     template <detail::_container_compatible_range<value_type> Range>
-    WJR_CONSTEXPR20 void append_range(Range &&range) {
+    WJR_INTRINSIC_CONSTEXPR20 void append_range(Range &&range) {
         if constexpr (std::ranges::sized_range<Range>) {
             const auto count = container_detail::checked_range_size<size_type>(
                 range, max_size() - size(), "ring_buffer::append_range: size overflow");
@@ -954,13 +954,13 @@ public:
                 if (!std::is_constant_evaluated()) {
                     const auto first = std::ranges::begin(range);
                     (void)std::ranges::end(range);
-                    if (count == 1) {
+                    if (count > 1) {
+                        _append_trivial_range(first, count);
+                    } else if (count != 0) {
                         auto &tail = _get_tail();
                         wjr::construct_at(tail, *first);
                         increment(tail);
                         ++_get_size();
-                    } else if (count > 1) {
-                        _append_trivial_range(first, count);
                     }
                     return;
                 }
