@@ -20,15 +20,14 @@ namespace _scopy_detail {
 #endif
 
 /// @private SIMD-based copy for small fixed-size ranges
-template <size_t Size, size_t N, size_t MaxN>
-WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *last,
-                               uint_t<Size> *ds, uint_t<Size> *de) noexcept {
+template <size_t N, size_t MaxN, typename T>
+WJR_INTRINSIC_INLINE void copy(const T *first, const T *last, T *ds, T *de) noexcept {
     constexpr size_t Max = std::min(N * 2, MaxN);
     constexpr size_t rest = N == Max ? 0 : constant::bit_ceil(std::min(N, Max - N));
 
     // Load all data first - this pattern is safe for overlapping regions
-    auto x0 = _simd_load<(Size / 8) * N>(first);
-    auto x1 = _simd_load<(Size / 8) * rest>(last - rest);
+    auto x0 = _simd_load<sizeof(T) * N>(first);
+    auto x1 = _simd_load<sizeof(T) * rest>(last - rest);
     // Now store the data
     _simd_store(ds, x0);
     _simd_store(de - rest, x1);
@@ -37,9 +36,8 @@ WJR_INTRINSIC_INLINE void copy(const uint_t<Size> *first, const uint_t<Size> *la
 } // namespace _scopy_detail
 
 /// @private Implementation for small copy optimization based on size range
-template <size_t Size, size_t Min, size_t Max>
-WJR_INTRINSIC_INLINE void _small_copy_impl(const uint_t<Size> *first, const uint_t<Size> *last,
-                                           uint_t<Size> *dst) noexcept {
+template <size_t Min, size_t Max, typename T>
+WJR_INTRINSIC_INLINE void _small_copy_impl(const T *first, const T *last, T *dst) noexcept {
     if constexpr (Min == 0) {
         if (WJR_UNLIKELY(first == last)) {
             return;
@@ -51,17 +49,17 @@ WJR_INTRINSIC_INLINE void _small_copy_impl(const uint_t<Size> *first, const uint
 
 #if defined(WJR_ENABLE_SCOPY)
     #if defined(WJR_ENABLE_SCOPY_16)
-    if constexpr (Size <= 32) {
+    if constexpr (sizeof(T) <= 4) {
         if constexpr (Max > 16) {
             if (WJR_UNLIKELY(n > 16)) {
-                std::memmove(dst, first, n * (Size / 8));
+                std::memmove(dst, first, n * sizeof(T));
                 return;
             }
         }
 
         if constexpr (Max > 8) {
             if (WJR_UNLIKELY(n > 8)) {
-                _scopy_detail::copy<Size, 8, Max>(first, last, dst, dst + n);
+                _scopy_detail::copy<8, Max>(first, last, dst, dst + n);
                 return;
             }
         }
@@ -69,7 +67,7 @@ WJR_INTRINSIC_INLINE void _small_copy_impl(const uint_t<Size> *first, const uint
     #endif
         if constexpr (Max > 8) {
             if (WJR_UNLIKELY(n > 8)) {
-                std::memmove(dst, first, n * (Size / 8));
+                std::memmove(dst, first, n * sizeof(T));
                 return;
             }
         }
@@ -79,42 +77,40 @@ WJR_INTRINSIC_INLINE void _small_copy_impl(const uint_t<Size> *first, const uint
 
     if constexpr (Max > 4) {
         if (WJR_UNLIKELY(n > 4)) {
-            _scopy_detail::copy<Size, 4, Max>(first, last, dst, dst + n);
+            _scopy_detail::copy<4, Max>(first, last, dst, dst + n);
             return;
         }
     }
 
     if constexpr (Max > 2) {
         if (WJR_LIKELY(n >= 2)) {
-            _scopy_detail::copy<Size, 2, Max>(first, last, dst, dst + n);
+            _scopy_detail::copy<2, Max>(first, last, dst, dst + n);
             return;
         }
     } else if constexpr (Max == 2) {
         if (WJR_LIKELY(n == 2)) {
-            _scopy_detail::copy<Size, 2, 2>(first, last, dst, dst + n);
+            _scopy_detail::copy<2, 2>(first, last, dst, dst + n);
             return;
         }
     }
 #else
     if constexpr (Max > 1) {
         if (WJR_UNLIKELY(n != 1)) {
-            std::memmove(dst, first, n * (Size / 8));
+            std::memmove(dst, first, n * sizeof(T));
             return;
         }
     }
 #endif
 
-    dst[0] = first[0];
+    _simd_store(dst, _simd_load<sizeof(T)>(first));
 }
 } // namespace detail
 
-// todo: requires T is nonbool integral
+/// @brief Copy a small range of trivially copyable objects, including overlapping ranges.
+/// @pre The source has between Min and Max elements and the destination has room for them.
 template <size_t Min = 0, size_t Max = std::numeric_limits<size_t>::max(), typename T>
 WJR_INTRINSIC_INLINE void small_copy(T const *first, T const *last, T *dst) noexcept {
-    constexpr size_t Size = sizeof(T) * 8;
-
-    detail::_small_copy_impl<Size, Min, Max>((const uint_t<Size> *)(first),
-                                             (const uint_t<Size> *)(last), (uint_t<Size> *)(dst));
+    detail::_small_copy_impl<Min, Max>(first, last, dst);
 }
 } // namespace wjr
 
