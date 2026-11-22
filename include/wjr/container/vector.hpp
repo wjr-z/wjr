@@ -107,6 +107,14 @@ inline constexpr bool counted_pointer_iterator_v = false;
 
 template <typename T>
 inline constexpr bool counted_pointer_iterator_v<std::counted_iterator<T *>> = true;
+
+/// @brief Standard subrange endpoints just copy the counted pointer and its sentinel.
+template <typename Range>
+inline constexpr bool counted_pointer_subrange_v = false;
+
+template <typename T, std::ranges::subrange_kind Kind>
+inline constexpr bool counted_pointer_subrange_v<
+    std::ranges::subrange<std::counted_iterator<T *>, std::default_sentinel_t, Kind>> = true;
 } // namespace vector_detail
 
 template <typename T, typename Alloc>
@@ -954,15 +962,7 @@ public:
         } else if constexpr (container_detail::countable_range<Range>) {
             const auto count = container_detail::checked_range_size<size_type>(
                 range, max_size(), "vector::assign_range: size overflow");
-            _assign_counted(count, [&range] {
-                auto first = std::ranges::begin(range);
-                (void)std::ranges::end(range);
-                if constexpr (vector_detail::counted_pointer_iterator_v<decltype(first)>) {
-                    return first.base();
-                } else {
-                    return first;
-                }
-            });
+            _assign_counted(count, _counted_source(range));
         } else {
             auto first = std::ranges::begin(range);
             _range_assign(std::move(first), std::ranges::end(range), std::input_iterator_tag{});
@@ -980,17 +980,38 @@ public:
         if constexpr (container_detail::countable_range<Range>) {
             const auto count = container_detail::checked_range_size<size_type>(
                 range, max_size() - size(), "vector::append_range: size overflow");
-            if (count != 0) {
-                reserve(size() + count);
-                wjr::uninitialized_copy_restrict_using_allocator(std::ranges::begin(range),
-                                                                 std::ranges::end(range),
-                                                                 end_unsafe(), _get_allocator());
-                _get_size() += count;
+            using Iter = std::ranges::iterator_t<Range>;
+            using Source = decltype(_counted_source(range));
+            if constexpr (std::ranges::common_range<Range> && is_contiguous_iterator_v<Iter> &&
+                          noexcept(std::declval<Source &>()()) &&
+                          _can_overwrite_by_copy<std::invoke_result_t<Source &>>) {
+                if (count != 0) {
+                    reserve(size() + count);
+                    wjr::uninitialized_copy_restrict_using_allocator(
+                        std::ranges::begin(range), std::ranges::end(range), end_unsafe(),
+                        _get_allocator());
+                    _get_size() += count;
+                }
+            } else if constexpr (vector_detail::counted_pointer_subrange_v<remove_cvref_t<Range>> &&
+                                 std::is_nothrow_copy_constructible_v<Iter> &&
+                                 _can_overwrite_by_copy<std::invoke_result_t<Source &>>) {
+                if (count != 0) {
+                    reserve(size() + count);
+                    auto first = _counted_source(range)();
+                    auto *const output = end_unsafe();
+                    if (count == 1) {
+                        wjr::construct_at(output, *first);
+                    } else {
+                        _construct_range_n(first, count, output);
+                    }
+                    _get_size() += count;
+                }
+            } else {
+                _append_counted(count, _counted_source(range));
             }
         } else {
-            for (auto &&value : range) {
-                emplace_back(std::forward<decltype(value)>(value));
-            }
+            auto first = std::ranges::begin(range);
+            _range_append(std::move(first), std::ranges::end(range), std::input_iterator_tag{});
         }
     }
 
@@ -2039,6 +2060,24 @@ private:
         }
     }
 
+    template <typename Range>
+    static constexpr auto _counted_source(Range &range) noexcept {
+        using Iter = std::ranges::iterator_t<Range>;
+        return [&range]() noexcept(noexcept(std::ranges::begin(range)) && noexcept(
+                   std::ranges::end(range)) &&std::is_nothrow_move_constructible_v<Iter>) {
+            auto first = std::ranges::begin(range);
+            (void)std::ranges::end(range);
+            if constexpr (vector_detail::counted_pointer_iterator_v<Iter>) {
+                return first.base();
+            } else if constexpr (std::ranges::common_range<Range> &&
+                                 is_contiguous_iterator_v<Iter>) {
+                return wjr::to_contiguous_address(std::move(first));
+            } else {
+                return first;
+            }
+        };
+    }
+
     template <typename Iter>
     WJR_CONSTEXPR20 void _range_append(Iter first, Iter last, std::forward_iterator_tag) {
         if (WJR_UNLIKELY(first == last)) {
@@ -2088,6 +2127,31 @@ private:
             } else {
                 _unreallocatable_unreachable(size() + n);
             }
+        }
+    }
+
+    template <typename Start>
+    WJR_CONSTEXPR20 void _append_counted(size_type n, Start start) {
+        if (WJR_UNLIKELY(n == 0)) {
+            return;
+        }
+        using Iter = std::invoke_result_t<Start &>;
+        auto construct = [this, &start](pointer output, size_type count, _Alty &) {
+            auto first = start();
+            _construct_range_n(first, count, output);
+        };
+
+        if (WJR_LIKELY(n <= capacity() - size())) {
+            construct(end_unsafe(), n, _get_allocator());
+            _get_size() += n;
+        } else if constexpr (is_reallocatable::value) {
+            constexpr bool nothrow_incoming =
+                noexcept(start()) &&
+                noexcept(_construct_range_n(std::declval<Iter &>(), n, std::declval<pointer>()));
+            _grow_insert<nothrow_incoming>(n, get_growth_capacity(capacity(), size() + n),
+                                           construct);
+        } else {
+            _unreallocatable_unreachable(size() + n);
         }
     }
 

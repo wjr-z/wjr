@@ -157,6 +157,14 @@ TEST(vector_ranges, forward_and_stream_sources) {
     EXPECT_TRUE(std::ranges::equal(values, std::array{13, 17, 19, 23, 29, 31}));
 }
 
+TEST(vector_ranges, counted_empty_append_leaves_source_unstarted) {
+    wjr::vector<int> values{42};
+    sized_input empty{0};
+    values.append_range(empty);
+    EXPECT_EQ(empty.begins, 0);
+    EXPECT_TRUE(std::ranges::equal(values, std::array{42}));
+}
+
 TEST(vector_ranges, moving_ranges_and_small_storage) {
     auto make_source = [] {
         return std::array{std::make_unique<int>(3), std::make_unique<int>(7)};
@@ -188,6 +196,8 @@ TEST(vector_ranges, throwing_bulk_source_rolls_back_new_lifetimes) {
         wjr::vector<modifier_value, modifier_allocator<modifier_value>> values{
             modifier_allocator<modifier_value>(counts)};
         values.emplace_back(42);
+        auto *const storage = values.data();
+        const auto capacity = values.capacity();
         auto source = std::views::iota(0, 6) | std::views::transform([](int n) -> modifier_value {
                           if (n == 3) {
                               throw std::runtime_error("source failed");
@@ -195,6 +205,8 @@ TEST(vector_ranges, throwing_bulk_source_rolls_back_new_lifetimes) {
                           return n;
                       });
         EXPECT_THROW(values.append_range(source), std::runtime_error);
+        EXPECT_EQ(values.data(), storage);
+        EXPECT_EQ(values.capacity(), capacity);
         EXPECT_EQ(values.size(), 1);
         EXPECT_EQ(values.front().value, 42);
         EXPECT_EQ(modifier_value::live, 1);
@@ -280,6 +292,9 @@ TEST(vector_ranges, allocation_failure_and_size_overflow_preserve_values) {
     counts.fail = true;
     sized_input source{100};
     EXPECT_THROW(values.assign_range(source), std::bad_alloc);
+    EXPECT_EQ(source.begins, 0);
+    EXPECT_TRUE(std::ranges::equal(values, std::array{42}));
+    EXPECT_THROW(values.append_range(source), std::bad_alloc);
     EXPECT_EQ(source.begins, 0);
     EXPECT_TRUE(std::ranges::equal(values, std::array{42}));
     auto huge = std::views::iota(size_t(0), std::numeric_limits<size_t>::max()) |
