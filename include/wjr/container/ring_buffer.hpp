@@ -1358,197 +1358,152 @@ private:
         }
     }
 
+    /// @pre n is positive and less than the current size.
+    WJR_CONSTEXPR20 void _truncate_assignment(size_type n) {
+        auto &al = _get_allocator();
+        const auto last = _get_tail();
+        const auto first = _next(_get_head(), n);
+        if (first < last) {
+            destroy_using_allocator(first, last, al);
+        } else {
+            destroy_using_allocator(first, _get_buf_end(), al);
+            destroy_using_allocator(data(), last, al);
+        }
+        _get_tail() = first;
+        _get_size() = n;
+    }
+
     template <typename Iter>
     WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::input_iterator_tag) {
         if (first == last) {
             clear();
             return;
         }
-        // For input iterators, process elements one by one
-        auto current_iter = first;
-        const size_type old_size = size();
-        size_type assigned_count = 0;
 
-        // First phase: assign to existing elements using iterators
-        auto it = begin();
-        auto end_it = end();
-
-        while (current_iter != last && it != end_it) {
-            *it = *current_iter;
-            ++current_iter;
-            ++it;
-            ++assigned_count;
+        auto out = begin();
+        const auto finish = end();
+        size_type assigned = 0;
+        for (; first != last && out != finish; ++first, ++out) {
+            *out = *first;
+            ++assigned;
+        }
+        if (first == last) {
+            if (assigned != size()) {
+                _truncate_assignment(assigned);
+            }
+            return;
         }
 
-        if (current_iter == last) {
-            // We have fewer new elements than existing ones
-            // Need to erase the remaining elements
-            if (assigned_count < old_size) {
-                // Destroy remaining elements and update size/tail
-                auto &al = _get_allocator();
-                const pointer _head = _get_head();
-                const pointer _tail = _get_tail();
+        for (; first != last; ++first) {
+            emplace_back(*first);
+        }
+    }
 
-                if (_head < _tail) {
-                    // Simple contiguous case
-                    destroy_using_allocator(_head + assigned_count, _tail, al);
-                } else if (assigned_count > 0) {
-                    // Wrap-around case
-                    const auto first_segment_size = _get_buf_end() - _head;
-                    if (assigned_count <= first_segment_size) {
-                        // Destroy remaining in first segment and all in second segment
-                        destroy_using_allocator(_head + assigned_count, _get_buf_end(), al);
-                        destroy_using_allocator(data(), _tail, al);
-                    } else {
-                        // Only destroy remaining in second segment
-                        const auto second_destroy_start = assigned_count - first_segment_size;
-                        destroy_using_allocator(data() + second_destroy_start, _tail, al);
-                    }
-                }
-
-                // Update tail and size
-                _get_tail() = _next(_head, assigned_count);
-                _get_size() = assigned_count;
-            }
+    template <typename Iter>
+    WJR_CONSTEXPR20 static void _copy_assignment_n(Iter &first, size_type n, pointer out) {
+        if constexpr (is_random_access_iterator_v<Iter>) {
+            wjr::copy_n_restrict(first, n, out);
+            first += n;
         } else {
-            // We have more new elements than existing ones
-            // Use emplace_back for the remaining elements
-            while (current_iter != last) {
-                emplace_back(*current_iter);
-                ++current_iter;
+            for (; n != 0; --n, (void)++first, (void)++out) {
+                *out = *first;
             }
         }
     }
 
     template <typename Iter>
+    WJR_CONSTEXPR20 pointer _construct_assignment_n(Iter &first, size_type n, pointer out) {
+        auto &al = _get_allocator();
+        if constexpr (std::is_pointer_v<Iter>) {
+            auto last = wjr::uninitialized_copy_n_restrict_using_allocator(first, n, out, al);
+            first += n;
+            return last;
+        } else {
+            _uninitialized_rollback<pointer, _Alty> rollback(out, &al);
+            auto &current = rollback.current();
+            for (; n != 0; --n, (void)++current, (void)++first) {
+                wjr::uninitialized_construct_using_allocator(current, al, *first);
+            }
+            rollback.release();
+            return current;
+        }
+    }
+
+    template <typename Iter>
     WJR_CONSTEXPR20 void _range_assign(Iter first, Iter last, std::forward_iterator_tag) {
-        constexpr bool nothrow_construction =
-            std::is_pointer_v<Iter> &&
-            std::is_nothrow_constructible_v<value_type, iterator_reference_t<Iter>> &&
-            is_trivially_allocator_construct_v<_Alty, value_type, iterator_reference_t<Iter>> &&
-            is_trivially_allocator_destroy_v<_Alty, value_type>;
-        const auto n = static_cast<size_type>(std::distance(first, last));
+        const auto n = container_detail::checked_count(std::distance(first, last), max_size(),
+                                                       "ring_buffer::assign: size overflow");
         if (n == 0) {
             clear();
             return;
         }
+
+        const auto old_size = size();
+        const auto head = _get_head();
+        const auto end = _get_buf_end();
+        if (n <= old_size) {
+            const auto contiguous = static_cast<size_type>(end - head);
+            if (n <= contiguous) {
+                wjr::copy_restrict(first, last, head);
+            } else {
+                _copy_assignment_n(first, contiguous, head);
+                wjr::copy_restrict(first, last, data());
+            }
+            if (n != old_size) {
+                _truncate_assignment(n);
+            }
+            return;
+        }
+
+        using ref = iterator_reference_t<Iter>;
+        constexpr bool nothrow_construction =
+            std::is_pointer_v<Iter> && std::is_nothrow_constructible_v<value_type, ref> &&
+            is_trivially_allocator_construct_v<_Alty, value_type, ref> &&
+            is_trivially_allocator_destroy_v<_Alty, value_type>;
         auto &al = _get_allocator();
-        const pointer _head = _get_head();
-        const pointer _tail = _get_tail();
 
-        if (n <= size()) {
-            const auto _one = static_cast<size_type>(_get_buf_end() - _head);
-            const auto n1 = n <= _one ? n : _one;
-
-            wjr::copy_n_restrict(first, n1, _head);
-            destroy_using_allocator(_head + n1, _head < _tail ? _tail : _get_buf_end(), al);
-
-            if (n <= _one) {
-                if (_tail <= _head) {
-                    destroy_using_allocator(data(), _tail, al);
-                }
-                _get_tail() = n == _one ? data() : _head + n;
-            } else {
-                const auto n2 = n - n1;
-                wjr::copy_restrict(std::next(first, n1), last, data());
-                destroy_using_allocator(data() + n2, _tail, al);
-                _get_tail() = data() + n2;
-            }
-
-            _get_size() = n;
-        } else if (WJR_LIKELY(n <= capacity())) {
-            // n > size() but n <= capacity()
-            // Need to assign to existing elements and construct new ones
-            const auto old_size = size();
-            const auto _one = static_cast<size_type>(_get_buf_end() - _head);
-            const auto old_size_one = old_size <= _one ? old_size : _one;
-
-            // First, assign to existing elements in first segment
-            auto iter = first;
-            auto next = std::next(iter, old_size_one);
-            wjr::copy_restrict(iter, next, _head);
-            iter = next;
-
-            if (old_size <= _one) {
-                // All existing elements are in first segment
-                // Construct new elements in first segment
-                using tail_guard = std::conditional_t<nothrow_construction, _no_assignment_rollback,
-                                                      _uninitialized_rollback<pointer, _Alty>>;
-                tail_guard rollback(_head + old_size, &al);
-                const auto new_in_first = n <= _one ? (n - old_size) : (_one - old_size);
-                if (new_in_first > 0) {
-                    next = std::next(iter, new_in_first);
-                    const auto end = wjr::uninitialized_copy_restrict_using_allocator(
-                        iter, next, _head + old_size, al);
-                    if constexpr (!nothrow_construction)
-                        rollback.current() = end;
-                    iter = next;
-                }
-
-                // If we need more space, use second segment
-                if (n > _one) {
-                    const auto new_in_second = n - _one;
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, last, data(), al);
-                    _get_tail() = data() + new_in_second;
-                } else {
-                    _get_tail() = n == _one ? data() : _head + n;
-                }
-                rollback.release();
-            } else {
-                // Existing elements span both segments
-                const auto old_size_two = old_size - old_size_one;
-
-                // Assign to existing elements in second segment
-                next = std::next(iter, old_size_two);
-                wjr::copy_restrict(iter, next, data());
-                iter = next;
-
-                // Determine where to place new elements
-                const auto remaining = n - old_size;
-                const auto space_in_first = _one - old_size_one;
-
-                if (remaining <= space_in_first) {
-                    // All new elements fit in first segment
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, last,
-                                                                     _head + old_size_one, al);
-                    _get_tail() = data() + old_size_two;
-                } else {
-                    // New elements span both segments
-                    if (space_in_first > 0) {
-                        next = std::next(iter, space_in_first);
-                        wjr::uninitialized_copy_restrict_using_allocator(iter, next,
-                                                                         _head + old_size_one, al);
-                        iter = next;
-                    }
-                    const auto new_in_second = remaining - space_in_first;
-                    wjr::uninitialized_copy_restrict_using_allocator(iter, last,
-                                                                     data() + old_size_two, al);
-                    _get_tail() = data() + old_size_two + new_in_second;
-                }
-            }
-
-            _get_size() = n;
-        } else {
+        if (n > capacity()) {
             if constexpr (is_reallocatable::value) {
-                size_type new_capacity = get_growth_capacity(capacity(), n);
-
                 storage_type new_storage;
-                uninitialized_construct(new_storage, n, new_capacity);
+                uninitialized_construct(new_storage, n, get_growth_capacity(capacity(), n));
                 using allocation_guard =
                     std::conditional_t<nothrow_construction, _no_assignment_rollback,
                                        _allocation_rollback>;
                 allocation_guard allocation(new_storage, al);
-
-                const pointer _new_begin = new_storage.data();
-                wjr::uninitialized_copy_n_restrict_using_allocator(first, n, _new_begin, al);
-
+                _construct_assignment_n(first, n, new_storage.data());
                 _destroy_and_deallocate();
                 _take_storage(new_storage);
                 allocation.release();
             } else {
                 _unreallocatable_unreachable(n);
             }
+            return;
         }
+
+        if (old_size != 0) {
+            const auto first_count = std::min(old_size, static_cast<size_type>(end - head));
+            _copy_assignment_n(first, first_count, head);
+            if (first_count != old_size) {
+                _copy_assignment_n(first, old_size - first_count, data());
+            }
+        }
+
+        const auto tail = _get_tail();
+        const size_type added = n - old_size;
+        const auto constructed = std::min(added, static_cast<size_type>(end - tail));
+        using tail_guard = std::conditional_t<nothrow_construction, _no_assignment_rollback,
+                                              _uninitialized_rollback<pointer, _Alty>>;
+        tail_guard rollback(tail, &al);
+        const auto first_end = _construct_assignment_n(first, constructed, tail);
+        if constexpr (!nothrow_construction) {
+            rollback.current() = first_end;
+        }
+        if (constructed != added) {
+            _construct_assignment_n(first, added - constructed, data());
+        }
+        _get_tail() = _next(tail, added);
+        _get_size() = n;
+        rollback.release();
     }
 
     cpair<_Alty, storage_type> m_pair;

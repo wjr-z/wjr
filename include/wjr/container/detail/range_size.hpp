@@ -12,26 +12,27 @@ namespace wjr::container_detail {
 template <typename Range>
 concept countable_range = std::ranges::sized_range<Range> || std::ranges::forward_range<Range>;
 
-/// @private Check a known range length before narrowing it to the storage size type.
-template <typename Size, countable_range Range>
-constexpr Size checked_range_size(Range &range, Size limit, [[maybe_unused]] const char *message) {
-    const auto size = [&] {
-        if constexpr (std::ranges::sized_range<Range>) {
-            return std::ranges::size(range);
-        } else {
-            return std::ranges::distance(range);
-        }
-    }();
-
-    if constexpr (std::numeric_limits<decltype(size)>::is_signed) {
-        if (size < 0) {
+/// @private Validate a known element count before conversion to the storage size type.
+template <typename Size, typename Count>
+constexpr Size checked_count(Count count, Size limit, [[maybe_unused]] const char *message) {
+    if constexpr (std::numeric_limits<Count>::is_signed) {
+        if (count < 0) {
             WJR_THROW(std::length_error(message));
         }
     }
-    if (size > limit) {
+    if (count > limit) {
         WJR_THROW(std::length_error(message));
     }
-    return static_cast<Size>(size);
+    return static_cast<Size>(count);
+}
+
+template <typename Size, countable_range Range>
+constexpr Size checked_range_size(Range &range, Size limit, const char *message) {
+    if constexpr (std::ranges::sized_range<Range>) {
+        return checked_count(std::ranges::size(range), limit, message);
+    } else {
+        return checked_count(std::ranges::distance(range), limit, message);
+    }
 }
 
 } // namespace wjr::container_detail
