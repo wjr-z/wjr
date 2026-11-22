@@ -97,6 +97,72 @@ void ordered_queries_and_key_erase() {
     }
 }
 
+TEST(BtreeAssociativeQuery, CountDuplicateRunsAcrossLeafBoundaries) {
+    wjr::btree_multiset<int, std::less<>> values;
+    EXPECT_EQ(values.count(0), 0u);
+
+    for (int key : {0, 0, 1, 2, 2}) {
+        values.insert(key);
+    }
+    EXPECT_EQ(values.count(0), 2u);
+    EXPECT_EQ(values.count(1), 1u);
+    EXPECT_EQ(values.count(2L), 2u);
+    EXPECT_EQ(values.count(3), 0u);
+
+    for (int i = 0; i != 2048; ++i) {
+        values.insert(0);
+        values.insert(2);
+        values.insert(4);
+    }
+    EXPECT_EQ(values.count(-1), 0u);
+    EXPECT_EQ(values.count(0), 2050u);
+    EXPECT_EQ(values.count(1), 1u);
+    EXPECT_EQ(values.count(2L), 2050u);
+    EXPECT_EQ(values.count(3), 0u);
+    EXPECT_EQ(values.count(4L), 2048u);
+    EXPECT_EQ(values.count(5), 0u);
+
+    wjr::btree_multiset<int> same_key;
+    for (int i = 0; i != 2048; ++i) {
+        same_key.insert(7);
+    }
+    EXPECT_EQ(same_key.count(7), same_key.size());
+}
+
+TEST(BtreeAssociativeQuery, EqualRangeForEmbeddedKeys) {
+    for (const auto second : {1, 3}) {
+        wjr::btree_multiset<int> values;
+        std::multiset<int> reference;
+        check_queries(values, reference);
+        values.insert(1);
+        reference.insert(1);
+        check_queries(values, reference);
+        values.insert(second);
+        reference.insert(second);
+        check_queries(values, reference);
+    }
+}
+
+TEST(BtreeAssociativeQuery, EqualRangeSplitsAtEquivalentSeparators) {
+    using tree_type = wjr::btree_multiset<int, std::greater<>, std::allocator<char>, 8>;
+    tree_type values;
+    std::multiset<int, std::greater<>> reference;
+    std::mt19937 rng(327);
+    for (int i = 0; i != 16384; ++i) {
+        const int key = static_cast<int>(rng() % 64) * 3;
+        values.insert(key);
+        reference.insert(key);
+    }
+
+    check_queries(values, reference);
+    for (long key = -1; key != 194; ++key) {
+        const auto [first, last] = values.equal_range(key);
+        EXPECT_EQ(first, values.lower_bound(key));
+        EXPECT_EQ(last, values.upper_bound(key));
+        EXPECT_EQ(values.count(key), reference.count(static_cast<int>(key)));
+    }
+}
+
 TEST(BtreeAssociativeQuery, ComparatorEquivalenceConstnessAndAllAdapters) {
     ordered_queries_and_key_erase<wjr::btree_map<int, int, grouped_order>,
                                   std::map<int, int, grouped_order>>();
