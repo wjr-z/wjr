@@ -1,3 +1,5 @@
+#include <array>
+
 #include <gtest/gtest.h>
 
 #include <wjr/math/shift.hpp>
@@ -48,4 +50,33 @@ TEST(shift, complemented_array_shifts) {
     EXPECT_EQ(rshiftc_n(right, source, 2, 4, 0xb0000000u), 0x70000000u);
     EXPECT_EQ(right[0], 0x0fedcba9u);
     EXPECT_EQ(right[1], 0xf7654321u);
+}
+
+namespace {
+
+template <typename T>
+void verify_shift_dispatch() {
+    constexpr std::array<T, 9> input{13, 29, 33, 1027, 4099, 31, 97, 103, 107};
+    constexpr T fill = 15;
+    for (size_t n : {size_t(1), input.size() - 1}) {
+        auto expected = input;
+        auto actual = input;
+        const auto left_carry = fallback_lshift_n(expected.data() + 1, expected.data(), n, 5, fill);
+        EXPECT_EQ(lshift_n(actual.data() + 1, actual.data(), n, 5, fill), left_carry);
+        EXPECT_EQ(actual, expected);
+
+        expected = input;
+        actual = input;
+        const auto right_carry =
+            fallback_rshift_n(expected.data(), expected.data() + 1, n, 5, fill);
+        EXPECT_EQ(rshift_n(actual.data(), actual.data() + 1, n, 5, fill), right_carry);
+        EXPECT_EQ(actual, expected);
+    }
+}
+
+} // namespace
+
+TEST(shift, standard_long_types_with_overlapping_buffers) {
+    verify_shift_dispatch<unsigned long>();
+    verify_shift_dispatch<unsigned long long>();
 }

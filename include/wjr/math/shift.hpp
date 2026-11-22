@@ -102,7 +102,7 @@ WJR_NODISCARD WJR_INTRINSIC_CONSTEXPR20 T lshift_n(T *dst, const T *src, size_t 
     }
 
 #if WJR_HAS_BUILTIN(LSHIFT_N)
-    if constexpr (sizeof(T) == 8) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (is_constant_evaluated()) {
             return fallback_lshift_n(dst, src, n, c, lo);
         }
@@ -161,7 +161,7 @@ WJR_INTRINSIC_CONSTEXPR20 T rshift_n(T *dst, const T *src, size_t n, unsigned in
     }
 
 #if WJR_HAS_BUILTIN(RSHIFT_N)
-    if constexpr (sizeof(T) == 8) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
         if (is_constant_evaluated()) {
             return fallback_rshift_n(dst, src, n, c, hi);
         }
