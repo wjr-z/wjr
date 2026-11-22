@@ -393,6 +393,69 @@ TEST(optional, or_else) {
     }
 }
 
+namespace {
+
+struct immovable_transform_value {
+    constexpr explicit immovable_transform_value(int v) : value(v) {}
+    immovable_transform_value(const immovable_transform_value &) = delete;
+    immovable_transform_value(immovable_transform_value &&) = delete;
+
+    int value;
+};
+
+struct immovable_transform_lifetime {
+    explicit immovable_transform_lifetime(int &counter) : destructions(counter) {}
+    immovable_transform_lifetime(const immovable_transform_lifetime &) = delete;
+    immovable_transform_lifetime(immovable_transform_lifetime &&) = delete;
+    ~immovable_transform_lifetime() { ++destructions; }
+
+    int &destructions;
+};
+
+} // namespace
+
+TEST(optional, transform_constructs_result_directly) {
+    constexpr optional<int> value(42);
+    constexpr auto result =
+        value.transform([](const int &v) { return immovable_transform_value(v); });
+    static_assert(result.has_value() && result->value == 42);
+
+    constexpr optional<void> ready(std::in_place);
+    constexpr auto from_void = ready.transform([] { return immovable_transform_value(7); });
+    static_assert(from_void.has_value() && from_void->value == 7);
+
+    int calls = 0;
+    auto empty = optional<int>().transform([&](int) {
+        ++calls;
+        return immovable_transform_value(42);
+    });
+    EXPECT_FALSE(empty.has_value());
+    EXPECT_EQ(calls, 0);
+
+    int destructions = 0;
+    {
+        auto owning = optional<int>(42).transform(
+            [&](int) { return immovable_transform_lifetime(destructions); });
+        EXPECT_TRUE(owning.has_value());
+        EXPECT_EQ(destructions, 0);
+    }
+    EXPECT_EQ(destructions, 1);
+}
+
+TEST(optional, transform_accepts_void_result) {
+    int calls = 0;
+    EXPECT_TRUE(optional<int>(42)
+                    .transform([&](int &&value) {
+                        EXPECT_EQ(value, 42);
+                        ++calls;
+                    })
+                    .has_value());
+    EXPECT_FALSE(optional<int>().transform([&](int) { ++calls; }).has_value());
+    EXPECT_TRUE(optional<void>(std::in_place).transform([&] { ++calls; }).has_value());
+    EXPECT_FALSE(optional<void>().transform([&] { ++calls; }).has_value());
+    EXPECT_EQ(calls, 2);
+}
+
 TEST(optional, transform) {
     // Test transform with valid optional
     {
