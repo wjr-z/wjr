@@ -61,28 +61,18 @@ constexpr decltype(auto) match(Var &&var, Args &&...args) {
 
 /// @private Internal implementation details for variant visitation
 namespace visit_detail {
-/// @private Helper for computing total index from multi-dimensional variant access
-template <typename Sizes, typename T>
+/// @private Flatten Cartesian indices in the same order as the runtime dispatcher.
+template <typename Sizes, typename Indices>
 struct _tp_list_total;
 
-/// @private Type alias for computed total
-template <typename Sizes, typename T>
-inline constexpr size_t _tp_list_multiply_v = _tp_list_total<Sizes, T>::value;
-
-/// @private Base case for single-dimensional access
-template <size_t Size, size_t Idx>
-struct _tp_list_total<tp_list<integral_constant<size_t, Size>>, tp_indexs_list_t<Idx>> {
-    static constexpr size_t value = Idx;
-    static constexpr size_t total = Size;
-};
-
-/// @private Recursive case for multi-dimensional access
-template <size_t Size, typename... Sizes, size_t Idx, size_t... Rest>
-struct _tp_list_total<tp_list<integral_constant<size_t, Size>, Sizes...>,
-                      tp_indexs_list_t<Idx, Rest...>> {
-    using __Rest = _tp_list_total<tp_list<Sizes...>, tp_indexs_list_t<Rest...>>;
-    static constexpr size_t value = __Rest::value + Idx * __Rest::total;
-    static constexpr size_t total = Size * __Rest::total;
+template <size_t... Sizes, size_t... Indices>
+struct _tp_list_total<tp_indexs_list_t<Sizes...>, tp_indexs_list_t<Indices...>> {
+    static constexpr size_t value = [] {
+        size_t index = 0;
+        ((index = index * Sizes + Indices), ...);
+        return index;
+    }();
+    static constexpr size_t total = (size_t{1} * ... * Sizes);
 };
 
 /// @private Access a specific index in the variant index pack
