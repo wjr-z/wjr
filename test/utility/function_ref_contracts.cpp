@@ -46,6 +46,17 @@ static_assert(!std::is_default_constructible_v<wjr::function_ref<int(int)>>);
 static_assert(sizeof(wjr::function_ref<int(int)>) == 2 * sizeof(void *));
 static_assert(sizeof(wjr::function_ref<int(int) const noexcept>) == 2 * sizeof(void *));
 
+struct incomplete_argument;
+using incomplete_reference = wjr::function_ref<int(incomplete_argument)>;
+static_assert(sizeof(incomplete_reference) == 2 * sizeof(void *));
+static_assert(std::is_trivially_copyable_v<incomplete_reference>);
+
+struct trivial_argument {
+    int first;
+    int second;
+};
+static_assert(std::is_same_v<wjr::func_detail::thunk_arg_t<trivial_argument>, trivial_argument>);
+
 template <typename Signature>
 void check_cv_dispatch(bool impose_const) {
     qualified_callable mutable_target;

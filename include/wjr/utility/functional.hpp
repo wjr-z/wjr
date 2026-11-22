@@ -35,9 +35,11 @@ union Ptr {
     void (*func)();
 };
 
-/// @brief Forward existing class parameters while keeping scalar values in the call ABI.
+/// @brief Keep trivial values in the call ABI and forward other existing parameters.
 template <typename Arg>
-using thunk_arg_t = std::conditional_t<std::is_scalar_v<Arg>, Arg, Arg &&>;
+using thunk_arg_t = std::conditional_t<std::is_trivially_move_constructible_v<Arg> &&
+                                           std::is_trivially_destructible_v<Arg>,
+                                       Arg, Arg &&>;
 
 /// @details Keep the thunk outside the class template for Clang issue #90760.
 template <typename Target, bool Noex, typename Ret, typename... Args>
@@ -58,16 +60,21 @@ static Ret _S_nt_ptrs(Ptr, thunk_arg_t<Args>... args) noexcept(Noex) {
 
 template <bool Noex, typename Ret, typename... Args>
 struct invoker {
-    using func_ptr_t = Ret (*)(Ptr, thunk_arg_t<Args>...) noexcept(Noex);
+    // Only inspect parameter traits when constructing or calling a reference, so
+    // declarations with incomplete by-value parameter types retain a complete wrapper.
+    using func_ptr_t = void (*)();
+
+    template <typename... Parameters>
+    using thunk_ptr_t = Ret (*)(Ptr, thunk_arg_t<Parameters>...) noexcept(Noex);
 
     template <typename Tp>
-    static constexpr func_ptr_t _s_ptr() {
-        return &_S_call_ptrs<Tp, Noex, Ret, Args...>;
+    static func_ptr_t _s_ptr() noexcept {
+        return reinterpret_cast<func_ptr_t>(&_S_call_ptrs<Tp, Noex, Ret, Args...>);
     }
 
     template <auto Fn>
-    static constexpr auto _S_nt_ptr() {
-        return &_S_nt_ptrs<Fn, Noex, Ret, Args...>;
+    static func_ptr_t _S_nt_ptr() noexcept {
+        return reinterpret_cast<func_ptr_t>(&_S_nt_ptrs<Fn, Noex, Ret, Args...>);
     }
 };
 
