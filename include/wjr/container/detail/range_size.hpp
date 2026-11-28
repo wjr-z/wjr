@@ -1,7 +1,6 @@
 #ifndef WJR_CONTAINER_DETAIL_RANGE_SIZE_HPP__
 #define WJR_CONTAINER_DETAIL_RANGE_SIZE_HPP__
 
-#include <limits>
 #include <ranges>
 #include <stdexcept>
 
@@ -13,6 +12,7 @@ template <typename Range>
 concept countable_range = std::ranges::sized_range<Range> || std::ranges::forward_range<Range>;
 
 /// @private Check a known range length before narrowing it to the storage size type.
+/// @pre range denotes a valid range and its length is nonnegative.
 template <typename Size, countable_range Range>
 constexpr Size checked_range_size(Range &range, Size limit, [[maybe_unused]] const char *message) {
     const auto size = [&] {
@@ -23,11 +23,6 @@ constexpr Size checked_range_size(Range &range, Size limit, [[maybe_unused]] con
         }
     }();
 
-    if constexpr (std::numeric_limits<decltype(size)>::is_signed) {
-        if (size < 0) {
-            WJR_THROW(std::length_error(message));
-        }
-    }
     if (size > limit) {
         WJR_THROW(std::length_error(message));
     }
