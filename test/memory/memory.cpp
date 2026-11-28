@@ -4,9 +4,43 @@
 #include <memory>
 #include <wjr/crtp/trivially_allocator_base.hpp>
 #include <wjr/memory/object_pool.hpp>
+#include <wjr/memory/small_copy.hpp>
 #include <wjr/memory/stack_allocator.hpp>
 
 using namespace wjr;
+
+WJR_NOINLINE static bool pointer_slot_changed(int **dest, int **source, int **observed) {
+    const auto *before = *observed;
+    wjr::small_copy<1, 1>(source, source + 1, dest);
+    return *observed != before;
+}
+
+TEST(small_copy, pointer_slot_remains_observable_through_its_type) {
+    int first = 0, second = 0;
+    int *source = &first;
+    int *dest = &second;
+    EXPECT_TRUE(pointer_slot_changed(&dest, &source, &dest));
+    EXPECT_EQ(dest, source);
+}
+
+TEST(small_copy, overlapping_pointer_slots) {
+    int values[18] = {};
+    std::array<int *, 18> slots;
+    for (size_t count = 0; count < slots.size(); ++count) {
+        SCOPED_TRACE(count);
+        for (size_t i = 0; i < slots.size(); ++i) {
+            slots[i] = values + i;
+        }
+        wjr::small_copy(slots.data(), slots.data() + count, slots.data() + 1);
+        for (size_t i = 0; i < count; ++i) {
+            ASSERT_EQ(slots[i + 1], values + i);
+        }
+        wjr::small_copy(slots.data() + 1, slots.data() + count + 1, slots.data());
+        for (size_t i = 0; i < count; ++i) {
+            ASSERT_EQ(slots[i], values + i);
+        }
+    }
+}
 
 TEST(stack_allocator, simple_test) {
     static_assert(is_trivially_allocator_v<weak_stack_allocator<char>>, "error");
