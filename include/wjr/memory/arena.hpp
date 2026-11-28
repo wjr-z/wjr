@@ -7,9 +7,8 @@
 namespace wjr {
 
 /**
- * @brief
- *
- * @todo Alignment ...
+ * @brief Own allocations from a bump cursor and dedicated blocks.
+ * @note Returned storage is aligned to mem::default_new_alignment.
  */
 class arena {
 public:
@@ -43,9 +42,13 @@ public:
     }
     ~arena() = default;
 
+    /**
+     * @brief Allocate aligned storage from the arena.
+     * @pre n is positive.
+     */
     WJR_MALLOC void *allocate(size_t n) noexcept {
-        if (WJR_UNLIKELY(m_start == nullptr || align_down(to_unsigned(m_end - m_start),
-                                                          mem::default_new_alignment) < n)) {
+        // A fresh or moved-from arena has two null cursors and zero remaining bytes.
+        if (WJR_UNLIKELY(to_unsigned(m_end - m_start) < n)) {
             return _allocate_large(n);
         }
 
@@ -58,6 +61,7 @@ private:
     void *_allocate_large(size_t n) noexcept;
 
     std::byte *m_start = nullptr;
+    /// @brief One past the last usable byte, aligned down when the block is acquired.
     std::byte *m_end = nullptr;
     uint32_t m_cache;
     Rule m_rule;

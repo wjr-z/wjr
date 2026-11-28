@@ -43,6 +43,38 @@ TEST(arena, unaligned_cache_size) {
     }
 }
 
+TEST(arena, cached_capacity_below_one_alignment_unit) {
+    constexpr auto alignment = mem::default_new_alignment;
+    if constexpr (alignment <= 4) {
+        GTEST_SKIP() << "This target has no below-alignment cache large enough for a cached byte.";
+    }
+
+    arena pool(4);
+    auto *first = static_cast<std::byte *>(pool.allocate(1));
+    auto *second = static_cast<std::byte *>(pool.allocate(1));
+    // Two dedicated live blocks each have a header and cannot be adjacent payload slots.
+    ASSERT_NE(reinterpret_cast<uintptr_t>(second), reinterpret_cast<uintptr_t>(first) + alignment);
+    EXPECT_EQ(reinterpret_cast<uintptr_t>(first) % alignment, 0);
+    EXPECT_EQ(reinterpret_cast<uintptr_t>(second) % alignment, 0);
+    *first = std::byte{17};
+    *second = std::byte{42};
+    EXPECT_EQ(*first, std::byte{17});
+}
+
+TEST(arena, unaligned_cache_preserves_all_aligned_slots) {
+    constexpr auto alignment = mem::default_new_alignment;
+    arena pool(static_cast<uint32_t>(4 * alignment + 1));
+    auto *first = static_cast<std::byte *>(pool.allocate(1));
+    auto *dedicated = static_cast<std::byte *>(pool.allocate(4 * alignment));
+    for (size_t i = 1; i != 4; ++i) {
+        EXPECT_EQ(pool.allocate(alignment), first + i * alignment);
+    }
+    auto *next = static_cast<std::byte *>(pool.allocate(1));
+    EXPECT_NE(next, first);
+    EXPECT_NE(next, dedicated);
+    EXPECT_EQ(reinterpret_cast<uintptr_t>(next) % alignment, 0);
+}
+
 TEST(arena, moved_from_arena_can_allocate_independently) {
     arena source;
     auto *original = static_cast<int *>(source.allocate(sizeof(int)));
